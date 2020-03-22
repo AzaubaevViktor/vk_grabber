@@ -1,0 +1,13 @@
+.venv
+
+.venv/**
+.idea/**
+
+.idea/.gitignore
+.idea/inspectionProfiles/
+.idea/misc.xml
+.idea/modules.xml
+.idea/vk_grabber.iml
+
+*.pyc
+__pycache__
