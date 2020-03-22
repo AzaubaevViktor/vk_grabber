@@ -14,7 +14,7 @@ def test_simple():
 
 
 def test_stopwords():
-    text = "я как-бы мы оно ага"
+    text = "я как-бы мы оно ага под"
 
     tokens = tokenize(text)
 
