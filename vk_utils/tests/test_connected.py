@@ -2,6 +2,7 @@ from typing import List
 
 import pytest
 
+from vk_utils import VKUser, VKGroup, VKPost
 
 pytestmark = pytest.mark.asyncio
 

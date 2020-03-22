@@ -38,9 +38,12 @@ class Log:
         Fore.CYAN
     ]
 
-    def __init__(self, name: str):
-        self.name = name
+    def __init__(self, name: str = None):
+        self.name = name or self._default_name()
         self._level: LogLevel = LogLevel.DEBUG
+
+    def _default_name(self):
+        raise NotImplementedError()
 
     @property
     def level(self) -> LogLevel:
