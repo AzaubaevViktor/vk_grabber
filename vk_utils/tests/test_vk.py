@@ -27,12 +27,13 @@ async def test_group_no_args(vk, group_id):
         await vk.group_posts(group_id)
 
 
-async def test_group_count_0(vk, group_id):
+@pytest.mark.parametrize('count', (-100, -55, -1, 0))
+async def test_group_count_wrong(vk, group_id, count):
     with pytest.raises(ValueError):
         await vk.group_posts(group_id)
 
 
-@pytest.mark.parametrize('count', (1, 5, 10, 14, 300))
+@pytest.mark.parametrize('count', (1, 5, 10, 14, 250, 100, 200))
 async def test_group_posts_with_count(vk, group_id, count):
     posts = await vk.group_posts(group_id, count=count)
 
@@ -44,6 +45,9 @@ async def test_group_posts_with_count(vk, group_id, count):
 
     if len(posts) > 2:
         assert posts[0].date > posts[-1].date
+
+    uids = set(post.id for post in posts)
+    assert len(uids) == len(posts)
 
 
 class TestGroupPostTs:

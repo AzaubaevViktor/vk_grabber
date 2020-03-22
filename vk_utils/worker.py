@@ -78,27 +78,32 @@ class VK:
         if count is None and from_ts is None:
             raise ValueError("USe one of attribute: `count` or `from_ts`")
 
-        params = {}
-
         if count is not None:
-            if count < 1:
-                raise ValueError(f"{count=} must be more than 0")
-            params['count'] = count
+            return await self._group_posts_count(group_id, count)
 
         if from_ts is not None:
             raise NotImplementedError()
 
-        answer = await self.call_method(
-            "wall.get",
-            owner_id=-group_id,
-            fields=self.post_fields,
-            **params
-        )
+    async def _group_posts_count(self, group_id, count):
+        if count < 1:
+            raise ValueError(f"{count=} must be more than 0")
 
         posts = []
+        posts_count = count
 
-        for item in answer['items']:
-            posts.append(VKPost(**item))
+        while len(posts) < posts_count:
+            answer = await self.call_method(
+                "wall.get",
+                owner_id=-group_id,
+                fields=self.post_fields,
+                count=min(posts_count - len(posts), 100),
+                offset=len(posts)
+            )
+
+            posts_count = min(count, answer['count'])
+
+            for item in answer['items']:
+                posts.append(VKPost(**item))
 
         return posts
 
