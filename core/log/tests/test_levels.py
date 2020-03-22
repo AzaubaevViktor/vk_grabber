@@ -1,4 +1,4 @@
-from log import LogLevel
+from core import LogLevel
 
 
 def test_levels(log, capsys):

@@ -1,6 +1,6 @@
 import pytest
 
-from log import Log
+from core import Log
 
 
 @pytest.fixture(scope='function')
