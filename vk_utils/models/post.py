@@ -1,5 +1,20 @@
-from core import AttributeStorage
+from core import AttributeStorage, Attribute
 
 
 class VKPost(AttributeStorage):
-    pass
+    id = Attribute()
+    from_id = Attribute()
+    owner_id = Attribute()
+    date = Attribute()
+    marked_as_ads = Attribute()
+    post_type = Attribute()
+    text = Attribute()
+    attachments = Attribute()
+    post_source = Attribute()
+    comments = Attribute()
+    likes = Attribute()
+    reposts = Attribute()
+    views = Attribute(default=None)
+
+    is_favorite = Attribute()
+    edited = Attribute(default=False)

@@ -1,6 +1,6 @@
 import aiohttp
 
-from vk_utils import VKGroup
+from vk_utils import VKGroup, VKPost
 
 
 class VK:
@@ -30,9 +30,13 @@ class VK:
             "occupation"
         ])
 
-        self.group_fields = ",".join([
+        self.group_info_fields = ",".join([
             'id', 'name', 'type', 'photo_200', 'city', 'description',
             'place'
+        ])
+
+        self.post_fields = ",".join([
+
         ])
 
         self.session: aiohttp.ClientSession = None
@@ -58,10 +62,45 @@ class VK:
         return await self.call_method("account.getProfileInfo")
 
     async def group_info(self, group_id):
-        answer = await self.call_method("groups.getById", group_id=group_id, )
+        answer = await self.call_method(
+            "groups.getById",
+            group_id=group_id,
+            fields=self.group_info_fields
+        )
         assert len(answer) == 1
         group = answer[0]
         return VKGroup(**group)
+
+    async def group_posts(self, group_id, count=None, from_ts=None):
+        if count is not None and from_ts is not None:
+            raise ValueError("Use one of attribute: `count` or `from_ts`")
+
+        if count is None and from_ts is None:
+            raise ValueError("USe one of attribute: `count` or `from_ts`")
+
+        params = {}
+
+        if count is not None:
+            if count < 1:
+                raise ValueError(f"{count=} must be more than 0")
+            params['count'] = count
+
+        if from_ts is not None:
+            raise NotImplementedError()
+
+        answer = await self.call_method(
+            "wall.get",
+            owner_id=-group_id,
+            fields=self.post_fields,
+            **params
+        )
+
+        posts = []
+
+        for item in answer['items']:
+            posts.append(VKPost(**item))
+
+        return posts
 
     async def shutdown(self):
         if self.session:

@@ -18,31 +18,32 @@ async def test_group(vk, group_id):
 
     assert isinstance(group_info, VKGroup)
 
-
-async def test_group_all_posts(vk, group_id):
-    posts = await vk.group_posts(group_id)
-
-    assert len(posts)
-
-    for post in posts:
-        assert isinstance(post, VKPost)
-        assert post.group_id == group_id
-
-    assert posts[0].timestamp > posts[-1].timestamp
+    assert group_info.id == group_id
+    assert group_info.description
 
 
-@pytest.mark.parametrize('count', (0, 1, 5, 10, 14))
+async def test_group_no_args(vk, group_id):
+    with pytest.raises(ValueError):
+        await vk.group_posts(group_id)
+
+
+async def test_group_count_0(vk, group_id):
+    with pytest.raises(ValueError):
+        await vk.group_posts(group_id)
+
+
+@pytest.mark.parametrize('count', (1, 5, 10, 14, 300))
 async def test_group_posts_with_count(vk, group_id, count):
     posts = await vk.group_posts(group_id, count=count)
 
     assert len(posts) == count
 
     for post in posts:
-        assert isinstance(post, VKpost)
-        assert post.group_id == group_id
+        assert isinstance(post, VKPost)
+        assert post.from_id == -group_id
 
     if len(posts) > 2:
-        assert posts[0].timestamp > posts[-1].timestamp
+        assert posts[0].date > posts[-1].date
 
 
 class TestGroupPostTs:
@@ -53,12 +54,16 @@ class TestGroupPostTs:
         return posts
 
     @pytest.mark.parametrize('index', range(9))
-    async def test_group_posts_with_ts(vk, group_id, last_posts, index):
+    async def test_group_posts_with_ts(self, vk, group_id, last_posts, index):
         assert len(last_posts) > index + 1
 
         posts_ts = await vk.group_posts(group_id,
-                                        from_ts=(last_posts[index].timestamp + last_posts[index + 1].timestamp) / 2)
+                                        from_ts=(last_posts[index].date + last_posts[index + 1].date) / 2)
 
         assert len(posts_ts) == index
         assert posts_ts == last_posts[:index]
 
+
+async def test_wrong(vk, group_id):
+    with pytest.raises(ValueError):
+        await vk.group_posts(group_id, from_ts=100, count=100)
