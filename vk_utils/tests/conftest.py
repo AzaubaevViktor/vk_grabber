@@ -1,18 +1,31 @@
+import asyncio
+
 import pytest
 
 from core import LoadConfig
+from vk_utils import VK
+
+
+@pytest.yield_fixture(scope='session')
+def event_loop(request):
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
 
 
 @pytest.fixture(scope='session')
-def vk():
+async def vk():
     config = LoadConfig()
 
     vk = VK(config.vk)
 
-    return vk
+    await vk.warm_up()
+
+    yield vk
+
+    await vk.shutdown()
 
 
 @pytest.fixture(scope="session")
-def test_group_id():
-    raise NotImplementedError()
-    return None
+def group_id():
+    return 55293029
