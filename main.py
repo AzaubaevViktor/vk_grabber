@@ -36,9 +36,6 @@ async def main(count):
 
     word_ts = words[0]
 
-    # importing the required module
-    import matplotlib.pyplot as plt
-
     # x axis values
     x = word_ts.data.keys()
     # corresponding y axis values
@@ -46,23 +43,13 @@ async def main(count):
 
     lists = sorted(zip(*[x, y]))
     new_x, new_y = list(zip(*lists))
-    print(new_x)
-    print(new_y)
 
-    # plotting the points
-    from matplotlib import dates
-    plt.scatter(new_x, new_y)
+    from datetime import datetime
+    x_dt = [datetime.fromtimestamp(ts) for ts in new_x]
 
-    # naming the x axis
-    plt.xlabel('TimeStamp')
-    # naming the y axis
-    plt.ylabel('Value')
+    import plotly.graph_objects as go
 
-    # giving a title to my graph
-    plt.title(word_ts.name)
+    fig = go.Figure(data=[go.Scatter(x=x_dt, y=new_y)])
+    fig.show()
 
-    # function to show the plot
-    plt.show()
-
-
-asyncio.run(main(100))
+asyncio.run(main(1000))
