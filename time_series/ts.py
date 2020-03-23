@@ -13,6 +13,20 @@ class TimeSeries:
     def sum(self):
         return sum(self.data.values())
 
+    def do_spline(self, dt):
+        _min = min(self.data.keys())
+        _max = max(self.data.keys())
+
+        new_ts = TimeSeries(self.name + "_spline")
+
+        for ts_, v in self.data.items():
+            y = ((ts_ - _min) // dt)
+            ts = y * dt + _min
+            print(ts_, " => ", ts)
+            new_ts.add(ts, v)
+
+        return new_ts
+
     def __repr__(self):
         return f"<TimeSeries: {self.name}>"
 
