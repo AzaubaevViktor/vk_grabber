@@ -5,14 +5,23 @@ from string import punctuation
 m = pymystem3.Mystem()
 
 stop_words = tuple(
-    ["", "под", "там", "—", "о", "по", "в", "на", "и", "мы", "с", "для"] +
+    ["", "под", "там", "—", "о", "по", "в", "на", "и", "мы", "с", "для", "из", "под", "вы", "от", "а", "не", "как",
+     "к", "что", "–", "это", "они", "наш", "до", "я", "быть", "этот"] +
     list(punctuation)
 )
 
 
+def check_word(word):
+    word = word.strip()
+    if word in stop_words:
+        return
+
+    return word
+
+
 def tokenize(words):
     return [x for word in m.lemmatize(words)
-            if ((x := word.strip()) not in stop_words)
+            if (x := check_word(word))
             ]
 
 
