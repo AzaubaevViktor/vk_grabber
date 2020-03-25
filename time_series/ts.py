@@ -2,25 +2,65 @@ from collections import defaultdict
 from typing import List
 
 
+def spline_dist_f(x):
+    if 0.5 > x:
+        return x
+    if x >= 0.5:
+        return 1 - x
+
+
+class Grid:
+    def __init__(self, _min, dt):
+        self.start = _min
+        self.step = dt
+
+    def __getitem__(self, pos: float):
+        y = ((pos - self.start) // self.step)
+        return y * self.step + self.start
+
+    def right(self, pos):
+        return pos + self.step
+
+    def left(self, pos):
+        return pos - self.step
+
+    def __repr__(self):
+        return f"<Grid: {self.start}[{self.step}]>"
+
+
 class Funcs:
     @staticmethod
-    def eq(_min, dt, pos, value):
+    def eq(grid: Grid, pos, value):
         yield pos + 36000, value
 
     @staticmethod
-    def simple(_min, dt, pos, value):
-        y = ((pos - _min) // dt)
-        ts = y * dt + _min
-        yield ts, value
+    def simple(grid: Grid, pos, value):
+        yield grid[pos], value
 
     @staticmethod
-    def divide(_min, dt, pos, value):
-        y = ((pos - _min) // dt)
-        ts1 = y * dt + _min
-        ts2 = ts1 + dt
+    def divide(grid: Grid, pos, value):
+        left = grid[pos]
+        right = grid.right(left)
 
-        yield ts1, value * (pos - ts1) / dt
-        yield ts2, value * (ts2 - pos) / dt
+        yield left, value * (pos - left) / grid.step
+        yield right, value * (right - pos) / grid.step
+
+    @staticmethod
+    def spline(grid: Grid, pos, value):
+        SIZE = 5
+        width = SIZE * grid.step
+        half = width / 2
+
+        current = grid[pos - half]
+        while True:
+            coef = (current - pos) / width + 0.5
+            print("  !! ", current, coef)
+            if coef >= 1:
+                break
+            elif coef > 0:
+                yield current, spline_dist_f(coef) * value
+
+            current = grid.right(current)
 
 
 class TimeSeries:
@@ -42,7 +82,7 @@ class TimeSeries:
 
         for ts_, v_ in self.data.items():
             print(ts_, v_, "=>>")
-            for ts, v in f(_min, dt, ts_, v_):
+            for ts, v in f(Grid(_min, dt), ts_, v_):
                 print("  `->", ts, v)
                 new_ts.add(ts, v)
 

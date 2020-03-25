@@ -36,7 +36,7 @@ async def main(count):
 
     import plotly.graph_objects as go
 
-    def draw_word(fig, word_ts, name=None):
+    def draw_word(fig, word_ts, name=None, opacity=None):
         x = word_ts.data.keys()
         # corresponding y axis values
         y = word_ts.data.values()
@@ -47,13 +47,14 @@ async def main(count):
         from datetime import datetime
         x_dt = [datetime.fromtimestamp(ts) for ts in new_x]
 
-        fig.add_trace(go.Scatter(x=x_dt, y=new_y, name=name))
+        fig.add_trace(go.Scatter(x=x_dt, y=new_y, name=name, opacity=opacity))
 
     fig = go.Figure()
 
-    draw_word(fig, words[0].sampling(36000, Funcs.divide), "Sampled div")
-    draw_word(fig, words[0].sampling(36000, Funcs.simple), "Sampled")
-    draw_word(fig, words[0], "Orig")
+    draw_word(fig, words[0], "Orig", opacity=0.6)
+    draw_word(fig, words[0].sampling(36000, Funcs.simple), "Sampled", opacity=0.3)
+    draw_word(fig, words[0].sampling(36000, Funcs.divide), "Sampled div", opacity=0.3)
+    draw_word(fig, words[0].sampling(36000, Funcs.spline), "Spline")
 
     fig.show()
 
