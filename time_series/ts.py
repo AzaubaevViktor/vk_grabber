@@ -2,6 +2,18 @@ from collections import defaultdict
 from typing import List
 
 
+class Funcs:
+    @staticmethod
+    def eq(_min, dt, pos):
+        return pos + 36000
+
+    @staticmethod
+    def simple(_min, dt, pos):
+        y = ((pos - _min) // dt)
+        ts = y * dt + _min
+        return ts
+
+
 class TimeSeries:
     def __init__(self, name):
         self.name = name
@@ -13,15 +25,14 @@ class TimeSeries:
     def sum(self):
         return sum(self.data.values())
 
-    def do_spline(self, dt):
+    def sampling(self, dt, f=Funcs.eq):
         _min = min(self.data.keys())
         _max = max(self.data.keys())
 
         new_ts = TimeSeries(self.name + "_spline")
 
         for ts_, v in self.data.items():
-            y = ((ts_ - _min) // dt)
-            ts = y * dt + _min
+            ts = f(_min, dt, ts_)
             print(ts_, " => ", ts)
             new_ts.add(ts, v)
 
