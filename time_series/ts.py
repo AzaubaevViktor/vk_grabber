@@ -31,11 +31,13 @@ class Grid:
 class Funcs:
     @staticmethod
     def eq(grid: Grid, pos, value):
-        yield pos + 36000, value
+        yield pos, value
+    eq.__name__ = "⊜"
 
     @staticmethod
     def simple(grid: Grid, pos, value):
         yield grid[pos], value
+    simple.__name__ = "dridded"
 
     @staticmethod
     def divide(grid: Grid, pos, value):
@@ -45,28 +47,41 @@ class Funcs:
         yield left, value * (pos - left) / grid.step
         yield right, value * (right - pos) / grid.step
 
+    divide.__name__ = "divided"
+
     @staticmethod
-    def spline(grid: Grid, pos, value):
-        SIZE = 5
-        width = SIZE * grid.step
-        half = width / 2
+    def spline(SIZE):
+        def _(grid: Grid, pos, value):
+            width = SIZE * grid.step
+            half = width / 2
 
-        current = grid[pos - half]
-        while True:
-            coef = (current - pos) / width + 0.5
-            print("  !! ", current, coef)
-            if coef >= 1:
-                break
-            elif coef > 0:
-                yield current, spline_dist_f(coef) * value
+            current = grid[pos - half]
+            while True:
+                coef = (current - pos) / width + 0.5
 
-            current = grid.right(current)
+                print("  !! ", current, coef)
+                if coef >= 1:
+                    break
+                elif coef > 0:
+                    yield current, spline_dist_f(coef) / SIZE * value
+
+                current = grid.right(current)
+
+        _.__name__ = f"spline_{SIZE}"
+        return _
 
 
 class TimeSeries:
     def __init__(self, name):
         self.name = name
         self.data = defaultdict(float)
+
+    def sort(self):
+        x = self.data.keys()
+        # corresponding y axis values
+        y = self.data.values()
+
+        self.data = dict(sorted(zip(*[x, y])))
 
     def add(self, timestamp: int, value: float):
         self.data[int(timestamp)] += value
@@ -78,13 +93,26 @@ class TimeSeries:
         _min = min(self.data.keys())
         _max = max(self.data.keys())
 
-        new_ts = TimeSeries(self.name + "_spline")
+        new_ts = TimeSeries(f"Sampled[{self.name};{f.__name__}]")
 
         for ts_, v_ in self.data.items():
             print(ts_, v_, "=>>")
             for ts, v in f(Grid(_min, dt), ts_, v_):
                 print("  `->", ts, v)
                 new_ts.add(ts, v)
+
+        return new_ts
+
+    def d(self):
+        self.sort()
+        new_ts = TimeSeries(self.name + "'")
+
+        prev_ts, prev_v = None, None
+        for ts, v in self.data.items():
+            if prev_v is not None:
+                new_ts.add((ts + prev_ts) / 2, v - prev_v)
+
+            prev_ts, prev_v = ts, v
 
         return new_ts
 

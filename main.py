@@ -2,7 +2,7 @@ import asyncio
 import itertools
 
 from core import LoadConfig, Log
-from time_series.ts import TSManager, Funcs
+from time_series.ts import TSManager, Funcs, TimeSeries
 from vk_utils import VK
 from word_woker import tokenize
 
@@ -36,25 +36,36 @@ async def main(count):
 
     import plotly.graph_objects as go
 
-    def draw_word(fig, word_ts, name=None, opacity=None):
-        x = word_ts.data.keys()
-        # corresponding y axis values
-        y = word_ts.data.values()
+    def draw_word(fig, word_ts: TimeSeries, name=None, opacity=None, mode=None):
+        if name is None:
+            name = word_ts.name
 
-        lists = sorted(zip(*[x, y]))
-        new_x, new_y = list(zip(*lists))
+        word_ts.sort()
+
+        x = tuple(word_ts.data.keys())
+        # corresponding y axis values
+        y = tuple(word_ts.data.values())
 
         from datetime import datetime
-        x_dt = [datetime.fromtimestamp(ts) for ts in new_x]
+        x_dt = [datetime.fromtimestamp(ts) for ts in x]
 
-        fig.add_trace(go.Scatter(x=x_dt, y=new_y, name=name, opacity=opacity))
+        fig.add_trace(go.Scatter(x=x_dt, y=y,
+                                 name=name, opacity=opacity,
+                                 mode=mode))
 
     fig = go.Figure()
 
-    draw_word(fig, words[0], "Orig", opacity=0.6)
-    draw_word(fig, words[0].sampling(36000, Funcs.simple), "Sampled", opacity=0.3)
-    draw_word(fig, words[0].sampling(36000, Funcs.divide), "Sampled div", opacity=0.3)
-    draw_word(fig, words[0].sampling(36000, Funcs.spline), "Spline")
+    period = 19 * 60 * 60
+
+    draw_word(fig, words[0], "Orig", opacity=0.6, mode='markers')
+    # draw_word(fig, words[0].sampling(period, Funcs.simple), "Sampled", opacity=0.3)
+    # draw_word(fig, words[0].sampling(period, Funcs.divide), "Sampled div", opacity=0.3)
+    draw_word(fig, words[0].sampling(period, Funcs.spline(1)))
+    draw_word(fig, words[0].sampling(period, Funcs.spline(2)))
+    # draw_word(fig, words[0].sampling(period, Funcs.spline(4)), "Spline 4", mode='markers')
+    draw_word(fig, words[0].sampling(period, Funcs.spline(8)))
+    draw_word(fig, words[0].sampling(period, Funcs.spline(8)).d())
+    draw_word(fig, words[0].sampling(period, Funcs.spline(16)))
 
     fig.show()
 
