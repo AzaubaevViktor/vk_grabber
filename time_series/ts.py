@@ -63,7 +63,7 @@ class Funcs:
                 if coef >= 1:
                     break
                 elif coef > 0:
-                    yield current, spline_dist_f(coef) / SIZE * value
+                    yield current, spline_dist_f(coef) / SIZE * 4 * value
 
                 current = grid.right(current)
 
@@ -113,6 +113,17 @@ class TimeSeries:
                 new_ts.add((ts + prev_ts) / 2, v - prev_v)
 
             prev_ts, prev_v = ts, v
+
+        return new_ts
+
+    def int(self):
+        self.sort()
+        new_ts = TimeSeries("∫{" + self.name + "}")
+        common = 0
+
+        for ts, v in self.data.items():
+            common += v
+            new_ts.add(ts, common)
 
         return new_ts
 

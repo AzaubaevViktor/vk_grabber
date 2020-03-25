@@ -57,12 +57,20 @@ async def main(count):
 
     period = 19 * 60 * 60
 
-    draw_word(fig, words[0], "Orig", opacity=0.6, mode='markers')
+    draw_word(fig, words[0], opacity=0.6, mode='markers')
+    draw_word(fig, words[0].int(), opacity=0.6, mode='markers')
+
     # draw_word(fig, words[0].sampling(period, Funcs.simple), "Sampled", opacity=0.3)
     # draw_word(fig, words[0].sampling(period, Funcs.divide), "Sampled div", opacity=0.3)
-    draw_word(fig, words[0].sampling(period, Funcs.spline(1)))
-    draw_word(fig, words[0].sampling(period, Funcs.spline(2)))
+    # draw_word(fig, words[0].sampling(period, Funcs.spline(1)))
+    # draw_word(fig, words[0].sampling(period, Funcs.spline(2)))
     # draw_word(fig, words[0].sampling(period, Funcs.spline(4)), "Spline 4", mode='markers')
+    # draw_word(fig, words[0].sampling(period, Funcs.spline(8)))
+    draw_word(fig, words[0].sampling(period, Funcs.spline(80)).int())
+    draw_word(fig, words[0].sampling(period, Funcs.spline(40)).int())
+    draw_word(fig, words[0].sampling(period, Funcs.spline(20)).int())
+    draw_word(fig, words[0].sampling(period, Funcs.spline(1)).int())
+
     draw_word(fig, words[0].sampling(period, Funcs.spline(8)))
     draw_word(fig, words[0].sampling(period, Funcs.spline(8)).d())
     draw_word(fig, words[0].sampling(period, Funcs.spline(16)))
