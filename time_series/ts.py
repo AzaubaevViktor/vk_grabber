@@ -4,14 +4,23 @@ from typing import List
 
 class Funcs:
     @staticmethod
-    def eq(_min, dt, pos):
-        return pos + 36000
+    def eq(_min, dt, pos, value):
+        yield pos + 36000, value
 
     @staticmethod
-    def simple(_min, dt, pos):
+    def simple(_min, dt, pos, value):
         y = ((pos - _min) // dt)
         ts = y * dt + _min
-        return ts
+        yield ts, value
+
+    @staticmethod
+    def divide(_min, dt, pos, value):
+        y = ((pos - _min) // dt)
+        ts1 = y * dt + _min
+        ts2 = ts1 + dt
+
+        yield ts1, value * (pos - ts1) / dt
+        yield ts2, value * (ts2 - pos) / dt
 
 
 class TimeSeries:
@@ -31,10 +40,11 @@ class TimeSeries:
 
         new_ts = TimeSeries(self.name + "_spline")
 
-        for ts_, v in self.data.items():
-            ts = f(_min, dt, ts_)
-            print(ts_, " => ", ts)
-            new_ts.add(ts, v)
+        for ts_, v_ in self.data.items():
+            print(ts_, v_, "=>>")
+            for ts, v in f(_min, dt, ts_, v_):
+                print("  `->", ts, v)
+                new_ts.add(ts, v)
 
         return new_ts
 

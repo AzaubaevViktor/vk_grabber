@@ -51,6 +51,7 @@ async def main(count):
 
     fig = go.Figure()
 
+    draw_word(fig, words[0].sampling(36000, Funcs.divide), "Sampled div")
     draw_word(fig, words[0].sampling(36000, Funcs.simple), "Sampled")
     draw_word(fig, words[0], "Orig")
 
