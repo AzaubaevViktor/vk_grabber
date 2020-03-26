@@ -2,6 +2,8 @@ import math
 from collections import defaultdict
 from typing import List, Optional, Dict
 
+from core import Log
+
 
 def spline_dist_f(x):
     if 0.5 > x:
@@ -33,6 +35,8 @@ class Grid:
 
 
 class Funcs:
+    logger = Log("Funcs")
+
     @staticmethod
     def eq(grid: Grid, pos):
         yield pos, 1
@@ -53,25 +57,27 @@ class Funcs:
 
     divide.__name__ = "divided"
 
-    @staticmethod
-    def spline(SIZE):
+    @classmethod
+    def spline(cls, size):
+        if size == 1:
+            cls.logger.warning("Do not use spline method with", size=size)
+
         def _(grid: Grid, pos):
-            width = SIZE * grid.step
+            width = size * grid.step
             half = width / 2
 
             current = grid[pos - half]
             while True:
                 coef = (current - pos) / width + 0.5
 
-                print("  !! ", current, coef)
                 if coef >= 1:
                     break
                 elif coef > 0:
-                    yield current, spline_dist_f(coef) / SIZE * 4
+                    yield current, spline_dist_f(coef) / size * 4
 
                 current = grid.right(current)
 
-        _.__name__ = f"spline_{SIZE}"
+        _.__name__ = f"spline_{size}"
         return _
 
 

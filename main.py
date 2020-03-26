@@ -66,16 +66,16 @@ async def main(count):
     word = None
 
     for ts in words:
-        if "вирус" in ts.name:
+        if ("нгу" == ts.name) or ('nsu' == ts.name):
             if word is None:
                 word = ts
             else:
                 word += ts
 
-    word = word or words[0]
+    word = word or words[-1]
 
     draw_word(fig, word, opacity=0.6, mode='markers')
-    draw_word(fig, word.int(), opacity=0.6, mode='markers')
+    # draw_word(fig, word.int(), opacity=0.6, mode='markers')
 
     # draw_word(fig, word.sampling(period, Funcs.simple), "Sampled", opacity=0.3)
     # draw_word(fig, word.sampling(period, Funcs.divide), "Sampled div", opacity=0.3)
@@ -83,14 +83,15 @@ async def main(count):
     # draw_word(fig, word.sampling(period, Funcs.spline(2)))
     # draw_word(fig, word.sampling(period, Funcs.spline(4)), "Spline 4", mode='markers')
     # draw_word(fig, word.sampling(period, Funcs.spline(8)))
-    draw_word(fig, word.sampling(period, Funcs.spline(80)).int())
-    draw_word(fig, word.sampling(period, Funcs.spline(40)).int())
-    draw_word(fig, word.sampling(period, Funcs.spline(20)).int())
-    draw_word(fig, word.sampling(period, Funcs.spline(1)).int())
+    # draw_word(fig, word.sampling(period, Funcs.spline(80)).int())
+    # draw_word(fig, word.sampling(period, Funcs.spline(40)).int())
+    # draw_word(fig, word.sampling(period, Funcs.spline(20)).int())
+    # draw_word(fig, word.sampling(period, Funcs.spline(2)).int())
 
     draw_word(fig, word.sampling(period, Funcs.spline(8)))
     draw_word(fig, word.sampling(period, Funcs.spline(8)).d())
     draw_word(fig, word.sampling(period, Funcs.spline(16)))
+    draw_word(fig, word.sampling(period, Funcs.spline(16)).d())
 
     fig.show()
 
