@@ -26,4 +26,4 @@ def test_nsu():
 
     tokens = tokenize(text)
 
-    assert tokens == ["учиться", "НГУ"]
+    assert tokens == ["учиться", "нгу"]
