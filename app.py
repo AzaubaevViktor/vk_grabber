@@ -34,6 +34,9 @@ class Application:
 
         return posts
 
+    async def _load_persons(self):
+        raise NotImplementedError()
+
     def _process_posts(self, posts):
         self.log.info("Process posts", count=len(posts))
 
