@@ -1,5 +1,6 @@
 import asyncio
 import itertools
+import plotly.graph_objects as go
 
 from core import LoadConfig, Log
 from time_series.ts import TSManager, Funcs, TimeSeries
@@ -7,42 +8,53 @@ from vk_utils import VK
 from word_woker import tokenize
 
 
-async def main(count):
-    log = Log("main")
-    config = LoadConfig()
+class Application:
+    def __init__(self, config: LoadConfig, posts_count):
+        self.log = Log("Application")
+        self.config = config
+        self.vk = VK(config.vk)
+        self.posts_count = posts_count
+        self.tsm = TSManager()
 
-    vk = VK(config.vk)
+        self._warm_upped = False
 
-    await vk.warm_up()
+    async def warm_up(self):
+        assert not self._warm_upped, "Already warm_upped"
+        await self.vk.warm_up()
 
-    log.info("Load posts")
+    async def _load_group_posts(self):
+        self.log.info("Load posts from groups")
+        group_ids = self.config.vk['groups']
 
-    groups = [36790369, 37080997, 128668497, 58336158, 58762424, 152205508, 171268982]
+        posts = sum(await asyncio.gather(*(
+            self.vk.group_posts(group_id=group_id, count=self.posts_count)
+            for group_id in group_ids
+        )), [])
 
-    posts = sum(await asyncio.gather(*(
-        vk.group_posts(group_id=group_id, count=count)
-        for group_id in groups
-    )), [])
+        return posts
 
-    tsm = TSManager()
+    def _process_posts(self, posts):
+        self.log.info("Process posts", count=len(posts))
 
-    log.info("Process posts")
-    for post in posts:
-        words = tokenize(post.text)
+        for post in posts:
+            words = tokenize(post.text)
 
-        for word in words:
-            tsm.add(word, post.date, 1)
+            for word in words:
+                self.tsm.add(word, post.date, 1)
 
-    log.info("Sort by summary")
-    words = tsm.sorted_by(lambda ts: ts.sum())
+    def _find_interested(self):
+        words = self.tsm.sorted_by(lambda ts: ts.sum())
 
-    print(words)
-    for index in range(5):
-        print(words[index], words[index].sum())
+        self.log.info("Found words", count=len(words))
+        for index in range(5):
+            self.log.debug(index=index,
+                           word=words[index],
+                           score=words[index].sum())
 
-    import plotly.graph_objects as go
+        return words
 
-    def draw_word(fig, word_ts: TimeSeries, name=None, opacity=None, mode=None):
+    def _draw_word(self, fig, word_ts: TimeSeries,
+                   name=None, opacity=None, mode=None):
         if name is None:
             name = word_ts.name
 
@@ -59,40 +71,55 @@ async def main(count):
                                  name=name, opacity=opacity,
                                  mode=mode))
 
-    fig = go.Figure()
+    def _do_draw(self, words):
+        fig = go.Figure()
 
-    period = 19 * 60 * 60
+        period = 1 * 60 * 60
 
-    word = None
+        word = None
 
-    for ts in words:
-        if ("нгу" == ts.name) or ('nsu' == ts.name):
-            if word is None:
-                word = ts
-            else:
-                word += ts
+        for ts in words:
+            if ("нгу" == ts.name) or ('nsu' == ts.name):
+                if word is None:
+                    word = ts
+                else:
+                    word += ts
 
-    word = word or words[-1]
+        word = word or words[-1]
 
-    draw_word(fig, word, opacity=0.6, mode='markers')
-    # draw_word(fig, word.int(), opacity=0.6, mode='markers')
+        self._draw_word(fig, word, opacity=0.6, mode='markers')
+        # draw_word(fig, word.int(), opacity=0.6, mode='markers')
 
-    # draw_word(fig, word.sampling(period, Funcs.simple), "Sampled", opacity=0.3)
-    # draw_word(fig, word.sampling(period, Funcs.divide), "Sampled div", opacity=0.3)
-    # draw_word(fig, word.sampling(period, Funcs.spline(1)))
-    # draw_word(fig, word.sampling(period, Funcs.spline(2)))
-    # draw_word(fig, word.sampling(period, Funcs.spline(4)), "Spline 4", mode='markers')
-    # draw_word(fig, word.sampling(period, Funcs.spline(8)))
-    # draw_word(fig, word.sampling(period, Funcs.spline(80)).int())
-    # draw_word(fig, word.sampling(period, Funcs.spline(40)).int())
-    # draw_word(fig, word.sampling(period, Funcs.spline(20)).int())
-    # draw_word(fig, word.sampling(period, Funcs.spline(2)).int())
+        # draw_word(fig, word.sampling(period, Funcs.simple), "Sampled", opacity=0.3)
+        # draw_word(fig, word.sampling(period, Funcs.divide), "Sampled div", opacity=0.3)
+        # draw_word(fig, word.sampling(period, Funcs.spline(1)))
+        # draw_word(fig, word.sampling(period, Funcs.spline(2)))
+        # draw_word(fig, word.sampling(period, Funcs.spline(4)), "Spline 4", mode='markers')
+        # draw_word(fig, word.sampling(period, Funcs.spline(8)))
+        # draw_word(fig, word.sampling(period, Funcs.spline(80)).int())
+        # draw_word(fig, word.sampling(period, Funcs.spline(40)).int())
+        # draw_word(fig, word.sampling(period, Funcs.spline(20)).int())
+        # draw_word(fig, word.sampling(period, Funcs.spline(2)).int())
 
-    draw_word(fig, word.sampling(period, Funcs.spline(8)))
-    draw_word(fig, word.sampling(period, Funcs.spline(8)).d())
-    draw_word(fig, word.sampling(period, Funcs.spline(16)))
-    draw_word(fig, word.sampling(period, Funcs.spline(16)).d())
+        self._draw_word(fig, word.sampling(period, Funcs.spline(8)))
+        self._draw_word(fig, word.sampling(period, Funcs.spline(8)).d())
+        self._draw_word(fig, word.sampling(period, Funcs.spline(16)))
+        self._draw_word(fig, word.sampling(period, Funcs.spline(16)).d())
 
-    fig.show()
+        fig.show()
+
+    async def __call__(self):
+        posts = await self._load_group_posts()
+        self._process_posts(posts)
+
+        words = self._find_interested()
+        self._do_draw(words)
+
+
+async def main(count):
+    app = Application(LoadConfig(), count)
+    await app.warm_up()
+    await app()
+
 
 asyncio.run(main(100))
