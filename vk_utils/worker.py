@@ -1,12 +1,35 @@
+import asyncio
+from time import time
 from typing import List
 
 import aiohttp
 
+from core import Log
 from vk_utils import VKGroup, VKPost
+
+
+class VKError(Exception):
+    TOO_MANY_REQUESTS = 6
+
+    def __init__(self, error):
+        self.error = error
+
+    @property
+    def error_code(self):
+        return self.error['error_code']
+
+    @property
+    def error_msg(self):
+        return self.error['error_msg']
+
+    def __str__(self):
+        return f"VK Error#{self.error_code}: {self.error_msg}"
 
 
 class VK:
     def __init__(self, config):
+        self.log = Log("VK")
+
         self.config = config
 
         self.additional_params = {
@@ -43,22 +66,41 @@ class VK:
 
         self.session: aiohttp.ClientSession = None
 
+        self.last_call = 0
+        self.threshold = 1 / 3
+
     async def warm_up(self):
         self.session = aiohttp.ClientSession()
 
     async def call_method(self, method, **params):
-        assert self.session is not None, "call `await .warm_up()` first"
-        response = await self.session.get(
-            url=f"{self.config['api_host']}{method}",
-            params={**params, **self.additional_params},
-            timeout=10
-        )
+        while True:
+            assert self.session is not None, "call `await .warm_up()` first"
 
-        result = await response.json()
+            if time() - self.threshold < self.last_call:
+                self.log.debug("Sleep", threshold=self.threshold)
+                await asyncio.sleep(self.threshold)
 
-        assert 'response' in result
+            self.last_call = time()
+            response = await self.session.get(
+                url=f"{self.config['api_host']}{method}",
+                params={**params, **self.additional_params},
+                timeout=10
+            )
 
-        return result['response']
+            result = await response.json()
+
+            if 'error' in result:
+                vk_error = VKError(result['error'])
+                if vk_error.error_code == VKError.TOO_MANY_REQUESTS:
+                    self.threshold *= 1.1
+                    self.log.warning("Too many requests", threshold=self.threshold)
+                    continue
+
+                raise vk_error
+            else:
+                assert 'response' in result
+                self.threshold *= 0.999
+                return result['response']
 
     async def me(self):
         return await self.call_method("account.getProfileInfo")
@@ -81,7 +123,7 @@ class VK:
             raise ValueError("USe one of attribute: `count` or `from_ts`")
 
         if count is not None:
-            return list(await self._group_posts_count(group_id, count))
+            return [post async for post in self._group_posts_count(group_id, count)]
 
         if from_ts is not None:
             raise NotImplementedError()
@@ -95,6 +137,7 @@ class VK:
             yield VKPost(**post)
 
     async def _offsetter(self, count, params):
+        # TODO: Can be optimized! Use asyncio.gather after first query, Luke!
         if count < 1:
             raise ValueError(f"{count=} must be more than 0")
 

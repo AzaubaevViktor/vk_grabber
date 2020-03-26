@@ -28,7 +28,7 @@ async def vk():
 
 @pytest.fixture(scope="session")
 def group_id():
-    return 55293029
+    return 128668497
 
 
 @pytest.fixture(scope='session')
