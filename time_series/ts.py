@@ -1,3 +1,4 @@
+import math
 from collections import defaultdict
 from typing import List, Optional, Dict
 
@@ -24,34 +25,37 @@ class Grid:
     def left(self, pos):
         return pos - self.step
 
+    def __contains__(self, item: float):
+        return math.modf((item - self.start) / self.step)[0] < 0.001
+
     def __repr__(self):
         return f"<Grid: {self.start}[{self.step}]>"
 
 
 class Funcs:
     @staticmethod
-    def eq(grid: Grid, pos, value):
-        yield pos, value
+    def eq(grid: Grid, pos):
+        yield pos, 1
     eq.__name__ = "⊜"
 
     @staticmethod
-    def simple(grid: Grid, pos, value):
-        yield grid[pos], value
+    def simple(grid: Grid, pos):
+        yield grid[pos], 1
     simple.__name__ = "dridded"
 
     @staticmethod
-    def divide(grid: Grid, pos, value):
+    def divide(grid: Grid, pos):
         left = grid[pos]
         right = grid.right(left)
 
-        yield left, value * (pos - left) / grid.step
-        yield right, value * (right - pos) / grid.step
+        yield left, (pos - left) / grid.step
+        yield right, (right - pos) / grid.step
 
     divide.__name__ = "divided"
 
     @staticmethod
     def spline(SIZE):
-        def _(grid: Grid, pos, value):
+        def _(grid: Grid, pos):
             width = SIZE * grid.step
             half = width / 2
 
@@ -63,7 +67,7 @@ class Funcs:
                 if coef >= 1:
                     break
                 elif coef > 0:
-                    yield current, spline_dist_f(coef) / SIZE * 4 * value
+                    yield current, spline_dist_f(coef) / SIZE * 4
 
                 current = grid.right(current)
 
@@ -72,9 +76,9 @@ class Funcs:
 
 
 class TimeSeries:
-    def __init__(self, name, data: Optional[Dict] = None):
+    def __init__(self, name: str, data: Optional[Dict] = None):
         self.name = name
-        self.data: dict = data or defaultdict(float)
+        self.data = data or defaultdict(float)
 
     def sort(self):
         x = self.data.keys()
@@ -97,9 +101,9 @@ class TimeSeries:
 
         for ts_, v_ in self.data.items():
             print(ts_, v_, "=>>")
-            for ts, v in f(Grid(_min, dt), ts_, v_):
-                print("  `->", ts, v)
-                new_ts.add(ts, v)
+            for ts, v in f(Grid(_min, dt), ts_):
+                print("  `->", ts, v * v_)
+                new_ts.add(ts, v * v_)
 
         return new_ts
 
@@ -129,10 +133,10 @@ class TimeSeries:
 
     def __add__(self, other: "TimeSeries"):
         return TimeSeries(f"{self.name} + {other.name}",
-                            data={
-                                **self.data,
-                                **other.data
-                            })
+                          data={
+                              **self.data,
+                              **other.data
+                          })
 
 
     def __repr__(self):
