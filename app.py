@@ -1,8 +1,9 @@
 import asyncio
+from typing import List
 
 from plotly import graph_objects as go
 
-from core import LoadConfig, Log
+from core import LoadConfig, Log, Time
 from time_series.ts import TSManager, TimeSeries, Funcs
 from vk_utils import VK
 from word_woker import tokenize
@@ -71,7 +72,7 @@ class Application:
                                  name=name, opacity=opacity,
                                  mode=mode))
 
-    def _do_draw(self, words):
+    def _do_draw(self, words: List[TimeSeries]):
         fig = go.Figure()
 
         word = None
@@ -84,9 +85,9 @@ class Application:
                     word += ts
 
         word = word or words[-1]
-        period = word.mid_d_ts()
+        period = word.med_d_ts()
 
-        self.log.info(word=word, period=period)
+        self.log.info(word=word, period=Time(period), mid=Time(word.mid_d_ts()))
 
         self._draw_word(fig, word, opacity=0.6, mode='markers')
         # draw_word(fig, word.int(), opacity=0.6, mode='markers')

@@ -115,12 +115,8 @@ class TimeSeries:
         self.sort()
         new_ts = TimeSeries(self.name + "'")
 
-        prev_ts, prev_v = None, None
-        for ts, v in self.data.items():
-            if prev_v is not None:
-                new_ts.add((ts + prev_ts) / 2, v - prev_v)
-
-            prev_ts, prev_v = ts, v
+        for pts, ts, pv, v in self._d():
+            new_ts.add((ts + pts) / 2, v - pv)
 
         return new_ts
 
@@ -135,23 +131,30 @@ class TimeSeries:
 
         return new_ts
 
-    def mid_d_ts(self):
+    def _d(self):
         assert len(self) >= 2
 
         self.sort()
+        prev_ts, prev_v = None, None
+        for ts, v in self.data.items():
+            if prev_v is not None:
+                yield prev_ts, ts, prev_v, v
 
+            prev_ts, prev_v = ts, v
+
+    def mid_d_ts(self):
         dts_sum = 0
         dts_count = 0
 
-        prev_ts = None
-        for ts, _ in self.data.items():
-            if prev_ts is not None:
-                dts_sum += ts - prev_ts
-                dts_count += 1
-
-            prev_ts = ts
+        for pts, ts, pv, v in self._d():
+            dts_sum += ts - pts
+            dts_count += 1
 
         return dts_sum / dts_count
+
+    def med_d_ts(self):
+        items = [ts - pts for pts, ts, _, _ in self._d()]
+        return items[len(items) // 2]
 
     def __add__(self, other: "TimeSeries"):
         return TimeSeries(f"{self.name} + {other.name}",
