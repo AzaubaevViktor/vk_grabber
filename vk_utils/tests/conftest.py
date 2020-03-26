@@ -32,10 +32,10 @@ def group_id():
 
 
 @pytest.fixture(scope='session')
-def group_users(vk, group_id):
-    users = vk.group_users(group_id, count=50)
+async def group_users(vk, group_id):
+    users = await vk.group_user_ids(group_id, count=50)
 
     for user in users:
-        assert isinstance(user, VKUser)
+        assert isinstance(user, int)
 
     return users

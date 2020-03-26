@@ -5,9 +5,12 @@ import pytest
 from vk_utils import VKUser, VKPost
 
 
+pytestmark = pytest.mark.asyncio
+
+
 @pytest.mark.parametrize('count', (0, 1, 10, 100, 200))
 @pytest.mark.parametrize('use_id', (True, False))
-def test_users_posts(vk, group_users: List[VKUser], use_id, count):
+async def test_users_posts(vk, group_users: List[VKUser], use_id, count):
     user = group_users[0]
 
     _id = user.uid if use_id else user

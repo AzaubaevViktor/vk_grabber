@@ -1,3 +1,5 @@
+from typing import List
+
 import aiohttp
 
 from vk_utils import VKGroup, VKPost
@@ -79,33 +81,49 @@ class VK:
             raise ValueError("USe one of attribute: `count` or `from_ts`")
 
         if count is not None:
-            return await self._group_posts_count(group_id, count)
+            return list(await self._group_posts_count(group_id, count))
 
         if from_ts is not None:
             raise NotImplementedError()
 
     async def _group_posts_count(self, group_id, count):
+        async for post in self._offsetter(count, dict(
+                method="wall.get",
+                owner_id=-group_id,
+                fields=self.post_fields
+        )):
+            yield VKPost(**post)
+
+    async def _offsetter(self, count, params):
         if count < 1:
             raise ValueError(f"{count=} must be more than 0")
 
-        posts = []
+        offset = 0
         posts_count = count
 
-        while len(posts) < posts_count:
+        while offset < posts_count:
             answer = await self.call_method(
-                "wall.get",
-                owner_id=-group_id,
-                fields=self.post_fields,
-                count=min(posts_count - len(posts), 100),
-                offset=len(posts)
+                **params,
+                count=min(posts_count - offset, 100),
+                offset=offset
             )
 
             posts_count = min(count, answer['count'])
 
-            for item in answer['items']:
-                posts.append(VKPost(**item))
+            offset += len(answer['items'])
 
-        return posts
+            for item in answer['items']:
+                yield item
+
+    async def group_user_ids(self, group_id, count=None) -> List[int]:
+        users = []
+        async for user_id in self._offsetter(count, dict(
+                method="groups.getMembers",
+                group_id=group_id
+        )):
+            users.append(user_id)
+
+        return users
 
     async def shutdown(self):
         if self.session:
