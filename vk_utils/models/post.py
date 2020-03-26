@@ -20,3 +20,4 @@ class VKPost(AttributeStorage):
     is_favorite = Attribute()
     edited = Attribute(default=False)
     copy_history = Attribute(default=None)
+    signer_id = Attribute(default=None)

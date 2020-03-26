@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List
+from typing import List, Optional, Dict
 
 
 def spline_dist_f(x):
@@ -72,9 +72,9 @@ class Funcs:
 
 
 class TimeSeries:
-    def __init__(self, name):
+    def __init__(self, name, data: Optional[Dict] = None):
         self.name = name
-        self.data = defaultdict(float)
+        self.data: dict = data or defaultdict(float)
 
     def sort(self):
         x = self.data.keys()
@@ -126,6 +126,14 @@ class TimeSeries:
             new_ts.add(ts, common)
 
         return new_ts
+
+    def __add__(self, other: "TimeSeries"):
+        return TimeSeries(f"{self.name} + {other.name}",
+                            data={
+                                **self.data,
+                                **other.data
+                            })
+
 
     def __repr__(self):
         return f"<TimeSeries: {self.name}>"

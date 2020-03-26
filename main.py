@@ -16,7 +16,13 @@ async def main(count):
     await vk.warm_up()
 
     log.info("Load posts")
-    posts = await vk.group_posts(group_id=37080997, count=count)
+
+    groups = [36790369, 37080997, 128668497, 58336158, 58762424, 152205508, 171268982]
+
+    posts = sum(await asyncio.gather(*(
+        vk.group_posts(group_id=group_id, count=count)
+        for group_id in groups
+    )), [])
 
     tsm = TSManager()
 
@@ -57,23 +63,34 @@ async def main(count):
 
     period = 19 * 60 * 60
 
-    draw_word(fig, words[0], opacity=0.6, mode='markers')
-    draw_word(fig, words[0].int(), opacity=0.6, mode='markers')
+    word = None
 
-    # draw_word(fig, words[0].sampling(period, Funcs.simple), "Sampled", opacity=0.3)
-    # draw_word(fig, words[0].sampling(period, Funcs.divide), "Sampled div", opacity=0.3)
-    # draw_word(fig, words[0].sampling(period, Funcs.spline(1)))
-    # draw_word(fig, words[0].sampling(period, Funcs.spline(2)))
-    # draw_word(fig, words[0].sampling(period, Funcs.spline(4)), "Spline 4", mode='markers')
-    # draw_word(fig, words[0].sampling(period, Funcs.spline(8)))
-    draw_word(fig, words[0].sampling(period, Funcs.spline(80)).int())
-    draw_word(fig, words[0].sampling(period, Funcs.spline(40)).int())
-    draw_word(fig, words[0].sampling(period, Funcs.spline(20)).int())
-    draw_word(fig, words[0].sampling(period, Funcs.spline(1)).int())
+    for ts in words:
+        if "вирус" in ts.name:
+            if word is None:
+                word = ts
+            else:
+                word += ts
 
-    draw_word(fig, words[0].sampling(period, Funcs.spline(8)))
-    draw_word(fig, words[0].sampling(period, Funcs.spline(8)).d())
-    draw_word(fig, words[0].sampling(period, Funcs.spline(16)))
+    word = word or words[0]
+
+    draw_word(fig, word, opacity=0.6, mode='markers')
+    draw_word(fig, word.int(), opacity=0.6, mode='markers')
+
+    # draw_word(fig, word.sampling(period, Funcs.simple), "Sampled", opacity=0.3)
+    # draw_word(fig, word.sampling(period, Funcs.divide), "Sampled div", opacity=0.3)
+    # draw_word(fig, word.sampling(period, Funcs.spline(1)))
+    # draw_word(fig, word.sampling(period, Funcs.spline(2)))
+    # draw_word(fig, word.sampling(period, Funcs.spline(4)), "Spline 4", mode='markers')
+    # draw_word(fig, word.sampling(period, Funcs.spline(8)))
+    draw_word(fig, word.sampling(period, Funcs.spline(80)).int())
+    draw_word(fig, word.sampling(period, Funcs.spline(40)).int())
+    draw_word(fig, word.sampling(period, Funcs.spline(20)).int())
+    draw_word(fig, word.sampling(period, Funcs.spline(1)).int())
+
+    draw_word(fig, word.sampling(period, Funcs.spline(8)))
+    draw_word(fig, word.sampling(period, Funcs.spline(8)).d())
+    draw_word(fig, word.sampling(period, Funcs.spline(16)))
 
     fig.show()
 
