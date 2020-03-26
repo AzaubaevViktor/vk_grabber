@@ -106,9 +106,7 @@ class TimeSeries:
         new_ts = TimeSeries(f"Sampled[{self.name};{f.__name__}]")
 
         for ts_, v_ in self.data.items():
-            print(ts_, v_, "=>>")
             for ts, v in f(Grid(_min, dt), ts_):
-                print("  `->", ts, v * v_)
                 new_ts.add(ts, v * v_)
 
         return new_ts
@@ -137,6 +135,24 @@ class TimeSeries:
 
         return new_ts
 
+    def mid_d_ts(self):
+        assert len(self) >= 2
+
+        self.sort()
+
+        dts_sum = 0
+        dts_count = 0
+
+        prev_ts = None
+        for ts, _ in self.data.items():
+            if prev_ts is not None:
+                dts_sum += ts - prev_ts
+                dts_count += 1
+
+            prev_ts = ts
+
+        return dts_sum / dts_count
+
     def __add__(self, other: "TimeSeries"):
         return TimeSeries(f"{self.name} + {other.name}",
                           data={
@@ -144,6 +160,12 @@ class TimeSeries:
                               **other.data
                           })
 
+    def __iadd__(self, other: "TimeSeries"):
+        self.data.update(other.data)
+        return self
+
+    def __len__(self):
+        return len(self.data)
 
     def __repr__(self):
         return f"<TimeSeries: {self.name}>"

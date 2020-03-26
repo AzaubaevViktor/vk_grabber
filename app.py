@@ -74,8 +74,6 @@ class Application:
     def _do_draw(self, words):
         fig = go.Figure()
 
-        period = 1 * 60 * 60
-
         word = None
 
         for ts in words:
@@ -86,6 +84,9 @@ class Application:
                     word += ts
 
         word = word or words[-1]
+        period = word.mid_d_ts()
+
+        self.log.info(word=word, period=period)
 
         self._draw_word(fig, word, opacity=0.6, mode='markers')
         # draw_word(fig, word.int(), opacity=0.6, mode='markers')
