@@ -142,6 +142,17 @@ class TimeSeries:
 
             prev_ts, prev_v = ts, v
 
+    def mid_value(self):
+        assert len(self.data) >= 2
+        values = tuple(self.data.values())
+        return values[len(values) // 2]
+
+    def max_value(self):
+        return max(self.data.values())
+
+    def min_value(self):
+        return min(self.data.values())
+
     def mid_d_ts(self):
         dts_sum = 0
         dts_count = 0
