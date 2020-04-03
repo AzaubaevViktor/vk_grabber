@@ -10,7 +10,10 @@ class Attribute:
     class _DefaultNone:
         pass
 
-    def __init__(self, description: Optional[str] = None, default=_DefaultNone()):
+    def __init__(self, description: Optional[str] = None,
+                 default=_DefaultNone(),
+                 uid: bool = False):
+        self.uid = uid
         self.name = None
         self.description = description
         self.default = default
@@ -37,16 +40,23 @@ class KwargsAttribute(Attribute):
 
 class MetaAttributeStorage(type):
     logger = Log("MetaAttributeStorage")
+
     def __new__(mcs, name: str, bases: Tuple[Type["AttributeStorage"]], attrs: Dict[str, Any]):
         __attributes__ = attrs.get("__attributes__", None)
+        __uids__ = attrs.get("__uids__", None)
+
         if __attributes__:
             raise NotImplementedError("Do not set __attributes__ manually")
+
+        if __uids__:
+            raise NotImplementedError("Do not set __uids__ manually")
 
         __kwargs_attribute__ = attrs.get("__kwargs_attributes__", None)
         if __kwargs_attribute__:
             raise NotImplementedError("Do not set __kwargs_attributes__ manually")
 
         __attributes__ = {}
+        __uids__ = []
         __kwargs_attribute__ = None
         __kwargs_attribute_class__ = None
 
@@ -60,8 +70,22 @@ class MetaAttributeStorage(type):
                 else:
                     __kwargs_attribute__ = base.__kwargs_attribute__
                     __kwargs_attribute_class__ = base.__name__
+            if hasattr(base, "__uids__"):
+                if base.__uids__:
+                    raise NotImplementedError("Write tests first!")
 
         for attr_name, attr_value in attrs.items():
+            if not isinstance(attr_value, Attribute):
+                continue
+
+            attr_value.name = attr_name
+
+            if attr_value.uid:
+                if isinstance(attr_value, KwargsAttribute):
+                    raise AttributeError(f"{KwargsAttribute.__name__} cannot be uid")
+
+                __uids__.append(attr_value)
+
             if isinstance(attr_value, KwargsAttribute):
                 if __kwargs_attribute__:
                     raise NameError("Two KwargsAttribute: "
@@ -73,11 +97,9 @@ class MetaAttributeStorage(type):
             elif isinstance(attr_value, Attribute):
                 __attributes__[attr_name] = attr_value
 
-            if isinstance(attr_value, Attribute):
-                attr_value.name = attr_name
-
         attrs['__attributes__'] = __attributes__
         attrs['__kwargs_attribute__'] = __kwargs_attribute__
+        attrs['__uids__'] = __uids__
 
         return super().__new__(mcs, name, bases, attrs)
 
