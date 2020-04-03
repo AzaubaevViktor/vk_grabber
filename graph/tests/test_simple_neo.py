@@ -1,15 +1,4 @@
-import asyncio
-
-import pytest
-
-pytestmark = pytest.mark.asyncio
-
-
-async def test_simple():
-    from neo4j import GraphDatabase
-
-    driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "test"))
-
+def test_simple(driver):
     def add_friend(tx, name, friend_name):
         tx.run("MERGE (a:Person {name: $name}) "
                "MERGE (a)-[:KNOWS]->(friend:Person {name: $friend_name})",
