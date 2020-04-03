@@ -19,4 +19,4 @@ def driver():
         session.run("MATCH (n) DETACH DELETE n")
         results = session.run("MATCH (n)")
 
-    assert not results
+    assert not tuple(results.records())
