@@ -1,6 +1,6 @@
 import json
 from json import JSONEncoder
-from typing import Optional, Tuple, Type, Any, Dict, Iterable, TypeVar
+from typing import Optional, Tuple, Type, Any, Dict, Iterable, TypeVar, Sequence, Union
 
 from core.log import Log
 from core.searchable import SearchableSubclasses
@@ -99,7 +99,7 @@ class MetaAttributeStorage(type):
 
         attrs['__attributes__'] = __attributes__
         attrs['__kwargs_attribute__'] = __kwargs_attribute__
-        attrs['__uids__'] = __uids__
+        attrs['__uids__'] = tuple(__uids__)
 
         return super().__new__(mcs, name, bases, attrs)
 
@@ -130,6 +130,7 @@ AS_T = TypeVar("AS_T", "AttributeStorage", "AttributeStorage")
 class AttributeStorage(SearchableSubclasses, metaclass=MetaAttributeStorage):
     __attributes__: Dict[str, Attribute]
     __kwargs_attribute__: Optional[Attribute] = None
+    __uids__: Sequence[Attribute]
 
     def __init__(self, **kwargs):
         self._storage = {}

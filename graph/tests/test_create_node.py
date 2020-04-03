@@ -1,5 +1,7 @@
+from neo4j import Driver
+
 from core import AttributeStorage, Attribute
-from graph import Link
+from graph import Link, create_node, find_nodes
 
 
 class TModel(AttributeStorage):
@@ -18,14 +20,14 @@ class TLink(Link):
     param = Attribute(default=None)
 
 
-def test_create(driver):
+def test_create(driver: Driver):
     node = TModel(uid=10, name='test', value=123)
     with driver.session() as session:
-        session.write_trannsaction(create_node, node)
-        found_node = session.read_transaction(find_node, TModel, node.uid)
+        session.write_transaction(create_node, node)
+        found_node = session.read_transaction(find_nodes, TModel, node.uid)
 
     assert isinstance(node, TModel)
-    assert node == found_node
+    assert [node] == found_node
 
 
 def test_create_with_link(driver):
@@ -56,6 +58,6 @@ def test_create_update(driver):
 
     with driver.session() as session:
         session.write_trannsaction(update_node, new_node)
-        result = session.read_transaction(find_node, TModel, uid=new_node.uid)
+        result = session.read_transaction(find_nodes, TModel, uid=new_node.uid)
 
     assert result == new_node
