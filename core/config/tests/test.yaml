@@ -7,3 +7,11 @@ test:
   - 2
   - 3
   - 4
+suba:
+  subb:
+    subc:
+      subd: 123
+      sube: 456
+      subf: 789
+first: 44
+second: 55

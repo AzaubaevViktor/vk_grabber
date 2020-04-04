@@ -9,6 +9,7 @@ from vk_utils import VKGroup, VKPost
 
 
 class VKError(Exception):
+    INVALID_SESSION = 5  # Need to reauthorize
     TOO_MANY_REQUESTS = 6
 
     def __init__(self, error):
@@ -96,6 +97,10 @@ class VK:
                     self.log.warning("Too many requests", threshold=self.threshold)
                     continue
 
+                if vk_error.error_code == VKError.INVALID_SESSION:
+                    await self.do_auth()
+                    continue
+
                 raise vk_error
             else:
                 assert 'response' in result
@@ -171,3 +176,6 @@ class VK:
     async def shutdown(self):
         if self.session:
             await self.session.close()
+
+    def do_auth(self):
+        pass
