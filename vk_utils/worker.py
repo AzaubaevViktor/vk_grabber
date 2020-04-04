@@ -137,6 +137,9 @@ class VK:
         group = answer[0]
         return VKGroup(**group)
 
+    async def user_posts(self, user_id, count):
+        return [post async for post in self._posts_count(user_id, count)]
+
     async def group_posts(self, group_id, count=None, from_ts=None):
         if count is not None and from_ts is not None:
             raise ValueError("Use one of attribute: `count` or `from_ts`")
@@ -145,21 +148,23 @@ class VK:
             raise ValueError("USe one of attribute: `count` or `from_ts`")
 
         if count is not None:
-            return [post async for post in self._group_posts_count(group_id, count)]
+            return [post async for post in self._posts_count(-group_id, count)]
 
         if from_ts is not None:
             raise NotImplementedError()
 
-    async def _group_posts_count(self, group_id, count):
+    async def _posts_count(self, owner_id, count):
         async for post in self._offsetter(count, dict(
                 method="wall.get",
-                owner_id=-group_id,
+                owner_id=owner_id,
                 fields=self.post_fields
         )):
             yield VKPost(**post)
 
     async def _offsetter(self, count, params):
         # TODO: Can be optimized! Use asyncio.gather after first query, Luke!
+        assert count is not None
+
         if count < 1:
             raise ValueError(f"{count=} must be more than 0")
 
@@ -167,11 +172,14 @@ class VK:
         posts_count = count
 
         while offset < posts_count:
-            answer = await self.call_method(
-                **params,
-                count=min(posts_count - offset, 100),
-                offset=offset
-            )
+            try:
+                answer = await self.call_method(
+                    **params,
+                    count=min(posts_count - offset, 100),
+                    offset=offset
+                )
+            except VKError:
+                return
 
             posts_count = min(count, answer['count'])
 

@@ -9,7 +9,7 @@ from vk_utils import VKUser, VKPost
 pytestmark = pytest.mark.asyncio
 
 
-@pytest.mark.parametrize('count', (0, 1, 10, 100, 200))
+@pytest.mark.parametrize('count', (1, 10, 100, 200))
 async def test_users_posts(vk, group_users: List[int], count):
     users = random.choices(group_users, k=5)
 
@@ -19,7 +19,7 @@ async def test_users_posts(vk, group_users: List[int], count):
         for post in posts:
             assert isinstance(post, VKPost)
 
-        assert len(posts) == count
+        assert len(posts) <= count
 
 
 async def test_user_info(vk, group_users):

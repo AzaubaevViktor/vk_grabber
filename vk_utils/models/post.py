@@ -6,7 +6,7 @@ class VKPost(AttributeStorage):
     from_id = Attribute()
     owner_id = Attribute()
     date = Attribute()
-    marked_as_ads = Attribute()
+    marked_as_ads = Attribute(default=None)
     post_type = Attribute()
     text = Attribute()
     attachments = Attribute(default=None)
@@ -21,3 +21,6 @@ class VKPost(AttributeStorage):
     edited = Attribute(default=False)
     copy_history = Attribute(default=None)
     signer_id = Attribute(default=None)
+
+    geo = Attribute(default=None)
+    friends_only: bool = Attribute(default=False)
