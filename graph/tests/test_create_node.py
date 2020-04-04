@@ -51,6 +51,33 @@ def test_create_with_link(driver, create):
     assert sorted(result, key=lambda item: item.id) == node_childs
 
 
+def test_update(driver):
+    node = TModel(uid=10, name="One", value=1)
+
+    with driver.session() as session:
+        session.write_transaction(create_node, node)
+
+    with driver.session() as session:
+        nodes = session.read_transaction(find_nodes, TModel, node.uid)
+
+    assert len(nodes) == 1
+    assert nodes[0].name == 'One'
+    assert nodes[0].value == 1
+
+    node.name = "Two"
+    node.value = 2
+
+    with driver.session() as session:
+        session.write_transaction(update_node, node)
+
+    with driver.session() as session:
+        nodes = session.read_transaction(find_nodes, TModel, node.uid)
+
+    assert len(nodes) == 1
+    assert nodes[0].name == 'Two'
+    assert nodes[0].value == 2
+
+
 def test_create_update(driver):
     dummy_node = TModel.dummy(uid=30)
     assert isinstance(dummy_node, TModel)
