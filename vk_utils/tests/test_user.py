@@ -20,3 +20,11 @@ async def test_users_posts(vk, group_users: List[int], count):
             assert isinstance(post, VKPost)
 
         assert len(posts) == count
+
+
+async def test_user_info(vk, group_users):
+    user_id = group_users[0]
+
+    user = (await vk.users_info(user_id))[0]
+
+    assert isinstance(user, VKUser)

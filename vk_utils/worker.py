@@ -1,11 +1,11 @@
 import asyncio
 from time import time
-from typing import List
+from typing import List, Sequence
 
 import aiohttp
 
 from core import Log
-from vk_utils import VKGroup, VKPost
+from vk_utils import VKGroup, VKPost, VKUser
 from vk_utils.get_token import UpdateToken
 
 
@@ -110,10 +110,24 @@ class VK:
                 self.threshold *= 0.999
                 return result['response']
 
-    async def me(self):
-        return await self.call_method("account.getProfileInfo")
+    async def users_info(self, *user_ids) -> Sequence[VKUser]:
+        answer = await self.call_method(
+            "users.get",
+            user_ids=",".join(map(str, user_ids)),
+            fields=self.user_fields
+        )
 
-    async def group_info(self, group_id):
+        users = []
+
+        for user_info in answer:
+            users.append(VKUser(**user_info))
+
+        return users
+
+    async def me(self) -> VKUser:
+        return (await self.users_info(self.config.user_id))[0]
+
+    async def group_info(self, group_id) -> VKGroup:
         answer = await self.call_method(
             "groups.getById",
             group_id=group_id,
@@ -166,7 +180,7 @@ class VK:
             for item in answer['items']:
                 yield item
 
-    async def group_user_ids(self, group_id, count=None) -> List[int]:
+    async def group_user_ids(self, group_id, count=None) -> Sequence[int]:
         users = []
         async for user_id in self._offsetter(count, dict(
                 method="groups.getMembers",
