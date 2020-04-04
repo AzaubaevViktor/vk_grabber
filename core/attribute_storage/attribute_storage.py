@@ -178,7 +178,7 @@ class AttributeStorage(SearchableSubclasses, metaclass=MetaAttributeStorage):
         return obj
 
     def __hash__(self):
-        return hash(self._storage)
+        raise NotImplementedError()
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, self.__class__):
