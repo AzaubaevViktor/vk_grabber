@@ -2,7 +2,7 @@ import pytest
 from neo4j import Driver
 
 from core import Attribute
-from graph import Link, create_node, find_nodes, do_links, find_links, Model
+from graph import Link, create_node, find_nodes, do_links, find_links, Model, update_node
 
 
 class TModel(Model):
@@ -52,7 +52,7 @@ def test_create_with_link(driver, create):
 
 
 def test_update(driver):
-    node = TModel(uid=10, name="One", value=1)
+    node = TModel(uid=15, name="One", value=1)
 
     with driver.session() as session:
         session.write_transaction(create_node, node)
