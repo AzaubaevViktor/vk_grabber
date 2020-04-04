@@ -28,6 +28,9 @@ class VKUser(AttributeStorage):
     faculty_name: str = Attribute(default=None)
     graduation: int = Attribute(default=None)
 
+    education_form = Attribute(default=None)
+    education_status = Attribute(default=None)
+
     universities = Attribute(default=None)
     schools = Attribute(default=None)
     last_seen = Attribute(default=None)
@@ -35,3 +38,7 @@ class VKUser(AttributeStorage):
 
     is_closed = Attribute(default=None)
     can_access_closed = Attribute(default=None)
+
+    online_app = Attribute(default=None)
+    online_mobile = Attribute(default=None)
+

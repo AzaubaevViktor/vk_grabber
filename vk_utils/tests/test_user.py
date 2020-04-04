@@ -23,8 +23,7 @@ async def test_users_posts(vk, group_users: List[int], count):
 
 
 async def test_user_info(vk, group_users):
-    user_id = group_users[0]
+    users = await vk.users_info(group_users)
 
-    user = (await vk.users_info(user_id))[0]
-
-    assert isinstance(user, VKUser)
+    for user in users:
+        assert isinstance(user, VKUser)
