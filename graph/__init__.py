@@ -2,36 +2,34 @@ from typing import Sequence, Tuple
 
 from neo4j.graph import Node
 
-from core import AttributeStorage, Type
+from typing import Type
+from .link import Link
+from .model import Model
 
 
-class Link(AttributeStorage):
-    LTR = None
-
-
-def create_node(tx, node: AttributeStorage):
+def create_node(tx, node: Model):
     des = dict(node)
 
     keys = "{" + ', '.join(f"{name}:${name}" for name in des.keys()) + "}"
 
-    tx.run(f"CREATE (:{node.__class__.__name__} {keys})",
+    tx.run(f"CREATE (:{node.labels()} {keys})",
            **des
            )
 
 
-def _q_match(model, uid, name) -> Tuple[str, dict]:
+def _q_match(model: Type[Model], uid, name) -> Tuple[str, dict]:
     assert model.__uids__, "Set uid Attribute"
     if len(model.__uids__) != 1:
         raise NotImplementedError()
 
     uid_field = model.__uids__[0]
 
-    return f"MATCH ({name}:{model.__name__} {{{uid_field.name}: ${name}_uid_value}})\n", {
+    return f"MATCH ({name}:{model.labels()} {{{uid_field.name}: ${name}_uid_value}})\n", {
         f'{name}_uid_value': uid
     }
 
 
-def find_nodes(tx, model: Type[AttributeStorage], uid):
+def find_nodes(tx, model: Type[Model], uid):
     items = []
 
     query, kwargs = _q_match(model, uid, 'result')
@@ -50,7 +48,7 @@ def find_nodes(tx, model: Type[AttributeStorage], uid):
     return items
 
 
-def _q_get_uid_from_node(node):
+def _q_get_uid_from_node(node: Model):
     assert node.__uids__, "Set uid Attribute"
     if len(node.__uids__) != 1:
         raise NotImplementedError()
@@ -60,7 +58,7 @@ def _q_get_uid_from_node(node):
     return uid_field, getattr(node, uid_field.name)
 
 
-def _q_merge_on_create(node, name):
+def _q_merge_on_create(node: Model, name: str):
     uid_field, uid_value = _q_get_uid_from_node(node)
 
     kwargs = {f'_{name}_uid_value': uid_value}
@@ -79,7 +77,7 @@ def _q_merge_on_create(node, name):
     return query, kwargs
 
 
-def do_links(tx, node: AttributeStorage, link: Link, nodes: Sequence[AttributeStorage]):
+def do_links(tx, node: Model, link: Link, nodes: Sequence[Model]):
     query = ""
     kwargs = {}
 
@@ -93,16 +91,16 @@ def do_links(tx, node: AttributeStorage, link: Link, nodes: Sequence[AttributeSt
         query += q
         kwargs.update(k)
 
-        query += f"MERGE (parent)-[:{link.__class__.__name__.upper()}]->({name})\n"
+        query += f"MERGE (parent)-[:{link.labels()}]->({name})\n"
     print(query, kwargs)
     tx.run(query, **kwargs)
 
 
-def find_links(tx, node: AttributeStorage, link: Link, model: Type[AttributeStorage]):
+def find_links(tx, node: Model, link: Link, model: Type[Model]):
     uid_field, uid_value = _q_get_uid_from_node(node)
 
     query, kwargs = _q_match(node.__class__, uid_value, "parent")
-    query += f"MATCH (parent)-[:{link.__class__.__name__.upper()}]->(node:{model.__name__})\n"
+    query += f"MATCH (parent)-[:{link.labels()}]->(node:{model.labels()})\n"
     query += "RETURN node"
 
     print(query, kwargs)

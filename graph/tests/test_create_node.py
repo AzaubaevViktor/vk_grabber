@@ -1,17 +1,17 @@
 import pytest
 from neo4j import Driver
 
-from core import AttributeStorage, Attribute
-from graph import Link, create_node, find_nodes, do_links, find_links
+from core import Attribute
+from graph import Link, create_node, find_nodes, do_links, find_links, Model
 
 
-class TModel(AttributeStorage):
+class TModel(Model):
     uid = Attribute(uid=True)
     name: str = Attribute()
     value: int = Attribute()
 
 
-class TModelChild(AttributeStorage):
+class TModelChild(Model):
     id = Attribute(uid=True)
     some = Attribute()
 

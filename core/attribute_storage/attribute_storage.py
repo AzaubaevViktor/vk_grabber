@@ -72,7 +72,7 @@ class MetaAttributeStorage(type):
                     __kwargs_attribute_class__ = base.__name__
             if hasattr(base, "__uids__"):
                 if base.__uids__:
-                    raise NotImplementedError("Write tests first!")
+                    __uids__.append(base.__uids__)
 
         for attr_name, attr_value in attrs.items():
             if not isinstance(attr_value, Attribute):
