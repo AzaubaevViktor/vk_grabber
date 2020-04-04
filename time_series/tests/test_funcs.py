@@ -17,7 +17,7 @@ from time_series.ts import Funcs, Grid
 )
 @pytest.mark.parametrize(
     'func', (Funcs.eq, Funcs.simple, Funcs.divide,
-             Funcs.spline(1), Funcs.spline(2),
+             Funcs.spline(2), Funcs.spline(4),
              Funcs.spline(10), Funcs.spline(20),
              Funcs.spline(50), Funcs.spline(100))
 )
