@@ -59,7 +59,7 @@ def test_update_exist_first(config: LoadConfig, config_file: str, path):
 @pytest.mark.parametrize('path', (('non_exist', ), ('a', 'ne'), ('suba', 'subb', 'subc', 'ne')))
 def test_update_nonexisten(config: LoadConfig, path):
     result = config
-    for item in path:
+    for item in path[:-1]:
         result = getattr(result, item)
 
     with pytest.raises(KeyError):
