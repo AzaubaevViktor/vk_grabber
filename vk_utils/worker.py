@@ -6,6 +6,7 @@ import aiohttp
 
 from core import Log
 from vk_utils import VKGroup, VKPost
+from vk_utils.get_token import UpdateToken
 
 
 class VKError(Exception):
@@ -28,13 +29,13 @@ class VKError(Exception):
 
 
 class VK:
-    def __init__(self, config):
+    def __init__(self, config_vk):
         self.log = Log("VK")
 
-        self.config = config
+        self.config = config_vk
 
         self.additional_params = {
-            'access_token': self.config['token'],
+            'access_token': self.config.token,
             'lang': 'ru',
             'v': "5.103"
         }
@@ -69,6 +70,8 @@ class VK:
 
         self.last_call = 0
         self.threshold = 1 / 3
+
+        self._update_token = None
 
     async def warm_up(self):
         self.session = aiohttp.ClientSession()
@@ -177,5 +180,11 @@ class VK:
         if self.session:
             await self.session.close()
 
-    def do_auth(self):
-        pass
+    async def do_auth(self):
+        if self._update_token:
+            await self._update_token.finished.wait()
+            return
+
+        self._update_token = UpdateToken(self.config)
+        await self._update_token()
+        self._update_token = None

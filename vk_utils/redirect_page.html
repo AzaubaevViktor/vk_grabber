@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Authorize in abstractly</title>
+</head>
+<body>
+<h1>Authorising in vk_grabber...</h1>
+<pre id="status">Load JS...</pre>
+
+<script lang="javascript">
+
+function status(text) {
+    document.getElementById("status").innerHTML = text;
+}
+
+status("JS Loaded!");
+
+let hash = window.location.hash.substr(1);
+
+status("Token calculated");
+
+async function postData(url = '', data = {}) {
+  // Default options are marked with *
+  status("Send responce...");
+  const response = await fetch(url, {
+    method: 'POST', // *GET, POST, PUT, DELETE, etc.
+    mode: 'cors', // no-cors, *cors, same-origin
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: 'same-origin', // include, *same-origin, omit
+    headers: {
+      'Content-Type': 'application/json'
+      // 'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    redirect: 'follow', // manual, *follow, error
+    referrerPolicy: 'no-referrer', // no-referrer, *client
+    body: JSON.stringify(data) // body data type must match "Content-Type" header
+  });
+  return await response.json(); // parses JSON response into native JavaScript objects
+}
+
+postData('', { answer: hash })
+  .then((data) => {
+    status("👍 Sended!");
+    console.log(data); // JSON data parsed by `response.json()` call
+    status(data['status']);
+  });
+</script>
+
+</body>
+</html>

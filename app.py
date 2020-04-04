@@ -25,7 +25,7 @@ class Application:
 
     async def _load_group_posts(self):
         self.log.info("Load posts from groups")
-        group_ids = self.config.vk['groups']
+        group_ids = self.config.vk.groups
 
         posts = sum(await asyncio.gather(*(
             self.vk.group_posts(group_id=group_id, count=self.posts_count)
