@@ -16,8 +16,18 @@ class VKUser(AttributeStorage):
     photo_400_orig = Attribute(default=None)
     online = Attribute(default=None)
     has_mobile = Attribute(default=None)
-    contacts = Attribute(default=None)
-    education = Attribute(default=None)
+
+    # contacts
+    mobile_phone: str = Attribute(default=None)
+    home_phone: str = Attribute(default=None)
+
+    # education
+    university: int = Attribute(default=None)
+    university_name: str = Attribute(default=None)
+    faculty: int = Attribute(default=None)
+    faculty_name: str = Attribute(default=None)
+    graduation: int = Attribute(default=None)
+
     universities = Attribute(default=None)
     schools = Attribute(default=None)
     last_seen = Attribute(default=None)
