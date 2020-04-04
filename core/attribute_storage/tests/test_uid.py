@@ -12,8 +12,8 @@ def test_uids():
     assert XXX.uid.uid
     assert not XXX.value.uid
 
-    assert XXX.uid in XXX.__uids__
-    assert XXX.value not in XXX.__uids__
+    assert XXX.uid in XXX.__uids__.values()
+    assert XXX.value not in XXX.__uids__.values()
 
 
 def test_wrong():
@@ -28,4 +28,14 @@ class YYY(XXX):
 
 def test_uids_inh():
     assert YYY.uid.uid
-    assert YYY.uid in YYY.__uids__
+    assert YYY.uid in YYY.__uids__.values()
+
+
+class ZZZ(XXX):
+    uid = Attribute(uid=True)
+
+
+def test_double_uids():
+    assert len(ZZZ.__uids__) == 1
+    assert ZZZ.uid in ZZZ.__uids__.values()
+    assert XXX.uid not in ZZZ.__uids__.values()

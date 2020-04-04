@@ -18,3 +18,11 @@ class LabelTwo(LabelName):
 def test_many_labels():
     assert LabelName.__name__ in LabelTwo.labels()
     assert LabelTwo.__name__ in LabelTwo.labels()
+
+
+def test_dummy():
+    dummy = LabelName.dummy(uid=10)
+
+    assert "Dummy" in dummy.labels()
+
+    assert isinstance(dummy, LabelName)

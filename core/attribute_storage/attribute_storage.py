@@ -33,6 +33,13 @@ class Attribute:
     def is_required(self):
         return isinstance(self.default, Attribute._DefaultNone)
 
+    def copy(self) -> "Attribute":
+        attr = Attribute(description=self.description,
+                         default=self.default,
+                         uid=self.uid)
+        attr.name = self.name
+        return attr
+
 
 class KwargsAttribute(Attribute):
     pass
@@ -56,7 +63,7 @@ class MetaAttributeStorage(type):
             raise NotImplementedError("Do not set __kwargs_attributes__ manually")
 
         __attributes__ = {}
-        __uids__ = []
+        __uids__ = {}
         __kwargs_attribute__ = None
         __kwargs_attribute_class__ = None
 
@@ -72,7 +79,7 @@ class MetaAttributeStorage(type):
                     __kwargs_attribute_class__ = base.__name__
             if hasattr(base, "__uids__"):
                 if base.__uids__:
-                    __uids__.append(base.__uids__)
+                    __uids__.update(base.__uids__)
 
         for attr_name, attr_value in attrs.items():
             if not isinstance(attr_value, Attribute):
@@ -84,7 +91,7 @@ class MetaAttributeStorage(type):
                 if isinstance(attr_value, KwargsAttribute):
                     raise AttributeError(f"{KwargsAttribute.__name__} cannot be uid")
 
-                __uids__.append(attr_value)
+                __uids__[attr_name] = attr_value
 
             if isinstance(attr_value, KwargsAttribute):
                 if __kwargs_attribute__:
@@ -99,7 +106,7 @@ class MetaAttributeStorage(type):
 
         attrs['__attributes__'] = __attributes__
         attrs['__kwargs_attribute__'] = __kwargs_attribute__
-        attrs['__uids__'] = tuple(__uids__)
+        attrs['__uids__'] = __uids__
 
         return super().__new__(mcs, name, bases, attrs)
 
@@ -130,7 +137,7 @@ AS_T = TypeVar("AS_T", "AttributeStorage", "AttributeStorage")
 class AttributeStorage(SearchableSubclasses, metaclass=MetaAttributeStorage):
     __attributes__: Dict[str, Attribute]
     __kwargs_attribute__: Optional[Attribute] = None
-    __uids__: Sequence[Attribute]
+    __uids__: Dict[str, Attribute]
 
     def __init__(self, **kwargs):
         self._storage = {}

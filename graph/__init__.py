@@ -22,7 +22,7 @@ def _q_match(model: Type[Model], uid, name) -> Tuple[str, dict]:
     if len(model.__uids__) != 1:
         raise NotImplementedError()
 
-    uid_field = model.__uids__[0]
+    uid_field = tuple(model.__uids__.values())[0]
 
     return f"MATCH ({name}:{model.labels()} {{{uid_field.name}: ${name}_uid_value}})\n", {
         f'{name}_uid_value': uid
@@ -53,7 +53,7 @@ def _q_get_uid_from_node(node: Model):
     if len(node.__uids__) != 1:
         raise NotImplementedError()
 
-    uid_field = node.__uids__[0]
+    uid_field = tuple(node.__uids__.values())[0]
 
     return uid_field, getattr(node, uid_field.name)
 
