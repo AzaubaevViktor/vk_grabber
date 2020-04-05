@@ -53,6 +53,8 @@ def test_create_nodes(driver: Driver, id_started, name_fmt):
     with driver.session() as session:
         found_nodes = session.read_transaction(find_nodes, TModel)
 
+    assert len(found_nodes)
+
     for item in found_nodes:
         assert isinstance(item, TModel)
 

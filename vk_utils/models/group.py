@@ -3,7 +3,7 @@ from graph import Model
 
 
 class VKGroup(Model):
-    id = Attribute()
+    id = Attribute(uid=True)
     name = Attribute()
     screen_name = Attribute()
     description = Attribute()

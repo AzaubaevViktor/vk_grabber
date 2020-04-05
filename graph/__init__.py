@@ -30,15 +30,22 @@ def _q_create_node(node: Model, name: str):
 
 
 def _q_match(model: Type[Model], uid, name) -> Tuple[str, dict]:
-    assert model.__uids__, "Set uid Attribute"
-    if len(model.__uids__) != 1:
-        raise NotImplementedError()
+    query = f"MATCH ({name}:{model.labels()}"
+    kwargs = {}
 
-    uid_field = tuple(model.__uids__.values())[0]
+    if uid:
+        assert model.__uids__, ("Set uid Attribute for", model)
+        if len(model.__uids__) != 1:
+            raise NotImplementedError()
 
-    return f"MATCH ({name}:{model.labels()} {{{uid_field.name}: ${name}_uid_value}})\n", {
-        f'{name}_uid_value': uid
-    }
+        uid_field = tuple(model.__uids__.values())[0]
+
+        query += f"{{{uid_field.name}: ${name}_uid_value}}"
+        kwargs[f'{name}_uid_value'] = uid
+
+    query += ")\n"
+
+    return query, kwargs
 
 
 def find_nodes(tx, model: Type[Model], uid=None):
@@ -46,9 +53,9 @@ def find_nodes(tx, model: Type[Model], uid=None):
 
     query, kwargs = _q_match(model, uid, 'result')
 
-    for item in tx.run(f"{query} RETURN result",
-                       **kwargs
-                       ):
+    query += "RETURN result"
+
+    for item in tx.run(query, **kwargs):
         result: Node = item['result']
 
         assert model.__name__ in result.labels
@@ -56,6 +63,8 @@ def find_nodes(tx, model: Type[Model], uid=None):
         items.append(model(
             **result
         ))
+
+    print(query)
 
     return items
 

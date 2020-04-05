@@ -29,17 +29,18 @@ class BaseApplication:
 
 
 class Application(BaseApplication):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, cleanup=True, **kwargs):
         super().__init__(*args, **kwargs)
         self.neo4j = GraphDatabase.driver(
             self.config.neo4j.uri,
-            auth=self.config.neo4j.auth,
+            auth=tuple(self.config.neo4j.auth),
             database=self.config.neo4j.database
         )
+        self.cleanup = cleanup
 
     async def load_groups(self):
         self.log.info("Load group service started!")
-        with self.neo4j.sesion() as session:
+        with self.neo4j.session() as session:
             session.write_transaction(create_nodes, *(
                 VKGroup.dummy(id=_id)
                 for _id in self.config.vk.groups
@@ -50,7 +51,7 @@ class Application(BaseApplication):
         self.log.info("Load group info started")
 
         # Load data
-        with self.neo4j.sesion() as session:
+        with self.neo4j.session() as session:
             found_dummy_nodes = session.read_transaction(find_nodes, VKGroup.Dummy())
 
         for node in found_dummy_nodes:
@@ -66,6 +67,20 @@ class Application(BaseApplication):
 
     async def __call__(self):
         self.log.important("Hi there! Application v2 here")
+
+        if self.cleanup:
+            self.log.warning("⚠️ NOW WE CLEAN DATABASE")
+            with self.neo4j.session() as session:
+                session.run("MATCH (n) DETACH DELETE n")
+                results = session.run("MATCH (n)")
+            self.log.warning("👍 WE CLEAN DATABASE")
+            self.log.warning("If you donn't wanna to, set `cleanup` parameter to False")
+
+        await self.load_groups()
+
+        results = await asyncio.gather(self.load_group_info())
+
+        self.log.important(results)
 
 
 class _Application(BaseApplication):

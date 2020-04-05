@@ -1,5 +1,7 @@
 from typing import Type
 
+from memoization import cached
+
 from ._base import _Base
 
 
@@ -15,11 +17,18 @@ class Model(_Base):
         return cls.Dummy()(**params)
 
     @classmethod
+    @cached
     def Dummy(cls):
         attrs = {}
         for name, attr in cls.__attributes__.items():
             new_attr = attr.copy()
             new_attr.default = None
             attrs[name] = new_attr
+
+        def __repr__(self):
+            return f"<Dummy for: {super().__repr__()}>"
+
+        attrs["__repr__"] = __repr__
+
         Dummy = type("Dummy", (cls,), attrs)
         return Dummy
