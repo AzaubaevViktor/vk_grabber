@@ -20,17 +20,18 @@ def LoadConfig(file_name: str = None):
         with open(file_name, "wt") as f:
             yaml.safe_dump(data, f)
 
-    return Config(data, do_update)
+    return Config(data, do_update, "")
 
 
 class Config:
-    def __init__(self, data: dict, update_func):
+    def __init__(self, data: dict, update_func, path):
         super(Config, self).__setattr__("log", Log("Config"))
+        super(Config, self).__setattr__("path", path)
         super(Config, self).__setattr__("_data", data)
         super(Config, self).__setattr__("update", update_func)
 
     def __getattr__(self, item: str) -> Union["Config", Any]:
-        self.log.debug('Access to', item=item)
+        self.log.deep('Access to', path=self.path, item=item)
         if item not in self._data:
             raise KeyError(f"Key `{item}` not found, try one of: "
                            f"({', '.join(self._data.keys())})")
@@ -38,7 +39,8 @@ class Config:
         new_data = self._data[item]
 
         if isinstance(new_data, dict):
-            return Config(self._data[item], self.update)
+            path = ((self.path + ".") if self.path else "") + item
+            return Config(self._data[item], self.update, path=path)
 
         return new_data
 

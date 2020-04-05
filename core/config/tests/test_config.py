@@ -64,3 +64,9 @@ def test_update_nonexisten(config: LoadConfig, path):
 
     with pytest.raises(KeyError):
         setattr(result, path[-1], 100)
+
+
+def test_path(config: LoadConfig):
+    assert config.path == ""
+    assert config.a.path == "a"
+    assert config.suba.subb.subc.path == "suba.subb.subc"
