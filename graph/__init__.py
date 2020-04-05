@@ -41,7 +41,7 @@ def _q_match(model: Type[Model], uid, name) -> Tuple[str, dict]:
     }
 
 
-def find_nodes(tx, model: Type[Model], uid):
+def find_nodes(tx, model: Type[Model], uid=None):
     items = []
 
     query, kwargs = _q_match(model, uid, 'result')

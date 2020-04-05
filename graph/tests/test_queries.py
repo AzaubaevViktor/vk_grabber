@@ -43,10 +43,18 @@ def test_create_nodes(driver: Driver, id_started, name_fmt):
 
     with driver.session() as session:
         session.write_transaction(create_nodes, *nodes)
-        found_node = session.read_transaction(find_nodes, TModel, nodes[0].uid)
+        found_nodes = session.read_transaction(find_nodes, TModel, nodes[0].uid)
 
-    assert isinstance(nodes[0], TModel)
-    assert [nodes[0]] == found_node
+    assert len(found_nodes) == 1
+
+    assert isinstance(found_nodes[0], TModel)
+    assert nodes[:1] == found_nodes
+
+    with driver.session() as session:
+        found_nodes = session.read_transaction(find_nodes, TModel)
+
+    for item in found_nodes:
+        assert isinstance(item, TModel)
 
 
 @pytest.mark.parametrize("create", (True, False))
