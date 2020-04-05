@@ -5,18 +5,20 @@ from neo4j import GraphDatabase
 from plotly import graph_objects as go
 
 from core import LoadConfig, Log, Time
-from graph import create_nodes, find_nodes, update_node
+from graph import create_nodes, find_nodes, update_node, do_links
 from time_series.ts import TSManager, TimeSeries, Funcs
-from vk_utils import VK, VKGroup
+from vk_utils import VK, VKGroup, VKUser, Participant
 from word_woker import tokenize
 
 
 class BaseApplication:
-    def __init__(self, config: LoadConfig, posts_count):
+    def __init__(self, config: LoadConfig, posts_count, persons_count):
         self.log = Log("Application")
         self.config = config
         self.vk = VK(config.vk)
+
         self.posts_count = posts_count
+        self.persons_count = persons_count
 
         self._warm_upped = False
 
@@ -37,6 +39,7 @@ class Application(BaseApplication):
             database=self.config.neo4j.database
         )
         self.cleanup = cleanup
+        self.log.info("Application initialized")
 
     async def load_groups(self):
         self.log.info("Load group service started!")
@@ -65,6 +68,24 @@ class Application(BaseApplication):
 
         self.log.info("Load group info finished!")
 
+    async def load_group_persons(self):
+        self.log.info("Load persons from group!")
+
+        with self.neo4j.session() as session:
+            groups = session.read_transaction(find_nodes, VKGroup)
+
+        for group in groups:
+            self.log.debug("Load persons", group=group)
+            person_ids = await self.vk.group_user_ids(group.id, count=self.persons_count)
+
+            self.log.debug("Prepare transaction")
+            self.log.info(group=group.id, users_count=len(person_ids))
+            with self.neo4j.session() as session:
+                users_dummy = tuple(VKUser.dummy(id=id_) for id_ in person_ids)
+                session.write_transaction(do_links, group, Participant(), users_dummy)
+                self.log.debug("Write transaction")
+            self.log.debug("Finished transaction")
+
     async def __call__(self):
         self.log.important("Hi there! Application v2 here")
 
@@ -78,7 +99,10 @@ class Application(BaseApplication):
 
         await self.load_groups()
 
-        results = await asyncio.gather(self.load_group_info())
+        results = await asyncio.gather(
+            self.load_group_info(),
+            self.load_group_persons()
+        )
 
         self.log.important(results)
 
