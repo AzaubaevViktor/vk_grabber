@@ -11,4 +11,4 @@ async def main(*counts):
 
 
 if __name__ == "__main__":
-    asyncio.run(main(100, 100))
+    asyncio.run(main(100, 200))

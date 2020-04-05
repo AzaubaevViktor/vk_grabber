@@ -1,5 +1,5 @@
 import asyncio
-from typing import List
+from typing import List, Sequence
 
 from neo4j import GraphDatabase
 from plotly import graph_objects as go
@@ -28,6 +28,16 @@ class BaseApplication:
 
     async def __call__(self):
         raise NotImplementedError()
+
+
+def simple_bunches(datas: Sequence, count: int):
+    parts = len(datas) // count + 1
+    for i in range(parts):
+        s = datas[i * count:(i + 1) * count]
+        if s:
+            yield s
+
+    assert (i + 1) * count >= len(datas)
 
 
 class Application(BaseApplication):
@@ -78,13 +88,15 @@ class Application(BaseApplication):
             self.log.debug("Load persons", group=group)
             person_ids = await self.vk.group_user_ids(group.id, count=self.persons_count)
 
-            self.log.debug("Prepare transaction")
             self.log.info(group=group.id, users_count=len(person_ids))
-            with self.neo4j.session() as session:
-                users_dummy = tuple(VKUser.dummy(id=id_) for id_ in person_ids)
-                session.write_transaction(do_links, group, Participant(), users_dummy)
-                self.log.debug("Write transaction")
-            self.log.debug("Finished transaction")
+            users_dummy = tuple(VKUser.dummy(id=id_) for id_ in person_ids)
+
+            for users in simple_bunches(users_dummy, 10):
+                self.log.debug("Prepare transaction", count=len(users))
+                with self.neo4j.session() as session:
+                    session.write_transaction(do_links, group, Participant(), users)
+                    self.log.debug("Write transaction")
+                self.log.debug("Finished transaction")
 
     async def __call__(self):
         self.log.important("Hi there! Application v2 here")
@@ -93,7 +105,6 @@ class Application(BaseApplication):
             self.log.warning("⚠️ NOW WE CLEAN DATABASE")
             with self.neo4j.session() as session:
                 session.run("MATCH (n) DETACH DELETE n")
-                results = session.run("MATCH (n)")
             self.log.warning("👍 WE CLEAN DATABASE")
             self.log.warning("If you donn't wanna to, set `cleanup` parameter to False")
 

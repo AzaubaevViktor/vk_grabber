@@ -90,7 +90,7 @@ def _q_merge(node: Model, name: str, on_create=True, on_match=False):
 
     kwargs = {f'_{name}_uid_value': uid_value}
 
-    query = f"MERGE ({name}:{node.__class__.__name__} {{{uid_field.name}:$_{name}_uid_value}}) "
+    query = f"MERGE ({name}:{node.labels()} {{{uid_field.name}:$_{name}_uid_value}}) "
 
     if on_create or on_match:
         params = []
