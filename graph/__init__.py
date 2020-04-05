@@ -89,7 +89,6 @@ def _q_merge(node: Model, name: str, on_create=True, on_match=False):
             query += f"ON CREATE SET {_q}\n"
         if on_match:
             query += f"ON MATCH SET {_q}\n"
-    print(query)
     return query, kwargs
 
 
@@ -108,7 +107,6 @@ def do_links(tx, node: Model, link: Link, nodes: Sequence[Model]):
         kwargs.update(k)
 
         query += f"MERGE (parent)-[:{link.labels()}]->({name})\n"
-    print(query, kwargs)
     tx.run(query, **kwargs)
 
 
@@ -118,8 +116,6 @@ def find_links(tx, node: Model, link: Link, model: Type[Model]):
     query, kwargs = _q_match(node.__class__, uid_value, "parent")
     query += f"MATCH (parent)-[:{link.labels()}]->(node:{model.labels()})\n"
     query += "RETURN node"
-
-    print(query, kwargs)
 
     items = []
 
