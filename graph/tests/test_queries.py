@@ -69,9 +69,7 @@ def test_create_with_link(driver, create):
 
     with driver.session() as session:
         if create:
-            session.write_transaction(create_nodes, node)
-            for item in node_childs:
-                session.write_transaction(create_nodes, item)
+            session.write_transaction(create_nodes, node, *node_childs)
 
         session.write_transaction(do_links, node, TLink(param=1), node_childs)
         result = session.read_transaction(find_links, node, TLink(), TModelChild)
@@ -118,7 +116,14 @@ def test_create_update(driver):
 
     assert len(found_dummy_nodes) == 1
 
-    assert isinstance(found_dummy_nodes[0], TModel)
+    assert isinstance(found_dummy_nodes[0], TModel.Dummy())
+
+    with driver.session() as session:
+        found_dummy_nodes_by_raw = session.read_transaction(find_nodes, TModel, dummy_node.uid)
+
+    assert len(found_dummy_nodes_by_raw) == 1
+
+    assert isinstance(found_dummy_nodes_by_raw[0], TModel.Dummy())
 
     new_node = TModel(uid=30, name='test', value=123)
 

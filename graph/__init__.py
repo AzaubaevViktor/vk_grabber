@@ -49,6 +49,7 @@ def _q_match(model: Type[Model], uid, name) -> Tuple[str, dict]:
 
 
 def find_nodes(tx, model: Type[Model], uid=None):
+    # TODO: Add custom attributes return
     items = []
 
     query, kwargs = _q_match(model, uid, 'result')
@@ -60,7 +61,12 @@ def find_nodes(tx, model: Type[Model], uid=None):
 
         assert model.__name__ in result.labels
 
-        items.append(model(
+        if "Dummy" in result.labels:
+            used_model = model.Dummy()
+        else:
+            used_model = model
+
+        items.append(used_model(
             **result
         ))
 
@@ -116,6 +122,7 @@ def do_links(tx, node: Model, link: Link, nodes: Sequence[Model]):
         kwargs.update(k)
 
         query += f"MERGE (parent)-[:{link.labels()}]->({name})\n"
+
     tx.run(query, **kwargs)
 
 
@@ -140,8 +147,7 @@ def find_links(tx, node: Model, link: Link, model: Type[Model]):
 def update_node(tx, node: Model):
     q, kwargs = _q_merge(node, "result", on_create=True, on_match=True)
 
-    if node.__class__.__mro__[0].__name__ == "Dummy":
-        q += "REMOVE result:Dummy\n"
+    q += "REMOVE result:Dummy\n"
 
     tx.run(q, **kwargs)
 
