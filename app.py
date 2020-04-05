@@ -1,11 +1,13 @@
 import asyncio
 from typing import List
 
+from neo4j import GraphDatabase
 from plotly import graph_objects as go
 
 from core import LoadConfig, Log, Time
+from graph import create_nodes, find_nodes, update_node
 from time_series.ts import TSManager, TimeSeries, Funcs
-from vk_utils import VK
+from vk_utils import VK, VKGroup
 from word_woker import tokenize
 
 
@@ -27,6 +29,41 @@ class BaseApplication:
 
 
 class Application(BaseApplication):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.neo4j = GraphDatabase.driver(
+            self.config.neo4j.uri,
+            auth=self.config.neo4j.auth,
+            database=self.config.neo4j.database
+        )
+
+    async def load_groups(self):
+        self.log.info("Load group service started!")
+        with self.neo4j.sesion() as session:
+            session.write_transaction(create_nodes, *(
+                VKGroup.dummy(id=_id)
+                for _id in self.config.vk.groups
+            ))
+        self.log.info("Load group service finished!")
+
+    async def load_group_info(self):
+        self.log.info("Load group info started")
+
+        # Load data
+        with self.neo4j.sesion() as session:
+            found_dummy_nodes = session.read_transaction(find_nodes, VKGroup.Dummy())
+
+        for node in found_dummy_nodes:
+            self.log.debug("Process", node=node)
+            assert isinstance(node, VKGroup.Dummy())
+
+            group = await self.vk.group_info(node.id)
+
+            with self.neo4j.session() as session:
+                session.write_transaction(update_node, group)
+
+        self.log.info("Load group info finished!")
+
     async def __call__(self):
         self.log.important("Hi there! Application v2 here")
 
