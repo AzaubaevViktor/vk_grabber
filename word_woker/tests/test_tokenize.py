@@ -1,3 +1,5 @@
+import random
+
 from word_woker import tokenize
 
 
@@ -27,3 +29,23 @@ def test_nsu():
     tokens = tokenize(text)
 
     assert tokens == ["учиться", "нгу"]
+
+
+def test_cleanup():
+    text = "МаМа мЫлА РаМу"
+
+    wrong_chars = '!-,+2=9^>.?}$§%*{/~&<±@:[\\]13456780#_`|'
+
+    new_text = ""
+
+    for ch in text:
+        new_text += random.choice(wrong_chars) + ch
+
+    assert tokenize(text) == tokenize(new_text)
+
+
+def test_new_line():
+    text = "мама\nмыла\nраму"
+
+    x = tokenize(text)
+    assert x == ['мама', 'мыть', 'рама']

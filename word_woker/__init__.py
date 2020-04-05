@@ -4,10 +4,20 @@ from string import punctuation, whitespace
 
 m = pymystem3.Mystem()
 
+replaces = {
+    '\n': ' '
+}
+
+good_chars = "абвгдежзийклмнопрстуфхцчшщъыьэюя"
+good_chars += good_chars.upper()
+good_chars += " -"
+good_chars += "".join(replaces.keys())
+
+
 stop_words = tuple(
-    ["", "под", "там", "—", "о", "по", "в", "на", "и", "мы", "с", "для", "из", "под", "вы", "от", "а", "не", "как",
-     "к", "что", "–", "это", "они", "наш", "до", "я", "быть", "этот",
-     'бы', 'оно', 'ага', "но", "то", "..."] +
+    ["", "под", "там", "о", "по", "в", "на", "и", "мы", "с", "для", "из", "под", "вы", "от", "а", "не", "как",
+     "к", "что",  "это", "они", "наш", "до", "я", "быть", "этот",
+     'бы', 'оно', 'ага', "но", "то"] +
     list(punctuation) +
     list(whitespace)
 )
@@ -38,7 +48,20 @@ def check_word(analyze_result):
     return word
 
 
-def tokenize(words):
+def cleanup(raw_text):
+    return "".join(ch for ch in raw_text if ch in good_chars)
+
+
+def replace(raw_text: str):
+    for k, v in replaces.items():
+        raw_text = raw_text.replace(k, v)
+
+    return raw_text
+
+
+def tokenize(raw_text):
+    words = replace(cleanup(raw_text))
+
     return [x for word in m.analyze(words)
             if (x := check_word(word))
             ]
