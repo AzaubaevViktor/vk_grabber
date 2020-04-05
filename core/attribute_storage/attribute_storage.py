@@ -197,12 +197,5 @@ class AttributeStorage(SearchableSubclasses, metaclass=MetaAttributeStorage):
         attrs = "; ".join(
             f"{k}={getattr(self, k, None)}" for k in self.__attributes__
         )
-        additional_repr = self._additional_repr()
-        if additional_repr:
-            additional_repr = f"{additional_repr} "
 
-        return f"<{self.__class__.__name__}: {additional_repr}{attrs}>"
-
-    def _additional_repr(self) -> str:
-        return ""
-
+        return f"<{self.__class__.__name__}: {attrs}>"
