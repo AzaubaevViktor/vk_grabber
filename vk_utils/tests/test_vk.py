@@ -57,6 +57,7 @@ class TestGroupPostTs:
         assert len(posts) == 10
         return posts
 
+    @pytest.mark.xfail("Download by ts not implemented yet")
     @pytest.mark.parametrize('index', range(9))
     async def test_group_posts_with_ts(self, vk, group_id, last_posts, index):
         assert len(last_posts) > index + 1

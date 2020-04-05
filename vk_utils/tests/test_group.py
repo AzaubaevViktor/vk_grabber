@@ -1,7 +1,6 @@
 import pytest
 
-from vk_utils import VKUser
-
+from vk_utils import VKGroup
 
 pytestmark = pytest.mark.asyncio
 
@@ -15,3 +14,10 @@ async def test_vk_persons(vk, group_id, count):
 
     assert len(users) == count
 
+
+async def test_group_info(vk, group_id):
+    group_info = await vk.group_info(group_id)
+
+    assert isinstance(group_info, VKGroup)
+
+    assert "НГУ" in group_info.name

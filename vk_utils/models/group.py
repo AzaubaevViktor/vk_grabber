@@ -1,7 +1,8 @@
-from core import AttributeStorage, Attribute
+from core import Attribute
+from graph import Model
 
 
-class VKGroup(AttributeStorage):
+class VKGroup(Model):
     id = Attribute()
     name = Attribute()
     screen_name = Attribute()
