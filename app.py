@@ -9,19 +9,32 @@ from vk_utils import VK
 from word_woker import tokenize
 
 
-class Application:
+class BaseApplication:
     def __init__(self, config: LoadConfig, posts_count):
         self.log = Log("Application")
         self.config = config
         self.vk = VK(config.vk)
         self.posts_count = posts_count
-        self.tsm = TSManager()
 
         self._warm_upped = False
 
     async def warm_up(self):
         assert not self._warm_upped, "Already warm_upped"
         await self.vk.warm_up()
+
+    async def __call__(self):
+        raise NotImplementedError()
+
+
+class Application(BaseApplication):
+    async def __call__(self):
+        self.log.important("Hi there! Application v2 here")
+
+
+class _Application(BaseApplication):
+    def __init__(self, config: LoadConfig, posts_count):
+        super().__init__(config, posts_count)
+        self.tsm = TSManager()
 
     async def _load_group_posts(self):
         self.log.info("Load posts from groups")

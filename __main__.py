@@ -10,4 +10,5 @@ async def main(count):
     await app()
 
 
-asyncio.run(main(100))
+if __name__ == "__main__":
+    asyncio.run(main(100))
