@@ -2,7 +2,7 @@ import pytest
 from neo4j import Driver
 
 from core import Attribute
-from graph import Link, create_node, find_nodes, do_links, find_links, Model, update_node
+from graph import Link, create_nodes, find_nodes, do_links, find_links, Model, update_node
 
 
 class TModel(Model):
@@ -24,11 +24,29 @@ class TLink(Link):
 def test_create(driver: Driver):
     node = TModel(uid=10, name='test', value=123)
     with driver.session() as session:
-        session.write_transaction(create_node, node)
+        session.write_transaction(create_nodes, node)
         found_node = session.read_transaction(find_nodes, TModel, node.uid)
 
     assert isinstance(node, TModel)
     assert [node] == found_node
+
+
+@pytest.mark.parametrize(
+    'id_started, name_fmt', ((200, 'test_{}'),
+                             (300, 'test+{}'),
+                             (400, '/23_1:+-/+{}'))
+)
+def test_create_nodes(driver: Driver, id_started, name_fmt):
+    nodes = []
+    for i in range(10):
+        nodes.append(TModel(uid=i + id_started, name=name_fmt.format(i), value=123 * i))
+
+    with driver.session() as session:
+        session.write_transaction(create_nodes, *nodes)
+        found_node = session.read_transaction(find_nodes, TModel, nodes[0].uid)
+
+    assert isinstance(nodes[0], TModel)
+    assert [nodes[0]] == found_node
 
 
 @pytest.mark.parametrize("create", (True, False))
@@ -41,9 +59,9 @@ def test_create_with_link(driver, create):
 
     with driver.session() as session:
         if create:
-            session.write_transaction(create_node, node)
+            session.write_transaction(create_nodes, node)
             for item in node_childs:
-                session.write_transaction(create_node, item)
+                session.write_transaction(create_nodes, item)
 
         session.write_transaction(do_links, node, TLink(param=1), node_childs)
         result = session.read_transaction(find_links, node, TLink(), TModelChild)
@@ -55,7 +73,7 @@ def test_update(driver):
     node = TModel(uid=15, name="One", value=1)
 
     with driver.session() as session:
-        session.write_transaction(create_node, node)
+        session.write_transaction(create_nodes, node)
 
     with driver.session() as session:
         nodes = session.read_transaction(find_nodes, TModel, node.uid)
@@ -83,7 +101,7 @@ def test_create_update(driver):
     assert isinstance(dummy_node, TModel)
 
     with driver.session() as session:
-        session.write_transaction(create_node, dummy_node)
+        session.write_transaction(create_nodes, dummy_node)
 
     with driver.session() as session:
         found_dummy_nodes = session.read_transaction(find_nodes, TModel.Dummy(), dummy_node.uid)

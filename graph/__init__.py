@@ -7,14 +7,26 @@ from .link import Link
 from .model import Model
 
 
-def create_node(tx, node: Model):
-    des = dict(node)
+def create_nodes(tx, *nodes: Model):
+    q, kwargs = "", {}
 
-    keys = "{" + ', '.join(f"{name}:${name}" for name in des.keys()) + "}"
+    for i, node in enumerate(nodes):
+        q_, kwargs_ = _q_create_node(node, f"node_{i}")
+        q += q_
+        kwargs.update(kwargs_)
 
-    tx.run(f"CREATE (:{node.labels()} {keys})",
-           **des
-           )
+    tx.run(q, **kwargs)
+
+
+def _q_create_node(node: Model, name: str):
+    node_atts = dict(node)
+
+    keys = "{" + ', '.join(f"{attr_name}:${name}_{attr_name}" for attr_name in node_atts.keys()) + "}"
+
+    kwargs = {f'{name}_{attr_name}': attr_value
+              for attr_name, attr_value in node_atts.items()}
+
+    return f"CREATE ({name}:{node.labels()} {keys})\n", kwargs
 
 
 def _q_match(model: Type[Model], uid, name) -> Tuple[str, dict]:
@@ -128,3 +140,5 @@ def update_node(tx, node: Model):
 
     tx.run(q, **kwargs)
 
+
+__all__ = ("create_nodes",)

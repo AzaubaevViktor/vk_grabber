@@ -5,6 +5,8 @@ import pytest
 def driver():
     from neo4j import GraphDatabase
 
+    # TODO: Use test config
+
     driver = GraphDatabase.driver(
         "bolt://localhost:7687",
         auth=("neo4j", "test"),
