@@ -1,7 +1,8 @@
-from core import AttributeStorage, Attribute
+from core import Attribute
+from graph import Model
 
 
-class VKUser(AttributeStorage):
+class VKUser(Model):
     id = Attribute(uid=True)
 
     first_name = Attribute(default=None)

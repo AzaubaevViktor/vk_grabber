@@ -77,11 +77,12 @@ class VK:
         self.session = aiohttp.ClientSession()
 
     async def call_method(self, method, **params):
+        self.log.debug(method=method, params=params)
         while True:
             assert self.session is not None, "call `await .warm_up()` first"
 
             if time() - self.threshold < self.last_call:
-                self.log.debug("Sleep", threshold=self.threshold)
+                self.log.deep("Sleep", threshold=self.threshold)
                 await asyncio.sleep(self.threshold)
 
             self.last_call = time()
@@ -163,7 +164,8 @@ class VK:
 
     async def _offsetter(self, count, params):
         # TODO: Can be optimized! Use asyncio.gather after first query, Luke!
-        assert count is not None
+        if count is None:
+            count = float("+inf")
 
         if count < 1:
             raise ValueError(f"{count=} must be more than 0")
