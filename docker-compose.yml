@@ -16,3 +16,15 @@ services:
       - ./data/neo4j/data:/data
       - ./data/neo4j/import:/var/lib/neo4j/import
       - ./data/neo4j/logs:/logs
+  mongo:
+    # https://medium.com/faun/managing-mongodb-on-docker-with-docker-compose-26bf8a0bbae3
+    image: mongo:latest
+    ports:
+    - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=dyploma
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=root
+    volumes:
+      - ./data/mongo/db:/data/db
+      - ./data/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
