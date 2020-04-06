@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple
+from typing import Sequence, Tuple, Union
 
 from neo4j.graph import Node
 
@@ -33,7 +33,7 @@ def _q_create_node(node: Model, name: str):
     return f"CREATE ({name}:{node.labels()} {keys})\n", kwargs
 
 
-def _q_match(model: Type[Model], uid, name, **attrs) -> Tuple[str, dict]:
+def _q_match(model: Union[Model, Type[Model]], uid, name, **attrs) -> Tuple[str, dict]:
     query = f"MATCH ({name}:{model.labels()} "
 
     if uid:
@@ -101,7 +101,7 @@ def _q_merge(node: Model, name: str, on_create=True, on_match=False):
 
     kwargs = {f'_{name}_uid_value': uid_value}
 
-    query = f"MERGE ({name}:{node.labels()} {{{uid_field.name}:$_{name}_uid_value}}) "
+    query = f"MERGE ({name}:{node.labels()} {{{uid_field.name}:$_{name}_uid_value}}) \n"
 
     if on_create or on_match:
         params = []
@@ -122,7 +122,9 @@ def do_links(tx, node: Model, link: Link, nodes: Sequence[Model]):
     query = ""
     kwargs = {}
 
-    q, k = _q_merge(node, "parent")
+    uid_value = getattr(node, tuple(node.__uids__.keys())[0])
+
+    q, k = _q_match(node, uid_value, "parent")
     query += q
     kwargs.update(k)
 
@@ -159,6 +161,8 @@ def update_node(tx, node: Model):
     q, kwargs = _q_merge(node, "result", on_create=True, on_match=True)
 
     q += "REMOVE result:Dummy\n"
+
+    print(q)
 
     tx.run(q, **kwargs)
 

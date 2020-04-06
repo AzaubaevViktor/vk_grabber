@@ -68,8 +68,9 @@ def test_create_with_link(driver, create):
         node_childs.append(TModelChild(id=i, some='value'))
 
     with driver.session() as session:
+        session.write_transaction(create_nodes, node)
         if create:
-            session.write_transaction(create_nodes, node, *node_childs)
+            session.write_transaction(create_nodes, *node_childs)
 
         session.write_transaction(do_links, node, TLink(param=1), node_childs)
         result = session.read_transaction(find_links, node, TLink(), TModelChild)

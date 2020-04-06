@@ -171,8 +171,8 @@ class Application(BaseApplication):
         results = await asyncio.gather(
             self.load_group_info(),
             self.load_group_persons(),
-            self.load_group_posts(),
-            self.load_person_posts()
+            # self.load_group_posts(),
+            # self.load_person_posts()
         )
 
         self.log.important(results)
