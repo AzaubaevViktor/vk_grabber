@@ -15,7 +15,7 @@ async def test_vk_persons(vk, group_id, count):
     assert len(users) == count
 
 
-async def test_vk_persons_none(vk, group_id, count):
+async def test_vk_persons_none(vk, group_id):
     users = await vk.group_user_ids(group_id)
 
     for user in users:

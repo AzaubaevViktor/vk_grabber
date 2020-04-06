@@ -73,8 +73,11 @@ def test_create_with_link(driver, create):
 
         session.write_transaction(do_links, node, TLink(param=1), node_childs)
         result = session.read_transaction(find_links, node, TLink(), TModelChild)
+        parent = session.read_transaction(find_nodes, TModel)
 
     assert sorted(result, key=lambda item: item.id) == node_childs
+    assert len(parent) == 1
+    assert parent == [node]
 
 
 def test_update(driver):
@@ -137,3 +140,4 @@ def test_create_update(driver):
 
     result = result[0]
     assert isinstance(result, TModel)
+    assert not isinstance(result, TModel.Dummy())

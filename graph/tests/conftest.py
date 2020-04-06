@@ -2,7 +2,7 @@ import pytest
 
 
 @pytest.fixture(scope='session')
-def driver():
+def _driver():
     from neo4j import GraphDatabase
 
     # TODO: Use test config
@@ -15,9 +15,15 @@ def driver():
     print(driver)
     print(type(driver))
     print(type(driver).__mro__)
-    yield driver
 
-    with driver.session() as session:
+    return driver
+
+
+@pytest.fixture(scope='function')
+def driver(_driver):
+    yield _driver
+
+    with _driver.session() as session:
         session.run("MATCH (n) DETACH DELETE n")
         results = session.run("MATCH (n)")
 

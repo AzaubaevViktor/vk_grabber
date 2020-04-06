@@ -13,4 +13,4 @@ def db():
 def collection(db):
     coll = db['test']
     yield coll
-    coll.delete_many()
+    coll.delete_many({})
