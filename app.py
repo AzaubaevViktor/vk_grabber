@@ -13,13 +13,14 @@ from word_woker import tokenize
 
 
 class BaseApplication:
-    def __init__(self, config: LoadConfig, posts_count, persons_count):
+    def __init__(self, config: LoadConfig, posts_count, persons_count, users_count):
         self.log = Log("Application")
         self.config = config
         self.vk = VK(config.vk)
 
         self.posts_count = posts_count
         self.persons_count = persons_count
+        self.users_count = users_count
 
         self._warm_upped = False
 
@@ -112,24 +113,41 @@ class Application(BaseApplication):
         for group in groups:
             all_posts = await self.vk.group_posts(group_id=group.id, count=self.posts_count)
 
-            for posts in simple_bunches(all_posts, 100):
-                self.log.info("Write posts from", group=group, count=len(posts))
-
-                self.posts.insert_many((
-                    dict(post) for post in posts
-                ))
+            await self._process_posts(all_posts, group)
 
         self.log.info("Load group posts finished")
+
+    async def _process_posts(self, all_posts, group):
+        for posts in simple_bunches(all_posts, 100):
+            self.log.info("Write posts from", group=group, count=len(posts))
+
+            self.posts.insert_many((
+                dict(post) for post in posts
+            ))
 
     async def load_person_posts(self):
         self.log.info("Load person posts")
 
-        while True:
+        users_count = 0
+
+        while users_count < self.users_count:
             with self.neo4j.session() as session:
                 users = session.read_transaction(find_nodes, VKUser, is_checked=False, limit=20)
+                for user in users:
+                    user.is_checked = True
+                    session.write_transaction(update_node, user)
+
+            if not len(users):
+                await asyncio.sleep(1)
+                continue
 
             for user in users:
-                raise NotImplementedError()
+                all_posts = await self.vk.user_posts(user_id=user.id, count=self.posts_count)
+
+                await self._process_posts(all_posts, user)
+
+            users_count += len(users)
+            self.log.important("Processed users:", count=users_count)
 
         self.log.info("Load person posts finished")
 
@@ -143,7 +161,7 @@ class Application(BaseApplication):
                 session.run("MATCH (n) DETACH DELETE n")
 
             self.log.info("Clean mongo")
-            self.posts.delete_many()
+            self.posts.delete_many({})
 
             self.log.warning("👍 WE CLEAN DATABASE")
             self.log.warning("If you donn't wanna to, set `cleanup` parameter to False")
@@ -152,7 +170,9 @@ class Application(BaseApplication):
 
         results = await asyncio.gather(
             self.load_group_info(),
-            self.load_group_persons()
+            self.load_group_persons(),
+            self.load_group_posts(),
+            self.load_person_posts()
         )
 
         self.log.important(results)

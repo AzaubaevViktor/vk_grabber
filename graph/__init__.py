@@ -18,20 +18,23 @@ def create_nodes(tx, *nodes: Model):
     tx.run(q, **kwargs)
 
 
+def _q_attrs_from(name, node_atts):
+    keys = "{" + ', '.join(f"{attr_name}:${name}_{attr_name}" for attr_name in node_atts.keys()) + "}"
+    kwargs = {f'{name}_{attr_name}': attr_value
+              for attr_name, attr_value in node_atts.items()}
+    return keys, kwargs
+
+
 def _q_create_node(node: Model, name: str):
     node_atts = dict(node)
 
-    keys = "{" + ', '.join(f"{attr_name}:${name}_{attr_name}" for attr_name in node_atts.keys()) + "}"
-
-    kwargs = {f'{name}_{attr_name}': attr_value
-              for attr_name, attr_value in node_atts.items()}
+    keys, kwargs = _q_attrs_from(name, node_atts)
 
     return f"CREATE ({name}:{node.labels()} {keys})\n", kwargs
 
 
-def _q_match(model: Type[Model], uid, name) -> Tuple[str, dict]:
-    query = f"MATCH ({name}:{model.labels()}"
-    kwargs = {}
+def _q_match(model: Type[Model], uid, name, **attrs) -> Tuple[str, dict]:
+    query = f"MATCH ({name}:{model.labels()} "
 
     if uid:
         assert model.__uids__, ("Set uid Attribute for", model)
@@ -40,23 +43,31 @@ def _q_match(model: Type[Model], uid, name) -> Tuple[str, dict]:
 
         uid_field = tuple(model.__uids__.values())[0]
 
-        query += f"{{{uid_field.name}: ${name}_uid_value}}"
-        kwargs[f'{name}_uid_value'] = uid
+        attrs[uid_field.name] = uid
+
+    if attrs:
+        q_, kwargs = _q_attrs_from(name, attrs)
+        query += q_
+    else:
+        kwargs = {}
 
     query += ")\n"
 
     return query, kwargs
 
 
-def find_nodes(tx, model: Type[Model], uid=None):
+def find_nodes(tx, model: Type[Model], uid=None, limit=None, **attrs):
     # TODO: Add custom attributes return
     items = []
 
-    query, kwargs = _q_match(model, uid, 'result')
+    query, attrs = _q_match(model, uid, 'result', **attrs)
 
-    query += "RETURN result"
+    query += "RETURN result\n"
 
-    for item in tx.run(query, **kwargs):
+    if limit:
+        query += f"LIMIT {limit}"
+
+    for item in tx.run(query, **attrs):
         result: Node = item['result']
 
         assert model.__name__ in result.labels
