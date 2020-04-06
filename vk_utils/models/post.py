@@ -24,3 +24,6 @@ class VKPost(AttributeStorage):
 
     geo = Attribute(default=None)
     friends_only: bool = Attribute(default=False)
+
+    # TODO: Move into different class
+    is_checked: bool = Attribute(default=False)

@@ -1,5 +1,3 @@
-from pymongo import MongoClient
-
 from core import Attribute, AttributeStorage
 
 

@@ -43,3 +43,5 @@ class VKUser(Model):
     online_app = Attribute(default=None)
     online_mobile = Attribute(default=None)
 
+    # TODO: Move into divided class
+    is_checked: bool = Attribute(default=False)

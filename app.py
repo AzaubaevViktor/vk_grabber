@@ -3,8 +3,9 @@ from typing import List, Sequence
 
 from neo4j import GraphDatabase
 from plotly import graph_objects as go
+from pymongo import MongoClient
 
-from core import LoadConfig, Log, Time
+from core import LoadConfig, Log, Time, AttributeStorage
 from graph import create_nodes, find_nodes, update_node, do_links
 from time_series.ts import TSManager, TimeSeries, Funcs
 from vk_utils import VK, VKGroup, VKUser, Participant
@@ -48,6 +49,10 @@ class Application(BaseApplication):
             auth=tuple(self.config.neo4j.auth),
             database=self.config.neo4j.database
         )
+        self.posts = MongoClient(
+            self.config.mongo.uri
+        )[self.config.mongo.database]['posts']
+
         self.cleanup = cleanup
         self.log.info("Application initialized")
 
@@ -98,13 +103,48 @@ class Application(BaseApplication):
                     self.log.debug("Write transaction")
                 self.log.debug("Finished transaction")
 
+    async def load_group_posts(self):
+        self.log.info("Load group posts")
+
+        with self.neo4j.session() as session:
+            groups = session.read_transaction(find_nodes, VKGroup)
+
+        for group in groups:
+            all_posts = await self.vk.group_posts(group_id=group.id, count=self.posts_count)
+
+            for posts in simple_bunches(all_posts, 100):
+                self.log.info("Write posts from", group=group, count=len(posts))
+
+                self.posts.insert_many((
+                    dict(post) for post in posts
+                ))
+
+        self.log.info("Load group posts finished")
+
+    async def load_person_posts(self):
+        self.log.info("Load person posts")
+
+        while True:
+            with self.neo4j.session() as session:
+                users = session.read_transaction(find_nodes, VKUser, is_checked=False, limit=20)
+
+            for user in users:
+                raise NotImplementedError()
+
+        self.log.info("Load person posts finished")
+
     async def __call__(self):
         self.log.important("Hi there! Application v2 here")
 
         if self.cleanup:
             self.log.warning("⚠️ NOW WE CLEAN DATABASE")
+            self.log.info("Clean neo4j")
             with self.neo4j.session() as session:
                 session.run("MATCH (n) DETACH DELETE n")
+
+            self.log.info("Clean mongo")
+            self.posts.delete_many()
+
             self.log.warning("👍 WE CLEAN DATABASE")
             self.log.warning("If you donn't wanna to, set `cleanup` parameter to False")
 

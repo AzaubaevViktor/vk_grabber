@@ -11,4 +11,6 @@ def db():
 
 @pytest.fixture(scope='session')
 def collection(db):
-    return db['test']
+    coll = db['test']
+    yield coll
+    coll.delete_many()
