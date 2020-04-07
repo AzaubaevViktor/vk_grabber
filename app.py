@@ -91,6 +91,7 @@ class Application(BaseApplication):
             groups = session.read_transaction(find_nodes, VKGroup)
 
         for group in groups:
+            group = group.undummy()
             self.log.debug("Load persons", group=group)
             person_ids = await self.vk.group_user_ids(group.id, count=self.persons_count)
 
@@ -111,6 +112,7 @@ class Application(BaseApplication):
             groups = session.read_transaction(find_nodes, VKGroup)
 
         for group in groups:
+            group = group.undummy()
             all_posts = await self.vk.group_posts(group_id=group.id, count=self.posts_count)
 
             await self._process_posts(all_posts, group)
