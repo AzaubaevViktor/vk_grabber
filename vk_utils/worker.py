@@ -145,14 +145,7 @@ class VK:
         if count is not None and from_ts is not None:
             raise ValueError("Use one of attribute: `count` or `from_ts`")
 
-        if count is None and from_ts is None:
-            raise ValueError("USe one of attribute: `count` or `from_ts`")
-
-        if count is not None:
-            return [post async for post in self._posts_count(-group_id, count)]
-
-        if from_ts is not None:
-            raise NotImplementedError()
+        return [post async for post in self._posts_count(-group_id, count)]
 
     async def _posts_count(self, owner_id, count):
         async for post in self._offsetter(count, dict(

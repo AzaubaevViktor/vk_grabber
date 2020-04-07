@@ -20,7 +20,7 @@ class BaseApplication:
 
         self.posts_count = posts_count
         self.persons_count = persons_count
-        self.users_count = users_count
+        self.users_count = users_count or float("+inf")
 
         self._warm_upped = False
 
@@ -96,7 +96,7 @@ class Application(BaseApplication):
             person_ids = await self.vk.group_user_ids(group.id, count=self.persons_count)
 
             self.log.info(group=group.id, users_count=len(person_ids))
-            users_dummy = tuple(VKUser.dummy(id=id_) for id_ in person_ids)
+            users_dummy = tuple(VKUser.dummy(id=id_, is_checked=False) for id_ in person_ids)
 
             for users in simple_bunches(users_dummy, 10):
                 self.log.debug("Prepare transaction", count=len(users))
@@ -104,6 +104,7 @@ class Application(BaseApplication):
                     session.write_transaction(do_links, group, Participant(), users)
                     self.log.debug("Write transaction")
                 self.log.debug("Finished transaction")
+                await asyncio.sleep(0)
 
     async def load_group_posts(self):
         self.log.info("Load group posts")
@@ -173,8 +174,8 @@ class Application(BaseApplication):
         results = await asyncio.gather(
             self.load_group_info(),
             self.load_group_persons(),
-            # self.load_group_posts(),
-            # self.load_person_posts()
+            self.load_group_posts(),
+            self.load_person_posts()
         )
 
         self.log.important(results)
