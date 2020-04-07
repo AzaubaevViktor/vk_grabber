@@ -1,6 +1,6 @@
-from typing import Sequence, Type
+from typing import Sequence, Type, Optional
 
-from core import AttributeStorage
+from core import AttributeStorage, Attribute
 
 
 class _Base(AttributeStorage):
@@ -29,3 +29,8 @@ class _Base(AttributeStorage):
             labels.append(cls._label_processor(klass))
 
         return ":".join(labels)
+
+
+class ModelAttribute(Attribute):
+    def __init__(self, description: Optional[str] = None, default=None, uid: bool = False):
+        super().__init__(description, default, uid)

@@ -107,8 +107,9 @@ def _q_merge(node: Model, name: str, on_create=True, on_match=False):
         params = []
 
         for k, v in dict(node).items():
-            params.append(f"{name}.{k} = ${name}_{k}")
-            kwargs[f"{name}_{k}"] = v
+            if v is not None:
+                params.append(f"{name}.{k} = ${name}_{k}")
+                kwargs[f"{name}_{k}"] = v
         _q = ", ".join(params)
 
         if on_create:
@@ -135,6 +136,8 @@ def do_links(tx, node: Model, link: Link, nodes: Sequence[Model]):
         kwargs.update(k)
 
         query += f"MERGE (parent)-[:{link.labels()}]->({name})\n"
+
+    print(query, kwargs)
 
     tx.run(query, **kwargs)
 
