@@ -28,7 +28,14 @@ class Model(_Base):
         def __repr__(self):
             return f"<Dummy for: {super().__repr__()}>"
 
+        def undummy(self):
+            return cls(**dict(self))
+
         attrs["__repr__"] = __repr__
+        attrs['undummy'] = undummy
 
         Dummy = type("Dummy", (cls,), attrs)
         return Dummy
+
+    def undummy(self):
+        return self

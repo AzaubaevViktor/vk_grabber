@@ -1,3 +1,5 @@
+import pytest
+
 from core import Attribute
 from graph import Model
 
@@ -30,3 +32,11 @@ def test_dummy():
 
 def test_dummy_eq():
     assert LabelName.Dummy() is LabelName.Dummy()
+
+
+@pytest.mark.parametrize('obj', (
+        LabelName(uid=12, param_one=33),
+        LabelName.dummy(uid=12, param_one=33)
+))
+def test_undummy(obj):
+    assert obj.undummy().__class__.__name__ != 'Dummy'
