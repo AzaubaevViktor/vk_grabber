@@ -177,7 +177,7 @@ def test_update_do_link(driver, childs_count):
         childs = session.read_transaction(find_links, parent, TLink(), TModelChild)
 
     assert len(parents) == 1
-    assert parent == parents[0]
+    assert new_parent == parents[0]
 
     assert len(childs) == childs_count
     assert sorted(childs, key=lambda item: item.id) == node_childs[:childs_count]

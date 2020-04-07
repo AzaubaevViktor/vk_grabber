@@ -1,4 +1,4 @@
-from typing import Sequence, Tuple, Union
+from typing import Sequence, Tuple, Union, Optional, Any
 
 from neo4j.graph import Node
 
@@ -52,6 +52,51 @@ def _q_match(model: Union[Model, Type[Model]], uid, name, **attrs) -> Tuple[str,
         kwargs = {}
 
     query += ")\n"
+
+    return query, kwargs
+
+
+def _q_multi_match(*parts: Union[
+    Tuple[Type[Model], Any, str],
+    Tuple[Model, str]
+]):
+    query = "MATCH "
+    kwargs = {}
+
+    for part in parts:
+        if len(part) == 2:
+            node, name = part
+            model = node.__class__
+            uid_field, uid_value = _q_get_uid_from_node(node)
+        elif len(part) == 3:
+            model, uid_value, name = part
+
+            assert model.__uids__, ("Set uid Attribute for", model)
+            if len(model.__uids__) != 1:
+                raise NotImplementedError()
+
+            uid_field = tuple(model.__uids__.values())[0]
+        else:
+            raise NotImplementedError(part)
+
+        query += f"({name}:{model.labels()} "
+        attrs = {}
+
+        if uid_value:
+            attrs[uid_field.name] = uid_value
+
+        if attrs:
+            q_, kw = _q_attrs_from(name, attrs)
+            query += q_
+        else:
+            kw = {}
+
+        if part != parts[-1]:
+            query += "), "
+        else:
+            query += ")\n"
+
+        kwargs.update(kw)
 
     return query, kwargs
 
@@ -120,22 +165,25 @@ def _q_merge(node: Model, name: str, on_create=True, on_match=False):
 
 
 def do_links(tx, node: Model, link: Link, nodes: Sequence[Model]):
-    query = ""
+    query = "\n"
     kwargs = {}
 
-    uid_value = getattr(node, tuple(node.__uids__.keys())[0])
-
-    q, k = _q_match(node, uid_value, "parent")
-    query += q
-    kwargs.update(k)
+    matches = [(node, "parent")]
 
     for i, item in enumerate(nodes):
         name = f"child_{i}"
         q, k = _q_merge(item, name)
-        query += q
-        kwargs.update(k)
+
+        tx.run(q, **k)
+
+        matches.append((item, name))
 
         query += f"MERGE (parent)-[:{link.labels()}]->({name})\n"
+
+    qm, km = _q_multi_match(*matches)
+
+    query = qm + query
+    kwargs.update(km)
 
     print(query, kwargs)
 
@@ -148,6 +196,8 @@ def find_links(tx, node: Model, link: Link, model: Type[Model]):
     query, kwargs = _q_match(node.__class__, uid_value, "parent")
     query += f"MATCH (parent)-[:{link.labels()}]->(node:{model.labels()})\n"
     query += "RETURN node"
+
+    print(query)
 
     items = []
 
