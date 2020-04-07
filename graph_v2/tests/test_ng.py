@@ -2,6 +2,7 @@ import pytest
 
 from core import Attribute
 from graph import Model
+from graph_v2 import Q
 
 
 class TModel(Model):

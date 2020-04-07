@@ -26,3 +26,7 @@ def test_dummy():
     assert "Dummy" in dummy.labels()
 
     assert isinstance(dummy, LabelName)
+
+
+def test_dummy_eq():
+    assert LabelName.Dummy() is LabelName.Dummy()

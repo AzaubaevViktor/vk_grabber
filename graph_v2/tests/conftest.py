@@ -1,6 +1,39 @@
 import pytest
 
+from graph_v2 import Q
 from graph_v2.tests.test_ng import TModel
+
+
+@pytest.fixture(scope='session')
+def _driver():
+    from neo4j import GraphDatabase
+
+    # TODO: Use test config
+
+    driver = GraphDatabase.driver(
+        "bolt://localhost:7687",
+        auth=("neo4j", "test"),
+        database="test"
+    )
+    print(driver)
+    print(type(driver))
+    print(type(driver).__mro__)
+
+    return driver
+
+
+@pytest.fixture(scope='session')
+def Q_connect(_driver):
+    Q.connect(_driver)
+
+    yield
+
+    Q.cleanup()
+
+    with _driver.session() as session:
+        results = session.run("MATCH (n)")
+
+    assert not tuple(results.records())
 
 
 @pytest.fixture(scope='function')
