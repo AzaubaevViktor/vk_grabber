@@ -20,8 +20,10 @@ class DBWrapper:
     def _get_collection(self, obj: Union[Type[Model], Model]):
         if isinstance(obj, Model):
             klass = obj.__class__
-        else:
+        elif issubclass(obj, Model):
             klass = obj
+        else:
+            raise NotImplementedError(f"For {obj}")
 
         if klass not in self._collections:
             self._collections[klass] = self.db[klass.__name__]
@@ -36,28 +38,45 @@ class DBWrapper:
             obj.verificate()
             classes[obj.__class__].append(obj)
 
-        tasks = []
-
         for klass, items in classes.items():
+            # TODO: Make tasks
             collection = self._get_collection(klass)
-            tasks.append(collection.insert_many([
-                item.serialize() for item in items
-            ]))
 
-        await asyncio.gather(*tasks)
+            results = await collection.insert_many([
+                item.serialize() for item in items
+            ])
+
+            for obj, _id in zip(items, results.inserted_ids):
+                obj._id = _id
+
+    def _transform(self, obj, item_raw):
+        item = type(obj)(**item_raw)
+        item.drop_updates()
+        return item
 
     async def find(self, obj: Model):
         collection = self._get_collection(obj)
-        async for item in collection.find(obj.query()):
-            yield type(obj)(**item)
+        async for item_raw in collection.find(obj.query()):
+            yield self._transform(obj, item_raw)
 
     async def find_one(self, obj: Model):
         collection = self._get_collection(obj)
-        item = await collection.find_one(obj.query())
-        return type(obj)(**item)
+        item_raw = await collection.find_one(obj.query())
+        return self._transform(obj, item_raw)
 
-    async def update(self, obj):
-        raise NotImplementedError()
+    async def update(self, obj: Model):
+        collection = self._get_collection(obj)
+
+        assert obj._id is not None
+        updates = obj.updates()
+        assert updates
+
+        await collection.update_one(
+            {'_id': obj._id},
+            {'$set': updates}
+        )
+
+        obj.drop_updates()
 
     async def delete_all(self, i_understand_delete_all=False):
         assert i_understand_delete_all

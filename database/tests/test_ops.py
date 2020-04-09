@@ -42,14 +42,16 @@ async def test_insert_search(db):
         Check(param=i) for i in range(10)
     ))
 
-    uids = []
+    params = []
 
     async for item in db.find(Check(checked=False)):
         assert isinstance(item, Check)
         assert not item.checked
-        uids.append(item.param)
+        params.append(item.param)
+        assert item._id is not None
+        assert not item.updates()
 
-    assert len(set(uids)) == 10
+    assert len(set(params)) == 10
 
 
 async def test_find(db):
@@ -87,7 +89,7 @@ async def test_update_many_times(db):
     await db.update(item)
     await db.update(item2)
 
-    new_item = await db.find_one(item._id)
+    new_item = await db.find_one(Check(_id=item._id))
 
     assert new_item.x == 100
     assert new_item.param == 100
