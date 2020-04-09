@@ -1,16 +1,25 @@
 import pytest
-from pymongo import MongoClient
+import motor.motor_asyncio
+
+
+
+class DBWrapper:
+    def __init__(self, db):
+        self.db = db
+
+    async def insert_many(self, *objs: Model):
+        raise NotImplementedError()
 
 
 @pytest.fixture(scope='session')
 def db():
-    client = MongoClient('mongodb://root:root@localhost:27017/')
+    client = motor.motor_asyncio.AsyncIOMotorClient('mongodb://localhost:27017')
     dyploma_db = client['dyploma']
     return dyploma_db
 
 
-@pytest.fixture(scope='session')
-def collection(db):
-    coll = db['test']
-    yield coll
-    coll.delete_many({})
+# @pytest.fixture(scope='session')
+# def collection(db):
+#     coll = db['test']
+#     yield coll
+#     coll.delete_many({})
