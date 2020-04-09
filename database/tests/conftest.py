@@ -51,8 +51,10 @@ class DBWrapper:
         async for item in collection.find(obj.query()):
             yield type(obj)(**item)
 
-    async def find_one(self, obj):
-        raise NotImplementedError()
+    async def find_one(self, obj: Model):
+        collection = self._get_collection(obj)
+        item = await collection.find_one(obj.query())
+        return type(obj)(**item)
 
     async def update(self, obj):
         raise NotImplementedError()

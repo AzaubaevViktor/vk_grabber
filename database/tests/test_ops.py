@@ -57,7 +57,7 @@ async def test_find(db):
         Check(param=i) for i in range(10)
     ))
 
-    assert db.find_one(Check(param=4)).param == 4
+    assert (await db.find_one(Check(param=4))).param == 4
 
 
 async def test_update_one_time(db):
