@@ -29,6 +29,7 @@ class Attribute:
     def __set__(self, instance: "AttributeStorage", value: "Any"):
         instance._storage[self.name] = value
 
+
     @property
     def is_required(self):
         return isinstance(self.default, Attribute._DefaultNone)
