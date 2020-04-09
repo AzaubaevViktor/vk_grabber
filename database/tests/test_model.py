@@ -1,5 +1,6 @@
 import pytest
 
+from core import Attribute
 from database.model import ModelAttribute, Model
 
 
@@ -130,3 +131,8 @@ def test_updates():
     assert item.updates() == {}
 
 
+def test_wrong():
+    with pytest.raises(TypeError):
+        class TWrong(Model):
+            x = ModelAttribute()
+            y = Attribute()

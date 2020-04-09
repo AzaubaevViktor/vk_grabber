@@ -1,9 +1,29 @@
-from typing import Type
+from typing import Type, Optional, Dict
 
 from core import Attribute, AttributeStorage
 
 
 class ModelAttribute(Attribute):
+    def __init__(self, description: Optional[str] = None,
+                 default=Attribute._DefaultNone(),
+                 uid: bool = False):
+        self._name = None
+        super().__init__(description, default, uid)
+
+    @property
+    def name(self):
+        if not self.uid:
+            return self._name
+        return "_id"
+
+    @name.setter
+    def name(self, value):
+        self._name = value
+
+    @property
+    def is_id_alias(self):
+        return self.uid and self._name != "_id"
+
     def __get__(self, instance: "Model", owner: Type["Model"]):
         if instance is None:
             return self
@@ -19,11 +39,19 @@ class ModelAttribute(Attribute):
 
 
 class Model(AttributeStorage):
+    __attributes__: Dict[str, ModelAttribute]
+    __kwargs_attribute__: Optional[ModelAttribute] = None
+    __uids__: Dict[str, ModelAttribute]
+
     _id = ModelAttribute(uid=True, default=None)
 
     def __init__(self, **kwargs):
         self._storage = {}
         self._updates = {}
+
+        for k, attr in self.__attributes__.items():
+            if not isinstance(attr, ModelAttribute):
+                raise TypeError(f"Use {ModelAttribute.__name__} instance instead {attr}")
 
         # for k, attr in self.__attributes__.items():
         #     if not isinstance(attr, KwargsAttribute) \
@@ -45,14 +73,24 @@ class Model(AttributeStorage):
 
     def verificate(self):
         for k, attr in self.__attributes__.items():
-            if isinstance(self._storage.get(k, Attribute._DefaultNone()), Attribute._DefaultNone):
-                if isinstance(attr.default, Attribute._DefaultNone):
-                    raise ValueError(f"Set {self.__class__.__name__}.{k}")
+            if not isinstance(self._storage.get(k, Attribute._DefaultNone()), Attribute._DefaultNone):
+                continue
+
+            if isinstance(attr.default, Attribute._DefaultNone):
+                continue
+
+            if attr.is_id_alias:
+                continue
+
+            raise ValueError(f"Set {self.__class__.__name__}.{k}")
         return True
 
     def serialize(self) -> dict:
         result = {}
         for k, attr in self.__attributes__.items():
+            if attr.is_id_alias:
+                continue
+
             value = getattr(self, k, None)
             if not isinstance(value, Attribute._DefaultNone) and value is not None:
                 result[k] = value
