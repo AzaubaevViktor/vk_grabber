@@ -88,12 +88,11 @@ def test_default(second, third, fourth):
     if second is not None:
         assert model.second is second
     if third is not None:
-        assert model.third == 100
+        assert model.third == third
     if fourth is not None:
         assert model.fourth == fourth
 
-    with pytest.raises(ValueError):
-        model.verificate()
+    model.verificate()
 
     assert model.serialize() == {
         '_id': 10,
@@ -105,7 +104,7 @@ def test_default(second, third, fourth):
 
     q = {
         '_id': 10,
-        'second': True
+        'first': 20
     }
 
     if second is not None:
