@@ -24,8 +24,7 @@ def test_create():
         '_id': 10,
         'first': 20,
         'second': False,
-        'third': 100,
-        'fourth': None
+        'third': 100
     }
 
     assert model.query() == {
@@ -52,11 +51,9 @@ def test_query(_id):
         model.verificate()
 
     assert model.serialize() == {
-        '_id': _id,
-        'first': None,
+        **({} if _id is None else {'_id': _id}),
         'second': False,
-        'third': 100,
-        'fourth': None
+        'third': 100
     }
 
     assert model.query() == {
@@ -99,7 +96,7 @@ def test_default(second, third, fourth):
         'first': 20,
         'second': False if (second is None) else second,
         'third': 100 if (third is None) else third,
-        'fourth': None if (fourth is None) else fourth
+        **({} if (fourth is None) else {'fourth': fourth})
     }
 
     q = {

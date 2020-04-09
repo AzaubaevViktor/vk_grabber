@@ -19,7 +19,7 @@ class ModelAttribute(Attribute):
 
 
 class Model(AttributeStorage):
-    _id = ModelAttribute(uid=True)
+    _id = ModelAttribute(uid=True, default=None)
 
     def __init__(self, **kwargs):
         self._storage = {}
@@ -54,9 +54,8 @@ class Model(AttributeStorage):
         result = {}
         for k, attr in self.__attributes__.items():
             value = getattr(self, k, None)
-            if isinstance(value, Attribute._DefaultNone):
-                value = None
-            result[k] = value
+            if not isinstance(value, Attribute._DefaultNone) and value is not None:
+                result[k] = value
 
         return result
 

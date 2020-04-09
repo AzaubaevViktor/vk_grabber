@@ -11,6 +11,32 @@ class Check(Model):
     x = ModelAttribute(default=None)
 
 
+class Other(Model):
+    other = ModelAttribute()
+
+
+async def test_insert_classes(db):
+    await db.insert_many(
+        Check(param=100),
+        Other(other=100)
+    )
+
+    check_items = []
+
+    async for item in db.find(Check(param=100)):
+        assert isinstance(item, Check)
+        check_items.append(item)
+
+    assert len(check_items) == 1
+
+    other_items = []
+    async for item in db.find(Other(other=100)):
+        assert isinstance(item, Other)
+        other_items.append(item)
+
+    assert len(other_items) == 1
+
+
 async def test_insert_search(db):
     await db.insert_many(*(
         Check(param=i) for i in range(10)
