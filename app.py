@@ -8,14 +8,15 @@ from plotly import graph_objects as go
 from core import LoadConfig, Log, Time, BaseWork
 from database import DBWrapper
 from time_series.ts import TSManager, TimeSeries, Funcs
-from vk_utils import VK, VKGroup, VKUser, Participant
+from vk_utils import VK, VKGroup, VKUser
 from word_woker import tokenize
 
 
-class BaseApplication(BaseWork):
+class BaseApplication:
     def __init__(self, config: LoadConfig,
                  posts_count, persons_count, users_count):
-        super().__init__()
+        self.log = Log(self.__class__.__name__)
+
         self.config = config
         self.vk = VK(config.vk)
         self.db = DBWrapper(
@@ -29,26 +30,25 @@ class BaseApplication(BaseWork):
         self.persons_count = persons_count
         self.users_count = users_count or float("+inf")
 
-        self.state = "BaseApplication initialized"
-
     async def warm_up(self):
         await self.vk.warm_up()
 
 
-class BaseWorkMongo(BaseWork):
-    def __init__(self, db: DBWrapper):
+class BaseWorkApp(BaseWork):
+    def __init__(self, db: DBWrapper, vk: VK):
         super().__init__()
         self.db = db
-        self.state = "BaseWorkMongo initialized"
+        self.vk = vk
+        self.state = f"{BaseWorkApp.__name__} initialized"
 
 
-class LoadGroups(BaseWorkMongo):
-    def __init__(self, *args, config: LoadConfig):
+class LoadGroups(BaseWorkApp):
+    def __init__(self, *args, groups):
         super().__init__(*args)
-        self.config = config
+        self.groups = groups
 
     async def input(self):
-        for item in self.config.vk.groups:
+        for item in self.groups:
             yield item
 
     async def process(self, item: int):
@@ -57,11 +57,20 @@ class LoadGroups(BaseWorkMongo):
 
     async def update(self, result):
         # TODO: Cache
-        await self.db.insert_many(result)
+        await self.db.insert_many(result, force=True)
 
 
 class Application(BaseApplication):
-    pass
+    def __init__(self, config: LoadConfig,
+                 posts_count, persons_count, users_count,
+                 clean=True):
+        super().__init__(config, posts_count, persons_count, users_count)
+        self.clean = clean
+
+    async def __call__(self):
+        await asyncio.gather(
+            LoadGroups(self.db, self.vk, groups=self.config.vk.groups)()
+        )
 
 
 def simple_bunches(datas: Sequence, count: int):

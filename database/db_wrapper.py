@@ -3,6 +3,7 @@ from typing import Union, Type, Dict, List
 
 import motor.motor_asyncio
 
+from core import Log
 from database import Model
 
 
@@ -10,6 +11,7 @@ class DBWrapper:
     def __init__(self,
                  client: motor.motor_asyncio.AsyncIOMotorClient,
                  db_name: str):
+        self.log = Log(self.__class__.__name__)
         self.client = client
         self.db_name = db_name
         self.db = self.client[self.db_name]
@@ -28,12 +30,18 @@ class DBWrapper:
 
         return self._collections[klass]
 
-    async def insert_many(self, *objs: Model):
+    async def insert_many(self, *objs: Model, force=False):
         # Divide by classes
         classes: Dict[Type[Model], List[Model]] = defaultdict(list)
 
         for obj in objs:
-            obj.verificate()
+            try:
+                obj.verificate()
+            except ValueError:
+                if not force:
+                    raise
+                self.log.exception()
+
             classes[obj.__class__].append(obj)
 
         for klass, items in classes.items():
