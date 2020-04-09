@@ -1,6 +1,6 @@
 import pytest
 
-from database import Model, ModelAttribute
+from database.model import ModelAttribute, Model
 
 pytestmark = pytest.mark.asyncio
 
