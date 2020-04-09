@@ -25,9 +25,8 @@ async def test_find_kwargs(db):
     assert len(found_items) == 5
 
     for item in found_items:
-        item.p *= 2
-
-    db.insert_many(*found_items, processed=True)
+        item.p = - item.p - 100
+        await db.update(item, processed=True)
 
     not_processed_yet = []
 

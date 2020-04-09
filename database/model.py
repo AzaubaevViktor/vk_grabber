@@ -1,11 +1,11 @@
-from typing import Type, Optional, Dict
+from typing import Type, Optional, Dict, Any
 
 from core import Attribute, AttributeStorage
 
 
 class ModelAttribute(Attribute):
     def __init__(self, description: Optional[str] = None,
-                 default=Attribute._DefaultNone(),
+                 default: Any = Attribute._DefaultNone(),
                  uid: bool = False):
         self._name = None
         super().__init__(description, default, uid)
@@ -105,3 +105,11 @@ class Model(AttributeStorage):
 
     def drop_updates(self):
         self._updates = {}
+
+    @classmethod
+    def soft_create(cls, **kwargs):
+        for k in tuple(kwargs.keys()):
+            if k not in cls.__attributes__:
+                del kwargs[k]
+
+        return cls(**kwargs)

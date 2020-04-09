@@ -30,7 +30,7 @@ class DBWrapper:
 
         return self._collections[klass]
 
-    async def insert_many(self, *objs: Model, force=False):
+    async def insert_many(self, *objs: Model, force=False, **kwargs):
         # Divide by classes
         classes: Dict[Type[Model], List[Model]] = defaultdict(list)
 
@@ -49,20 +49,26 @@ class DBWrapper:
             collection = self._get_collection(klass)
 
             results = await collection.insert_many([
-                item.serialize() for item in items
+                {**item.serialize(), **kwargs} for item in items
             ])
 
             for obj, _id in zip(items, results.inserted_ids):
                 obj._id = _id
 
-    def _transform(self, obj, item_raw):
-        item = type(obj)(**item_raw)
+    def _transform(self, obj: Model, item_raw):
+        item = type(obj).soft_create(**item_raw)
         item.drop_updates()
         return item
 
-    async def find(self, obj: Model):
+    async def find(self, obj: Model, limit=None, **kwargs):
         collection = self._get_collection(obj)
-        async for item_raw in collection.find(obj.query()):
+        query = obj.query()
+        query.update(kwargs)
+        cursor = collection.find(query)
+        if limit is not None:
+            cursor = cursor.limit(limit)
+
+        async for item_raw in cursor:
             yield self._transform(obj, item_raw)
 
     async def find_one(self, obj: Model):
@@ -70,7 +76,7 @@ class DBWrapper:
         item_raw = await collection.find_one(obj.query())
         return self._transform(obj, item_raw)
 
-    async def update(self, obj: Model):
+    async def update(self, obj: Model, **params):
         collection = self._get_collection(obj)
 
         assert obj._id is not None
@@ -79,7 +85,7 @@ class DBWrapper:
 
         await collection.update_one(
             {'_id': obj._id},
-            {'$set': updates}
+            {'$set': {**updates, **params}}
         )
 
         obj.drop_updates()
