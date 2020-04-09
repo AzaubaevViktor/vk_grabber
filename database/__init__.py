@@ -1,9 +1,18 @@
-from typing import Any
+from typing import Any, Type
 
 from core import AttributeStorage, Attribute, KwargsAttribute
 
 
 class ModelAttribute(Attribute):
+    def __get__(self, instance: "Model", owner: Type["Model"]):
+        if instance is None:
+            return self
+
+        value = instance._storage.get(self.name, self.default)
+        if isinstance(value, self._DefaultNone):
+            return None
+        return value
+
     def __set__(self, instance: "Model", value: "Any"):
         super().__set__(instance, value)
         instance._updates[self.name] = value

@@ -53,6 +53,7 @@ def test_query(_id):
 
     assert model.serialize() == {
         '_id': _id,
+        'first': None,
         'second': False,
         'third': 100,
         'fourth': None
