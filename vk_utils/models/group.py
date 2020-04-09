@@ -1,16 +1,15 @@
-from core import Attribute
-from graph import Model
+from database import Model, ModelAttribute
 
 
 class VKGroup(Model):
-    id = Attribute(uid=True)
-    name = Attribute()
-    screen_name = Attribute()
-    description = Attribute()
+    id = ModelAttribute(uid=True)
+    name = ModelAttribute()
+    screen_name = ModelAttribute()
+    description = ModelAttribute()
 
-    is_closed = Attribute()
-    type = Attribute()
-    is_admin = Attribute()
-    is_member = Attribute()
-    is_advertiser = Attribute()
-    photo_200 = Attribute()
+    is_closed = ModelAttribute()
+    type = ModelAttribute()
+    is_admin = ModelAttribute()
+    is_member = ModelAttribute()
+    is_advertiser = ModelAttribute()
+    photo_200 = ModelAttribute()

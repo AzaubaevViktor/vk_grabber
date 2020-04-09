@@ -1,47 +1,46 @@
-from core import Attribute
-from graph import Model
+from database import ModelAttribute, Model
 
 
 class VKUser(Model):
-    id = Attribute(uid=True)
+    id = ModelAttribute(uid=True)
 
-    first_name = Attribute(default=None)
-    last_name = Attribute(default=None)
-    deactivated = Attribute(default=None)
-    verified = Attribute(default=None)
-    sex = Attribute(default=None)
-    bdate = Attribute(default=None)
-    city = Attribute(default=None)
-    country = Attribute(default=None)
-    home_town = Attribute(default=None)
-    photo_400_orig = Attribute(default=None)
-    online = Attribute(default=None)
-    has_mobile = Attribute(default=None)
+    first_name = ModelAttribute(default=None)
+    last_name = ModelAttribute(default=None)
+    deactivated = ModelAttribute(default=None)
+    verified = ModelAttribute(default=None)
+    sex = ModelAttribute(default=None)
+    bdate = ModelAttribute(default=None)
+    city = ModelAttribute(default=None)
+    country = ModelAttribute(default=None)
+    home_town = ModelAttribute(default=None)
+    photo_400_orig = ModelAttribute(default=None)
+    online = ModelAttribute(default=None)
+    has_mobile = ModelAttribute(default=None)
 
     # contacts
-    mobile_phone: str = Attribute(default=None)
-    home_phone: str = Attribute(default=None)
+    mobile_phone: str = ModelAttribute(default=None)
+    home_phone: str = ModelAttribute(default=None)
 
     # education
-    university: int = Attribute(default=None)
-    university_name: str = Attribute(default=None)
-    faculty: int = Attribute(default=None)
-    faculty_name: str = Attribute(default=None)
-    graduation: int = Attribute(default=None)
+    university: int = ModelAttribute(default=None)
+    university_name: str = ModelAttribute(default=None)
+    faculty: int = ModelAttribute(default=None)
+    faculty_name: str = ModelAttribute(default=None)
+    graduation: int = ModelAttribute(default=None)
 
-    education_form = Attribute(default=None)
-    education_status = Attribute(default=None)
+    education_form = ModelAttribute(default=None)
+    education_status = ModelAttribute(default=None)
 
-    universities = Attribute(default=None)
-    schools = Attribute(default=None)
-    last_seen = Attribute(default=None)
-    occupation = Attribute(default=None)
+    universities = ModelAttribute(default=None)
+    schools = ModelAttribute(default=None)
+    last_seen = ModelAttribute(default=None)
+    occupation = ModelAttribute(default=None)
 
-    is_closed = Attribute(default=None)
-    can_access_closed = Attribute(default=None)
+    is_closed = ModelAttribute(default=None)
+    can_access_closed = ModelAttribute(default=None)
 
-    online_app = Attribute(default=None)
-    online_mobile = Attribute(default=None)
+    online_app = ModelAttribute(default=None)
+    online_mobile = ModelAttribute(default=None)
 
     # TODO: Move into divided class
-    is_checked: bool = Attribute(default=False)
+    is_checked: bool = ModelAttribute(default=False)
