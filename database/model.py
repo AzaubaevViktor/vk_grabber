@@ -76,7 +76,7 @@ class Model(AttributeStorage):
             if not isinstance(self._storage.get(k, Attribute._DefaultNone()), Attribute._DefaultNone):
                 continue
 
-            if isinstance(attr.default, Attribute._DefaultNone):
+            if not isinstance(attr.default, Attribute._DefaultNone):
                 continue
 
             if attr.is_id_alias:

@@ -136,3 +136,5 @@ def test_wrong():
         class TWrong(Model):
             x = ModelAttribute()
             y = Attribute()
+
+        TWrong()
