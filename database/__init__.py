@@ -65,3 +65,6 @@ class Model(AttributeStorage):
 
     def updates(self) -> dict:
         return self._updates
+
+    def drop_updates(self):
+        self._updates = {}

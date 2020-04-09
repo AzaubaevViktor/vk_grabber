@@ -121,7 +121,7 @@ def test_default(second, third, fourth):
 def test_updates():
     item = TModel(_id=1)
 
-    item.updates() == {'_id': 1}
+    assert item.updates() == {'_id': 1}
     item.drop_updates()
     assert item.updates() == {}
 
