@@ -2,6 +2,7 @@ import asyncio
 from typing import List, Sequence
 
 import motor.motor_asyncio
+import pymongo.errors
 
 from plotly import graph_objects as go
 
@@ -53,11 +54,39 @@ class LoadGroups(BaseWorkApp):
 
     async def process(self, item: int):
         item = int(item)
-        return VKGroup(_id=item)
+        yield VKGroup(_id=item)
 
     async def update(self, result):
         # TODO: Cache
         await self.db.insert_many(result, force=True)
+
+
+class LoadPersons(BaseWorkApp):
+    def __init__(self, db: DBWrapper, vk: VK, persons_count=None):
+        super().__init__(db, vk)
+        self.persons_count = persons_count
+
+    async def input(self):
+        async for item in self.db.find(VKGroup(), load_persons=None):
+            yield item
+
+    async def process(self, group: VKGroup):
+        person_ids = await self.vk.group_user_ids(
+            group.id, count=self.persons_count
+        )
+        await self.db.update(group, load_persons=True)
+        for person_id in person_ids:
+            yield person_id
+
+    async def update(self, person_id):
+        try:
+            await self.db.insert_many(
+                VKUser(_id=person_id),
+                force=True
+            )
+        except pymongo.errors.BulkWriteError:
+            # Model already exist
+            pass
 
 
 class Application(BaseApplication):
@@ -67,9 +96,18 @@ class Application(BaseApplication):
         super().__init__(config, posts_count, persons_count, users_count)
         self.clean = clean
 
+    async def warm_up(self):
+        if self.clean:
+            await self.db.delete_all(i_understand_delete_all=True)
+        await self.vk.warm_up()
+
     async def __call__(self):
         await asyncio.gather(
             LoadGroups(self.db, self.vk, groups=self.config.vk.groups)()
+        )
+
+        await asyncio.gather(
+            LoadPersons(self.db, self.vk, persons_count=self.persons_count)()
         )
 
 

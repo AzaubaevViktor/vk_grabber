@@ -81,11 +81,12 @@ class DBWrapper:
 
         assert obj._id is not None
         updates = obj.updates()
+        updates.update(params)
         assert updates
 
         await collection.update_one(
             {'_id': obj._id},
-            {'$set': {**updates, **params}}
+            {'$set': updates}
         )
 
         obj.drop_updates()

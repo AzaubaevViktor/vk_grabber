@@ -37,9 +37,11 @@ class BaseWork:
         self.state = "Wait for new item"
         async for item in self.input():
             self.state = f"{item} => ???"
-            result = await self.process(item)
-            self.state = f"{item} => {result}"
-            await self.update(result)
+            async for result in self.process(item):
+                self.state = f"{item} => {result}"
+                await self.update(result)
+                self.state = f"{item} => ???"
+
             self.state = "Wait for new item"
         self.state = "Shutdown"
         await self.shutdown()
