@@ -1,35 +1,67 @@
 import asyncio
 from typing import List, Sequence
 
-from neo4j import GraphDatabase
-from plotly import graph_objects as go
-from pymongo import MongoClient
+import motor.motor_asyncio
 
-from core import LoadConfig, Log, Time, AttributeStorage
-from graph import create_nodes, find_nodes, update_node, do_links
+from plotly import graph_objects as go
+
+from core import LoadConfig, Log, Time, BaseWork
+from database import DBWrapper
 from time_series.ts import TSManager, TimeSeries, Funcs
 from vk_utils import VK, VKGroup, VKUser, Participant
 from word_woker import tokenize
 
 
-class BaseApplication:
-    def __init__(self, config: LoadConfig, posts_count, persons_count, users_count):
-        self.log = Log("Application")
+class BaseApplication(BaseWork):
+    def __init__(self, config: LoadConfig,
+                 posts_count, persons_count, users_count):
+        super().__init__()
         self.config = config
         self.vk = VK(config.vk)
+        self.db = DBWrapper(
+            motor.motor_asyncio.AsyncIOMotorClient(
+                config.mongo.uri
+            ),
+            config.mongo.database
+        )
 
         self.posts_count = posts_count
         self.persons_count = persons_count
         self.users_count = users_count or float("+inf")
 
-        self._warm_upped = False
+        self.state = "BaseApplication initialized"
 
     async def warm_up(self):
-        assert not self._warm_upped, "Already warm_upped"
         await self.vk.warm_up()
 
-    async def __call__(self):
-        raise NotImplementedError()
+
+class BaseWorkMongo(BaseWork):
+    def __init__(self, db: DBWrapper):
+        super().__init__()
+        self.db = db
+        self.state = "BaseWorkMongo initialized"
+
+
+class LoadGroups(BaseWorkMongo):
+    def __init__(self, *args, config: LoadConfig):
+        super().__init__(*args)
+        self.config = config
+
+    async def input(self):
+        for item in self.config.vk.groups:
+            yield item
+
+    async def process(self, item: int):
+        item = int(item)
+        return VKGroup(_id=item)
+
+    async def update(self, result):
+        # TODO: Cache
+        await self.db.insert_many(result)
+
+
+class Application(BaseApplication):
+    pass
 
 
 def simple_bunches(datas: Sequence, count: int):
@@ -42,17 +74,9 @@ def simple_bunches(datas: Sequence, count: int):
     assert (i + 1) * count >= len(datas)
 
 
-class Application(BaseApplication):
+class __Application(BaseApplication):
     def __init__(self, *args, cleanup=True, **kwargs):
         super().__init__(*args, **kwargs)
-        self.neo4j = GraphDatabase.driver(
-            self.config.neo4j.uri,
-            auth=tuple(self.config.neo4j.auth),
-            database=self.config.neo4j.database
-        )
-        self.posts = MongoClient(
-            self.config.mongo.uri
-        )[self.config.mongo.database]['posts']
 
         self.cleanup = cleanup
         self.log.info("Application initialized")
