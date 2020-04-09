@@ -1,5 +1,7 @@
 import pytest
 
+from database import Model, ModelAttribute
+
 
 class TModel(Model):
     uid = ModelAttribute(uid=True)

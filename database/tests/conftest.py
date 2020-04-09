@@ -1,6 +1,7 @@
 import pytest
 import motor.motor_asyncio
 
+from database import Model
 
 
 class DBWrapper:
@@ -8,6 +9,15 @@ class DBWrapper:
         self.db = db
 
     async def insert_many(self, *objs: Model):
+        raise NotImplementedError()
+
+    async def find(self, obj):
+        raise NotImplementedError()
+
+    async def find_one(self, obj):
+        raise NotImplementedError()
+
+    async def update(self, obj):
         raise NotImplementedError()
 
 

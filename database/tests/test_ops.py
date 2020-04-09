@@ -1,5 +1,6 @@
 import pytest
 
+from database import Model, ModelAttribute
 
 pytestmark = pytest.mark.asyncio
 
@@ -10,7 +11,7 @@ class Check(Model):
     x = ModelAttribute(default=None)
 
 
-def test_insert_search(db):
+async def test_insert_search(db):
     await db.insert_many(*(
         Check(param=i) for i in range(10)
     ))
@@ -25,7 +26,7 @@ def test_insert_search(db):
     assert len(set(uids)) == 10
 
 
-def test_find(db):
+async def test_find(db):
     await db.insert_many(*(
         Check(param=i) for i in range(10)
     ))
@@ -33,7 +34,7 @@ def test_find(db):
     assert db.find_one(Check(param=4)).param == 4
 
 
-def test_update_one_time(db):
+async def test_update_one_time(db):
     items = [Check(param=i, x=i**2) for i in range(10)]
     await db.insert_many(*items)
 
@@ -45,7 +46,7 @@ def test_update_one_time(db):
     assert item.x == -1
 
 
-def test_update_many_times(db):
+async def test_update_many_times(db):
     item = Check(param=10, x=20)
 
     await db.insert_many(item)
