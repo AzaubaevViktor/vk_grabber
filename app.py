@@ -9,7 +9,7 @@ from plotly import graph_objects as go
 from core import LoadConfig, Log, Time, BaseWork
 from database import DBWrapper
 from time_series.ts import TSManager, TimeSeries, Funcs
-from vk_utils import VK, VKGroup, VKUser
+from vk_utils import VK, VKGroup, VKUser, VKPost
 from word_woker import tokenize
 
 
@@ -89,6 +89,29 @@ class LoadPersons(BaseWorkApp):
             pass
 
 
+class LoadPersonsPosts(BaseWorkApp):
+    INPUT_REPEATS = 3
+
+    def __init__(self, db: DBWrapper, vk: VK, posts_count=None):
+        super().__init__(db, vk)
+        self.posts_count = posts_count
+
+    async def input(self):
+        async for item in self.db.find(VKUser(), load_posts=None):
+            yield item
+
+    async def process(self, user: VKUser):
+        all_posts = await self.vk.user_posts(user_id=user.id, count=self.posts_count)
+        for post in all_posts:
+            yield post
+
+    async def update(self, post: VKPost):
+        await self.db.insert_many(
+            post,
+            force=True
+        )
+
+
 class Application(BaseApplication):
     def __init__(self, config: LoadConfig,
                  posts_count, persons_count, users_count,
@@ -107,7 +130,8 @@ class Application(BaseApplication):
         )
 
         await asyncio.gather(
-            LoadPersons(self.db, self.vk, persons_count=self.persons_count)()
+            LoadPersons(self.db, self.vk, persons_count=self.persons_count)(),
+            LoadPersonsPosts(self.db, self.vk, posts_count=self.posts_count)(),
         )
 
 

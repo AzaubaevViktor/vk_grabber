@@ -1,7 +1,11 @@
+import asyncio
+
 from core import Log
 
 
 class BaseWork:
+    INPUT_REPEATS = 0
+
     def __init__(self):
         self.log = Log(self.__class__.__name__)
         self._state = None
@@ -34,15 +38,28 @@ class BaseWork:
     async def __call__(self):
         self.state = "Warming up"
         await self.warm_up()
-        self.state = "Wait for new item"
-        async for item in self.input():
-            self.state = f"{item} => ???"
-            async for result in self.process(item):
-                self.state = f"{item} => {result}"
-                await self.update(result)
-                self.state = f"{item} => ???"
 
+        repeats_count = 0
+
+        while True:
             self.state = "Wait for new item"
+            async for item in self.input():
+                repeats_count = 0
+                self.state = f"{item} => ???"
+                async for result in self.process(item):
+                    self.state = f"{item} => {result}"
+                    await self.update(result)
+                    self.state = f"{item} => ???"
+
+                self.state = "Wait for new item"
+
+            if repeats_count < self.INPUT_REPEATS:
+                repeats_count += 1
+                self.state = f"Wait items, repeat №{repeats_count}"
+                await asyncio.sleep(repeats_count)
+            else:
+                break
+
         self.state = "Shutdown"
         await self.shutdown()
         self.state = "Finished"
