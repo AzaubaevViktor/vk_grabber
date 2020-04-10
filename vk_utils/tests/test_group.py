@@ -32,20 +32,28 @@ async def test_group_info(vk, group_id):
     assert "НГУ" in group_info.name
 
 
-async def test_group_comments(vk):
+@pytest.mark.parametrize('owner_id', (
+        -182873218,
+        78800031
+))
+async def test_group_comments(vk, owner_id):
     comments_found = 0
-    group_id = 182873218
 
-    async for post in vk.group_posts_iter(group_id, count=10):
+    if owner_id < 0:
+        posts_iter = vk.group_posts_iter(-owner_id, count=10)
+    else:
+        posts_iter = vk.user_posts_iter(owner_id, count=10)
+
+    async for post in posts_iter:
         is_found = False
-        async for comment in vk.comments_iter(owner_id=-group_id, post_id=post.id):
+        async for comment in vk.comments_iter(owner_id=owner_id, post_id=post.id):
             assert isinstance(comment, VKComment)
             assert comment.from_id
             assert comment.date
             assert comment.text is not None
 
             assert comment.post_id == post.id
-            assert comment.owner_id == -group_id
+            assert comment.owner_id == owner_id
 
             comment.verificate()
 

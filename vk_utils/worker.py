@@ -203,7 +203,8 @@ class VK:
             items_count = min(count, answer['count'])
 
             if to_download != len(answer['items']):
-                self.log.warning("Downloaded items count:", wanted=to_download, actual=len(answer['items']))
+                if to_download < items_count:
+                    self.log.warning("Downloaded items count:", wanted=to_download, actual=len(answer['items']))
 
             offset += items_count
 
