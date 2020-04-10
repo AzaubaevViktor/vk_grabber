@@ -21,6 +21,8 @@ class VKPost(Model):
     edited = ModelAttribute(default=False)
     copy_history = ModelAttribute(default=None)
     signer_id = ModelAttribute(default=None)
+    reply_owner_id = ModelAttribute(default=None)
+    reply_post_id = ModelAttribute(default=None)
 
     geo = ModelAttribute(default=None)
     friends_only: bool = ModelAttribute(default=False)

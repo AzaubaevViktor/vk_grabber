@@ -12,6 +12,7 @@ from vk_utils.get_token import UpdateToken
 class VKError(Exception):
     INVALID_SESSION = 5  # Need to reauthorize
     TOO_MANY_REQUESTS = 6
+    RATE_LIMIT_REACHED = 29
 
     def __init__(self, error):
         self.error = error
@@ -106,6 +107,9 @@ class VK:
                 if vk_error.error_code == VKError.INVALID_SESSION:
                     await self.do_auth()
                     continue
+
+                if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
+                    raise RuntimeError("Enough, man")
 
                 raise vk_error
             else:

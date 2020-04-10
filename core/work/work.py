@@ -39,6 +39,15 @@ class Stats:
 
         return self.processed_items / dt
 
+    @property
+    def reverse_speed(self):
+        speed = self.speed
+
+        if speed < 0.000001:
+            return float("+inf")
+
+        return 1 / speed
+
 
 class BaseWork(_Tasks):
     start_time = time()
@@ -91,6 +100,7 @@ class BaseWork(_Tasks):
             result += f"<li>Output    : {work.stat.returned_items}</li>"
             result += f"<li>Processed : {work.stat.processed_items}</li>"
             result += f"<li>Speed     : {work.stat.speed:.2f} items&sol;s </li>"
+            result += f"<li>1/Speed   : {work.stat.reverse_speed:.2f} s&sol;items </li>"
 
             result += "</ul>"
 
@@ -190,7 +200,7 @@ class BaseWork(_Tasks):
 
         async for result in self.process(item):
             self.stat.returned_items += 1
-            info.update(f"=> {html_escape(repr(result))}")
+            info.update(f"=> {repr(result)}")
             await self.update(result)
             info.update(f"=> ...")
 

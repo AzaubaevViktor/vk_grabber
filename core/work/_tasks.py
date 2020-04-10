@@ -20,6 +20,8 @@ class _Tasks:
                     result = await task
                     if result:
                         self.log.important("Task say:", task=task, result=result)
+                except RuntimeError:
+                    raise
                 except Exception:
                     self.log.exception("Task shout:", task=task)
 
