@@ -11,7 +11,7 @@ from html import escape as html_escape
 class Info:
     def __init__(self, item):
         self.item = item
-        self.state = "Not running"
+        self.state = "💤 Not running"
 
     def update(self, new_state):
         self.state = new_state
@@ -146,7 +146,7 @@ class BaseWork(_Tasks):
         pass
 
     async def __call__(self):
-        self.state = "Warming up"
+        self.state = "🔥 Warming up"
         await self.warm_up()
 
         repeats_count = 0
@@ -157,7 +157,7 @@ class BaseWork(_Tasks):
                 self.log.warning("Gracefully shutdown")
                 break
 
-            self.state = "Wait for new item"
+            self.state = "🔎 Wait for new item"
 
             async for item in self.input():
                 self.stat.input_items += 1
@@ -171,7 +171,7 @@ class BaseWork(_Tasks):
                 self.tasks[asyncio.create_task(self._run_process(item, info, processed_callback))] = info
 
             while True:
-                self.state = f"Processing {len(self.tasks)} tasks"
+                self.state = f"🛠 Processing {len(self.tasks)} tasks"
 
                 await self.remove_tasks(self.tasks)
 
@@ -182,35 +182,35 @@ class BaseWork(_Tasks):
 
             if repeats_count < self.INPUT_REPEATS:
                 repeats_count += 1
-                self.state = f"Wait items, repeat №{repeats_count}"
+                self.state = f"🔎 Wait items, repeat №{repeats_count}"
                 await asyncio.sleep(repeats_count)
             else:
                 self.log.important("No tasks and too many retries, i'm think i'm done")
                 break
 
-        self.state = "Shutdown"
+        self.state = "🛑 Shutdown"
         await self.shutdown()
         self.stat.finished_time = time()
-        self.state = "Finished"
+        self.state = "🏁 Finished"
 
     async def _run_process(self, item, info: Info, processed_callback=None):
-        info.update("Task started")
+        info.update("🎬 Task started")
 
-        info.update(f"=> ...")
+        info.update(f"🛠 Processing")
 
         async for result in self.process(item):
             self.stat.returned_items += 1
-            info.update(f"=> {repr(result)}")
+            info.update(f"🛠 {repr(result)}")
             await self.update(result)
-            info.update(f"=> ...")
+            info.update(f"🛠 Processing")
 
         self.stat.processed_items += 1
-        info.update("Finish processing")
+        info.update("✅ Finish processing")
 
         if processed_callback:
-            info.update("Run callback")
+            info.update("🤙 Run callback")
 
             self.log.info("Run processed callback", processed_callback=processed_callback)
             await processed_callback
 
-        info.update("Task finished")
+        info.update("🏁 Task finished")
