@@ -141,6 +141,14 @@ class VK:
     async def user_posts(self, user_id, count):
         return [post async for post in self._posts_count(user_id, count)]
 
+    async def user_posts_iter(self, user_id, count=None):
+        async for post in self._posts_count(user_id, count):
+            yield post
+
+    async def group_posts_iter(self, group_id, count=None):
+        async for post in self._posts_count(-group_id, count):
+            yield post
+
     async def group_posts(self, group_id, count=None, from_ts=None):
         if count is not None and from_ts is not None:
             raise ValueError("Use one of attribute: `count` or `from_ts`")
@@ -185,13 +193,17 @@ class VK:
 
     async def group_user_ids(self, group_id, count=None) -> Sequence[int]:
         users = []
+        async for user_id in self.group_participants_iter(group_id, count):
+            users.append(user_id)
+
+        return users
+
+    async def group_participants_iter(self, group_id, count=None):
         async for user_id in self._offsetter(count, dict(
                 method="groups.getMembers",
                 group_id=group_id
         )):
-            users.append(user_id)
-
-        return users
+            yield user_id
 
     async def shutdown(self):
         if self.session:

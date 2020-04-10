@@ -7,6 +7,7 @@ import pymongo.errors
 from plotly import graph_objects as go
 
 from core import LoadConfig, Log, Time, BaseWork
+from core.chaos import Chaos
 from database import DBWrapper
 from time_series.ts import TSManager, TimeSeries, Funcs
 from vk_utils import VK, VKGroup, VKUser, VKPost
@@ -58,7 +59,10 @@ class LoadGroups(BaseWorkApp):
 
     async def update(self, result):
         # TODO: Cache
-        await self.db.insert_many(result, force=True)
+        try:
+            await self.db.insert_many(result, force=True)
+        except pymongo.errors.BulkWriteError:
+            self.log.exception("Exist")
 
 
 class LoadPersons(BaseWorkApp):
@@ -71,17 +75,43 @@ class LoadPersons(BaseWorkApp):
             yield item
 
     async def process(self, group: VKGroup):
-        person_ids = await self.vk.group_user_ids(
-            group.id, count=self.persons_count
-        )
         await self.db.update(group, load_persons=True)
-        for person_id in person_ids:
+        async for person_id in self.vk.group_participants_iter(
+                group.id, count=self.persons_count
+        ):
             yield person_id
 
     async def update(self, person_id):
         try:
             await self.db.insert_many(
                 VKUser(_id=person_id),
+                force=True
+            )
+        except pymongo.errors.BulkWriteError:
+            # Model already exist
+            pass
+
+
+class LoadGroupPosts(BaseWorkApp):
+    def __init__(self, db: DBWrapper, vk: VK, posts_count=None):
+        super().__init__(db, vk)
+        self.posts_count = posts_count
+
+    async def input(self):
+        async for item in self.db.find(VKGroup(), load_posts=None):
+            yield item
+
+    async def process(self, group: VKGroup):
+        await self.db.update(group, load_posts=True)
+        async for post in self.vk.group_posts_iter(
+                group.id, count=self.posts_count
+        ):
+            yield post
+
+    async def update(self, post):
+        try:
+            await self.db.insert_many(
+                post,
                 force=True
             )
         except pymongo.errors.BulkWriteError:
@@ -101,8 +131,9 @@ class LoadPersonsPosts(BaseWorkApp):
             yield item
 
     async def process(self, user: VKUser):
-        all_posts = await self.vk.user_posts(user_id=user.id, count=self.posts_count)
-        for post in all_posts:
+        await self.db.update(user, load_posts=True)
+
+        async for post in self.vk.user_posts_iter(user_id=user.id, count=self.posts_count):
             yield post
 
     async def update(self, post: VKPost):

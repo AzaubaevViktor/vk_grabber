@@ -45,13 +45,7 @@ class BaseWork:
             self.state = "Wait for new item"
             async for item in self.input():
                 repeats_count = 0
-                self.state = f"{item} => ???"
-                async for result in self.process(item):
-                    self.state = f"{item} => {result}"
-                    await self.update(result)
-                    self.state = f"{item} => ???"
-
-                self.state = "Wait for new item"
+                asyncio.create_task(self._run_process(item))
 
             if repeats_count < self.INPUT_REPEATS:
                 repeats_count += 1
@@ -63,3 +57,11 @@ class BaseWork:
         self.state = "Shutdown"
         await self.shutdown()
         self.state = "Finished"
+
+    async def _run_process(self, item):
+        self.state = f"{item} => ???"
+        async for result in self.process(item):
+            self.state = f"{item} => {result}"
+            await self.update(result)
+            self.state = f"{item} => ???"
+        self.state = "Wait for new item"
