@@ -1,15 +1,37 @@
 import asyncio
 from typing import List
 
-from core import Log
+from ._tasks import _Tasks
+from .server import MonitoringServer
 
 
-class BaseWork:
+class BaseWork(_Tasks):
     INPUT_REPEATS = 1
     need_stop = False
 
+    @classmethod
+    async def _web_server_gracefull_shutdown(cls, server):
+        while True:
+            if cls.need_stop:
+                break
+
+            # if task.done():
+            #     break
+
+            await asyncio.sleep(1)
+        await server.shutdown()
+
+    @classmethod
+    async def run_monitoring_server(cls):
+        server = MonitoringServer()
+        await server()
+
+        asyncio.create_task(cls._web_server_gracefull_shutdown(server))
+
+        # await task
+
     def __init__(self):
-        self.log = Log(self.__class__.__name__)
+        super().__init__()
         self._state = None
         self.state = "Base class initialized"
 
@@ -57,23 +79,7 @@ class BaseWork:
                 repeats_count = 0
                 tasks.append(asyncio.create_task(self._run_process(item)))
 
-            if tasks:
-                while tasks:
-                    finished = tuple(task for task in tasks if task.done())
-
-                    for task in finished:
-                        if task.cancelled():
-                            self.log.warning("Task was cancelled: ", task=task)
-                        else:
-                            try:
-                                result = await task
-                                if result:
-                                    self.log.important("Task say:", task=task, result=result)
-                            except Exception:
-                                self.log.exception("Task shout:", task=task)
-
-                        tasks.remove(task)
-                    await asyncio.sleep(1)
+            await self.wait_for_tasks(*tasks)
 
             if repeats_count < self.INPUT_REPEATS:
                 repeats_count += 1

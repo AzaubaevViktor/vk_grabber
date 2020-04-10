@@ -157,6 +157,7 @@ class LoadPostComments(BaseWorkApp):
         except pymongo.errors.BulkWriteError:
             self.log.info("Exist", comment=comment)
 
+
 class Application(BaseApplication):
     def __init__(self, config: LoadConfig,
                  posts_count=None, participants_count=None, users_count=None,
@@ -168,6 +169,7 @@ class Application(BaseApplication):
         if self.clean:
             await self.db.delete_all(i_understand_delete_all=True)
         await self.vk.warm_up()
+        await BaseWork.run_monitoring_server()
 
     async def __call__(self):
         await self._add_handlers()
