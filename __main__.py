@@ -11,4 +11,4 @@ async def main(*counts, **kwargs):
 
 
 if __name__ == "__main__":
-    asyncio.run(main(10, 10, 10, clean=True))
+    asyncio.run(main(10, 10, 10, clean=False))

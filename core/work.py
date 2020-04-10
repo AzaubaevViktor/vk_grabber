@@ -6,6 +6,7 @@ from core import Log
 
 class BaseWork:
     INPUT_REPEATS = 0
+    need_stop = False
 
     def __init__(self):
         self.log = Log(self.__class__.__name__)
@@ -19,7 +20,7 @@ class BaseWork:
     @state.setter
     def state(self, value):
         self._state = value
-        self.log.info(self._state)
+        self.log.debug(self._state)
 
     async def warm_up(self):
         pass
@@ -46,6 +47,10 @@ class BaseWork:
         tasks: List[asyncio.Task] = []
 
         while True:
+            if self.need_stop:
+                self.log.warning("Gracefully shutdown")
+                break
+
             self.state = "Wait for new item"
 
             async for item in self.input():
@@ -77,7 +82,6 @@ class BaseWork:
             else:
                 self.log.important("No tasks and too many retries, i'm think i'm done")
                 break
-
 
         self.state = "Shutdown"
         await self.shutdown()

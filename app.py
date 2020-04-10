@@ -173,6 +173,8 @@ class Application(BaseApplication):
         await self.vk.warm_up()
 
     async def __call__(self):
+        await self._add_handlers()
+
         await asyncio.gather(
             LoadGroups(self.db, self.vk, groups=self.config.vk.groups)()
         )
@@ -183,3 +185,17 @@ class Application(BaseApplication):
             LoadGroupPosts(self.db, self.vk, posts_count=self.posts_count)(),
             LoadPostComments(self.db, self.vk)()
         )
+
+    async def _add_handlers(self):
+        import signal
+        import functools
+
+        loop = asyncio.get_running_loop()
+        for signame in {'SIGINT', 'SIGTERM'}:
+            loop.add_signal_handler(
+                getattr(signal, signame),
+                functools.partial(self._gracefull, signame, loop))
+
+    def _gracefull(self, signame, loop):
+        self.log.warning("⚠️ Exit handler", signame=signame, loop=loop)
+        BaseWork.need_stop = True
