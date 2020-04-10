@@ -13,6 +13,7 @@ class VKComment(Model):
     attachments = ModelAttribute(default=None)
     reply_to_user = ModelAttribute(default=None)
     reply_to_comment = ModelAttribute(default=None)
+    deleted = ModelAttribute(default=False)
 
     thread = Attribute(default=None)  # Не записывается в mongo
 
