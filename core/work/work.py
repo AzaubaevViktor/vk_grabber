@@ -6,6 +6,18 @@ from ._tasks import _Tasks
 from .server import MonitoringServer
 
 
+class Info:
+    def __init__(self, item):
+        self.item = item
+        self.state = "Not running"
+
+    def update(self, new_state):
+        self.state = new_state
+
+    def __str__(self):
+        return self.state
+
+
 class BaseWork(_Tasks):
     start_time = time()
 
@@ -39,13 +51,24 @@ class BaseWork(_Tasks):
         super().__init__()
         self._state = None
         self.state = "Base class initialized"
+        self.tasks: Dict[asyncio.Task, Info] = {}
+
         self.works.append(self)
 
     @classmethod
     def collect_data(cls):
+        from html import escape as html_escape
+
         result = ""
         for work in cls.works:
             result += f"{work.__class__.__name__}: {work.state} <br>"
+            result += "<ul>"
+            if not work.tasks:
+                result += f"<li>No tasks yet</li>"
+            else:
+                for task, info in work.tasks.items():
+                    result += f"<li>{html_escape(str(info.item))}: {html_escape(str(info))}</li>"
+            result += "</ul>"
         return result
 
     @property
@@ -65,6 +88,7 @@ class BaseWork(_Tasks):
         raise NotImplementedError()
 
     async def process(self, item):
+        yield
         raise NotImplementedError()
 
     async def update(self, result):
@@ -79,10 +103,9 @@ class BaseWork(_Tasks):
 
         repeats_count = 0
 
-        tasks: List[asyncio.Task] = []
-
         while True:
             if self.need_stop:
+                self.state = "Gracefully shutdown"
                 self.log.warning("Gracefully shutdown")
                 break
 
@@ -90,9 +113,18 @@ class BaseWork(_Tasks):
 
             async for item in self.input():
                 repeats_count = 0
-                tasks.append(asyncio.create_task(self._run_process(item)))
+                info = Info(item)
+                self.tasks[asyncio.create_task(self._run_process(item, info))] = info
 
-            await self.wait_for_tasks(*tasks)
+            while True:
+                self.state = f"Processing {len(self.tasks)} tasks"
+
+                await self.remove_tasks(self.tasks)
+
+                if not self.tasks:
+                    break
+
+                await asyncio.sleep(1)
 
             if repeats_count < self.INPUT_REPEATS:
                 repeats_count += 1
@@ -106,19 +138,26 @@ class BaseWork(_Tasks):
         await self.shutdown()
         self.state = "Finished"
 
-    async def _run_process(self, item):
+    async def _run_process(self, item, info: Info):
+        info.update("Task started")
         processed_callback = None
+
         if isinstance(item, tuple):
             item, processed_callback = item
 
-        self.state = f"{type(item)} => ???"
+        info.update(f"=> ...")
+
         async for result in self.process(item):
-            self.state = f"{type(item)} => {type(result)}"
+            info.update(f"=> {result}")
             await self.update(result)
-            self.state = f"{type(item)} => ???"
+            info.update(f"=> ...")
+
+        info.update("Finish processing")
 
         if processed_callback:
+            info.update("Run callback")
+
             self.log.info("Run processed callback", processed_callback=processed_callback)
             await processed_callback
 
-        self.state = "Wait for new item"
+        info.update("Task finished")
