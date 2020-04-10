@@ -149,6 +149,9 @@ class VK:
         async for post in self._posts_count(-group_id, count):
             yield post
 
+    async def comments_iter(self, owner_id, post_id, count=None):
+        pass
+
     async def group_posts(self, group_id, count=None, from_ts=None):
         if count is not None and from_ts is not None:
             raise ValueError("Use one of attribute: `count` or `from_ts`")
