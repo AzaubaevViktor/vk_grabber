@@ -131,6 +131,7 @@ def test_updates():
     assert item.updates() == {}
 
 
+@pytest.mark.skip("Attribute now means that did not save into mongo")
 def test_wrong():
     with pytest.raises(TypeError):
         class TWrong(Model):

@@ -14,8 +14,8 @@ def event_loop(request):
 
 
 @pytest.fixture(scope='session')
-async def vk():
-    config = LoadConfig()
+async def vk(config):
+    assert config.app.test
 
     vk = VK(config.vk)
 

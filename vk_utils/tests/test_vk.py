@@ -23,17 +23,17 @@ async def test_group(vk, group_id):
 
 
 async def test_group_no_args(vk, group_id):
-    with pytest.raises(ValueError):
-        await vk.group_posts(group_id)
+    results = await vk.group_posts(group_id)
+    assert len(results) > 100
 
 
 @pytest.mark.parametrize('count', (-100, -55, -1, 0))
 async def test_group_count_wrong(vk, group_id, count):
     with pytest.raises(ValueError):
-        await vk.group_posts(group_id)
+        await vk.group_posts(group_id, count=count)
 
 
-@pytest.mark.parametrize('count', (1, 5, 10, 14, 250, 100, 200))
+@pytest.mark.parametrize('count', (1, 5, 10, 14, 105, 250, 100, 200))
 async def test_group_posts_with_count(vk, group_id, count):
     posts = await vk.group_posts(group_id, count=count)
 
@@ -57,7 +57,7 @@ class TestGroupPostTs:
         assert len(posts) == 10
         return posts
 
-    @pytest.mark.xfail(reason="Download by ts not implemented yet")
+    @pytest.mark.skip(reason="Download by ts not implemented yet")
     @pytest.mark.parametrize('index', range(9))
     async def test_group_posts_with_ts(self, vk, group_id, last_posts, index):
         assert len(last_posts) > index + 1

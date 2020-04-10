@@ -21,7 +21,7 @@ async def test_vk_persons_none(vk, group_id):
     for user in users:
         assert isinstance(user, int)
 
-    assert len(users) != 0
+    assert len(users) > 100
 
 
 async def test_group_info(vk, group_id):

@@ -190,9 +190,10 @@ class VK:
 
         offset = 0
         items_count = count
-        to_download = min(items_count - offset, 100)
 
         while offset < items_count:
+            to_download = min(items_count - offset, 100)
+
             try:
                 answer = await self.call_method(
                     **params,
@@ -209,7 +210,7 @@ class VK:
                 if to_download < items_count:
                     self.log.warning("Downloaded items count:", wanted=to_download, actual=len(answer['items']))
 
-            offset += items_count
+            offset += to_download
 
             for item in answer['items']:
                 yield item

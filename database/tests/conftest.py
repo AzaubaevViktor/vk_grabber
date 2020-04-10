@@ -14,12 +14,12 @@ def event_loop(request):
 
 
 @pytest.fixture(scope='session')
-async def client():
-    return motor.motor_asyncio.AsyncIOMotorClient('mongodb://root:root@localhost:27017')
+async def client(config):
+    return motor.motor_asyncio.AsyncIOMotorClient(config.mongo.uri)
 
 
 @pytest.fixture(scope='function')
-async def db(client):
-    db = DBWrapper(client, "test")
+async def db(client, config):
+    db = DBWrapper(client, config.mongo.database)
     yield db
     await db.delete_all(i_understand_delete_all=True)
