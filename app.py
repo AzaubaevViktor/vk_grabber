@@ -39,6 +39,8 @@ class BaseWorkApp(BaseWork):
 
 
 class LoadGroups(BaseWorkApp):
+    INPUT_REPEATS = 0
+
     def __init__(self, *args, groups):
         super().__init__(*args)
         self.groups = groups
@@ -56,18 +58,17 @@ class LoadGroups(BaseWorkApp):
         try:
             await self.db.insert_many(result, force=True)
         except pymongo.errors.BulkWriteError:
-            self.log.exception("Exist")
+            self.log.info("Exist", result=result)
 
 
-class LoadPersons(BaseWorkApp):
+class LoadParticipants(BaseWorkApp):
     def __init__(self, db: DBWrapper, vk: VK, participants_count=None):
         super().__init__(db, vk)
         self.participants_count = participants_count
 
     async def input(self):
         async for group in self.db.find(VKGroup(), load_persons=None, limit=1):
-            await self.db.update(group, load_persons=True)
-            yield group
+            yield group, self.db.update(group, load_persons=True)
 
     async def process(self, group: VKGroup):
         async for person_id in self.vk.group_participants_iter(
@@ -76,14 +77,15 @@ class LoadPersons(BaseWorkApp):
             yield person_id
 
     async def update(self, person_id):
+        user = VKUser(_id=person_id)
         try:
             await self.db.insert_many(
-                VKUser(_id=person_id),
+                user,
                 force=True
             )
         except pymongo.errors.BulkWriteError:
             # Model already exist
-            pass
+            self.log.info("Exist", user=user)
 
 
 class LoadPosts(BaseWorkApp):
@@ -97,8 +99,7 @@ class LoadPosts(BaseWorkApp):
 
     async def input(self):
         async for item in self.db.find(self.MODEL(), **{self.FLAG: None}, limit=5):
-            await self.db.update(item, **{self.FLAG: True})
-            yield item
+            yield item, self.db.update(item, **{self.FLAG: True})
 
     async def update(self, post):
         if not post.text:
@@ -110,8 +111,7 @@ class LoadPosts(BaseWorkApp):
                 force=True
             )
         except pymongo.errors.BulkWriteError:
-            # Model already exist
-            pass
+            self.log.info("Exist", result=post)
 
 
 class LoadGroupPosts(LoadPosts):
@@ -138,8 +138,7 @@ class LoadPostComments(BaseWorkApp):
 
     async def input(self):
         async for post in self.db.find(VKPost(), load_comments=None, limit=5):
-            await self.db.update(post, load_comments=True)
-            yield post
+            yield post, self.db.update(post, load_comments=True)
 
     async def process(self, post: VKPost):
         async for comment in self.vk.comments_iter(owner_id=post.owner_id, post_id=post.id):
@@ -156,9 +155,7 @@ class LoadPostComments(BaseWorkApp):
                 comment
             )
         except pymongo.errors.BulkWriteError:
-            # Model already exist
-            pass
-
+            self.log.info("Exist", comment=comment)
 
 class Application(BaseApplication):
     def __init__(self, config: LoadConfig,
@@ -180,7 +177,7 @@ class Application(BaseApplication):
         )
 
         await asyncio.gather(
-            LoadPersons(self.db, self.vk, participants_count=self.participants_count)(),
+            LoadParticipants(self.db, self.vk, participants_count=self.participants_count)(),
             LoadPersonsPosts(self.db, self.vk, posts_count=self.posts_count)(),
             LoadGroupPosts(self.db, self.vk, posts_count=self.posts_count)(),
             LoadPostComments(self.db, self.vk)()

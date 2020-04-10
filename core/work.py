@@ -5,7 +5,7 @@ from core import Log
 
 
 class BaseWork:
-    INPUT_REPEATS = 0
+    INPUT_REPEATS = 1
     need_stop = False
 
     def __init__(self):
