@@ -94,13 +94,16 @@ class LoadPersons(BaseWorkApp):
 
 class LoadPosts(BaseWorkApp):
     MODEL = None
+    FLAG = 'load_posts'
 
     def __init__(self, db: DBWrapper, vk: VK, posts_count=None):
         super().__init__(db, vk)
+        assert self.FLAG is not None, "FLAG Unsetted"
         self.posts_count = posts_count
 
     async def input(self):
-        async for item in self.db.find(self.MODEL(), load_posts=None):
+        async for item in self.db.find(self.MODEL(), **{self.FLAG: None}):
+            await self.db.update(item, **{self.FLAG: True})
             yield item
 
     async def update(self, post):
@@ -121,7 +124,6 @@ class LoadGroupPosts(LoadPosts):
     MODEL = VKGroup
 
     async def process(self, group: VKGroup):
-        await self.db.update(group, load_posts=True)
         async for post in self.vk.group_posts_iter(
                 group.id, count=self.posts_count
         ):
@@ -133,8 +135,6 @@ class LoadPersonsPosts(LoadPosts):
     MODEL = VKUser
 
     async def process(self, user: VKUser):
-        await self.db.update(user, load_posts=True)
-
         async for post in self.vk.user_posts_iter(user_id=user.id, count=self.posts_count):
             yield post
 

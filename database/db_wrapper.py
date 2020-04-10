@@ -1,10 +1,13 @@
 from collections import defaultdict
-from typing import Union, Type, Dict, List
+from typing import Union, Type, Dict, List, TypeVar, AsyncIterable
 
 import motor.motor_asyncio
 
 from core import Log
 from database import Model
+
+
+ModelT = TypeVar("ModelT", Model, Model)
 
 
 class DBWrapper:
@@ -60,7 +63,7 @@ class DBWrapper:
         item.drop_updates()
         return item
 
-    async def find(self, obj: Model, limit=None, **kwargs):
+    async def find(self, obj: ModelT, limit=None, **kwargs) -> AsyncIterable[ModelT]:
         collection = self._get_collection(obj)
         query = obj.query()
         query.update(kwargs)
