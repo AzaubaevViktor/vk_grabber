@@ -5,7 +5,7 @@ from typing import List, Sequence
 import aiohttp
 
 from core import Log
-from vk_utils import VKGroup, VKPost, VKUser
+from vk_utils import VKGroup, VKPost, VKUser, VKComment
 from vk_utils.get_token import UpdateToken
 
 
@@ -150,7 +150,19 @@ class VK:
             yield post
 
     async def comments_iter(self, owner_id, post_id, count=None):
-        pass
+        async for raw_data in self._offsetter(count, dict(
+                method='wall.getComments',
+                owner_id=owner_id,
+                post_id=post_id,
+                need_likes=1,
+                preview_length=0,
+                extended=0,
+                thread_items_count=10,
+        )):
+            comment = VKComment(**raw_data)
+            comment.post_id = post_id
+            comment.owner_id = owner_id
+            yield comment
 
     async def group_posts(self, group_id, count=None, from_ts=None):
         if count is not None and from_ts is not None:
@@ -175,21 +187,25 @@ class VK:
             raise ValueError(f"{count=} must be more than 0")
 
         offset = 0
-        posts_count = count
+        items_count = count
+        to_download = min(items_count - offset, 100)
 
-        while offset < posts_count:
+        while offset < items_count:
             try:
                 answer = await self.call_method(
                     **params,
-                    count=min(posts_count - offset, 100),
+                    count=to_download,
                     offset=offset
                 )
             except VKError:
-                return
+                raise
 
-            posts_count = min(count, answer['count'])
+            items_count = min(count, answer['count'])
 
-            offset += len(answer['items'])
+            if to_download != len(answer['items']):
+                self.log.warning("Downloaded items count:", wanted=to_download, actual=len(answer['items']))
+
+            offset += items_count
 
             for item in answer['items']:
                 yield item

@@ -50,8 +50,8 @@ class Model(AttributeStorage):
         self._updates = {}
 
         for k, attr in self.__attributes__.items():
-            if not isinstance(attr, ModelAttribute):
-                raise TypeError(f"Use {ModelAttribute.__name__} instance instead {attr}")
+            if not isinstance(attr, Attribute):
+                raise TypeError(f"Use {Attribute.__name__} instance instead {attr}")
 
         # for k, attr in self.__attributes__.items():
         #     if not isinstance(attr, KwargsAttribute) \
@@ -88,6 +88,9 @@ class Model(AttributeStorage):
     def serialize(self) -> dict:
         result = {}
         for k, attr in self.__attributes__.items():
+            if not isinstance(attr, ModelAttribute):
+                continue
+
             if attr.is_id_alias:
                 continue
 
