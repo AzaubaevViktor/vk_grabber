@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from core.chaos import Chaos
@@ -22,6 +24,7 @@ class StoreItem(BaseStore):
 
 class StoreItems(BaseStore):
     async def __call__(self, *items: int):
+        await asyncio.sleep(0.001)
         self.items.extend(items)
 
         for item in items:
@@ -39,6 +42,7 @@ class Stats:
         self.sum = 0
 
     async def __call__(self, *items):
+        await asyncio.sleep(1)
         self.count += len(items)
         self.sum += sum(items)
         yield
@@ -90,7 +94,7 @@ async def test_item(start, store_class, processor):
 @pytest.mark.parametrize('start', (
         [1, 2, 3],
         [],
-        [x for x in range(10000)]
+        [x for x in range(100)]
 ))
 async def test_combine(start):
     stats = Stats()
@@ -98,6 +102,6 @@ async def test_combine(start):
 
     await chaos.run()
 
-    assert stats.count == 3
+    assert stats.count == len(start)
     assert stats.sum == sum(x * 2 + 1 for x in start)
 

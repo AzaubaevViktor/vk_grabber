@@ -59,7 +59,28 @@ class Chaos:
         repeat_count = 0
 
         if param.kind == inspect.Parameter.VAR_POSITIONAL:
-            raise NotImplementedError()
+            while True:
+                try:
+                    if input_q.qsize():
+                        items = []
+                        for _ in range(input_q.qsize()):
+                            items.append(await input_q.get())
+                    else:
+                        items = [await asyncio.wait_for(input_q.get(), (repeat_count + 1))]
+
+                    repeat_count = 0
+                    self.log.info("Processing", items=items)
+
+                    async for result in method(*items):
+                        self.log.info("Result", result=result)
+                        await output_q.put(result)
+
+                except asyncio.TimeoutError:
+                    repeat_count += 1
+
+                    if repeat_count >= self.repeats:
+                        break
+
         else:
             while True:
                 try:
