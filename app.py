@@ -65,11 +65,11 @@ class LoadPersons(BaseWorkApp):
         self.persons_count = persons_count
 
     async def input(self):
-        async for item in self.db.find(VKGroup(), load_persons=None):
-            yield item
+        async for group in self.db.find(VKGroup(), load_persons=None, limit=1):
+            await self.db.update(group, load_persons=True)
+            yield group
 
     async def process(self, group: VKGroup):
-        await self.db.update(group, load_persons=True)
         async for person_id in self.vk.group_participants_iter(
                 group.id, count=self.persons_count
         ):
@@ -96,7 +96,7 @@ class LoadPosts(BaseWorkApp):
         self.posts_count = posts_count
 
     async def input(self):
-        async for item in self.db.find(self.MODEL(), **{self.FLAG: None}):
+        async for item in self.db.find(self.MODEL(), **{self.FLAG: None}, limit=5):
             await self.db.update(item, **{self.FLAG: True})
             yield item
 
@@ -137,7 +137,7 @@ class LoadPostComments(BaseWorkApp):
     INPUT_REPEATS = 3
 
     async def input(self):
-        async for post in self.db.find(VKPost(), load_comments=None):
+        async for post in self.db.find(VKPost(), load_comments=None, limit=5):
             await self.db.update(post, load_comments=True)
             yield post
 
