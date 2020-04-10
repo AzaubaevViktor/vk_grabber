@@ -1,6 +1,8 @@
-import asyncio
-
 import pytest
+
+from core.chaos import Chaos
+
+pytestmark = pytest.mark.asyncio
 
 
 class BaseStore:
@@ -14,6 +16,7 @@ class BaseStore:
 class StoreItem(BaseStore):
     async def __call__(self, item: int):
         self.items.append(item)
+        assert isinstance(item, int) or item is None
         yield item
 
 
@@ -22,6 +25,7 @@ class StoreItems(BaseStore):
         self.items.extend(items)
 
         for item in items:
+            assert isinstance(item, int)
             yield item
 
 
@@ -37,6 +41,7 @@ class Stats:
     async def __call__(self, *items):
         self.count += len(items)
         self.sum += sum(items)
+        yield
 
 
 async def adder(item: int):
@@ -49,24 +54,29 @@ async def adder(item: int):
         adder
 ))
 @pytest.mark.parametrize('start', (
-        None,
         [1, 2, 3],
         [],
-        [x for x in range(10000)]
+        [x for x in range(100)]
 ))
 @pytest.mark.parametrize('store_class', (
         StoreItem, StoreItems
 ))
 async def test_item(start, store_class, processor):
     store = store_class()
-    chaos = Chaos(start) >> store
+    chaos = Chaos(start)
+
+    if processor:
+        chaos >> processor
+
+    chaos >> store
+
     await chaos.run()
 
     if start is None:
-        start = []
+        start = [None]
 
     if processor is None:
-        async def processor(item: int):
+        async def processor(item):
             yield item
 
     calculated_items = []
