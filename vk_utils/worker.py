@@ -97,7 +97,9 @@ class VK:
             if 'error' in result:
                 vk_error = VKError(result['error'])
                 if vk_error.error_code == VKError.TOO_MANY_REQUESTS:
-                    self.threshold *= 1.1
+                    self.threshold *= 1.01
+                    if self.threshold > 1:
+                        self.threshold = 1
                     self.log.warning("Too many requests", threshold=self.threshold)
                     continue
 
@@ -198,7 +200,8 @@ class VK:
                     offset=offset
                 )
             except VKError:
-                raise
+                self.log.exception(params=params)
+                return
 
             items_count = min(count, answer['count'])
 

@@ -5,9 +5,7 @@ import pymongo.errors
 
 from core import LoadConfig, Log, BaseWork
 from database import DBWrapper
-from time_series.ts import TSManager, TimeSeries, Funcs
-from vk_utils import VK, VKGroup, VKUser, VKPost
-from word_woker import tokenize
+from vk_utils import VK, VKGroup, VKUser, VKPost, VKComment
 
 
 class BaseApplication:
@@ -135,6 +133,33 @@ class LoadPersonsPosts(LoadPosts):
             yield post
 
 
+class LoadPostComments(BaseWorkApp):
+    INPUT_REPEATS = 3
+
+    async def input(self):
+        async for post in self.db.find(VKPost(), load_comments=None):
+            await self.db.update(post, load_comments=True)
+            yield post
+
+    async def process(self, post: VKPost):
+        async for comment in self.vk.comments_iter(owner_id=post.owner_id, post_id=post.id):
+            yield comment
+            for thread_comment in comment.get_thread():
+                yield thread_comment
+
+    async def update(self, comment):
+        if not comment.text:
+            return
+
+        try:
+            await self.db.insert_many(
+                comment
+            )
+        except pymongo.errors.BulkWriteError:
+            # Model already exist
+            pass
+
+
 class Application(BaseApplication):
     def __init__(self, config: LoadConfig,
                  posts_count, persons_count, users_count,
@@ -155,5 +180,6 @@ class Application(BaseApplication):
         await asyncio.gather(
             LoadPersons(self.db, self.vk, persons_count=self.persons_count)(),
             LoadPersonsPosts(self.db, self.vk, posts_count=self.posts_count)(),
-            LoadGroupPosts(self.db, self.vk, posts_count=self.posts_count)()
+            LoadGroupPosts(self.db, self.vk, posts_count=self.posts_count)(),
+            LoadPostComments(self.db, self.vk)()
         )

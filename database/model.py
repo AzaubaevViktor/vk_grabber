@@ -79,7 +79,7 @@ class Model(AttributeStorage):
             if not isinstance(attr.default, Attribute._DefaultNone):
                 continue
 
-            if attr.is_id_alias:
+            if isinstance(attr, ModelAttribute) and attr.is_id_alias:
                 continue
 
             raise ValueError(f"Set {self.__class__.__name__}.{k}")
