@@ -109,6 +109,9 @@ class LoadGroupPosts(BaseWorkApp):
             yield post
 
     async def update(self, post):
+        if not post.text:
+            return
+
         try:
             await self.db.insert_many(
                 post,
@@ -137,10 +140,17 @@ class LoadPersonsPosts(BaseWorkApp):
             yield post
 
     async def update(self, post: VKPost):
-        await self.db.insert_many(
-            post,
-            force=True
-        )
+        if not post.text:
+            return
+
+        try:
+            await self.db.insert_many(
+                post,
+                force=True
+            )
+        except pymongo.errors.BulkWriteError:
+            # Model already exist
+            pass
 
 
 class Application(BaseApplication):

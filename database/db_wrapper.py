@@ -40,7 +40,7 @@ class DBWrapper:
             except ValueError:
                 if not force:
                     raise
-                self.log.exception()
+                self.log.exception("It's ok because force write mode")
 
             classes[obj.__class__].append(obj)
 
