@@ -20,6 +20,26 @@ class Info:
         return self.state
 
 
+class Stats:
+    def __init__(self, start_time):
+        self._start_time = start_time
+
+        self.input_items = 0
+        self.processed_items = 0
+        self.returned_items = 0
+
+        self.finished_time = None
+
+    @property
+    def speed(self):
+        dt = (self.finished_time or time()) - self._start_time
+
+        if dt < 1:
+            return 0
+
+        return self.processed_items / dt
+
+
 class BaseWork(_Tasks):
     start_time = time()
 
@@ -54,6 +74,7 @@ class BaseWork(_Tasks):
         self._state = None
         self.state = "Base class initialized"
         self.tasks: Dict[asyncio.Task, Info] = {}
+        self.stat = Stats(self.start_time)
 
         self.works.append(self)
 
@@ -62,14 +83,30 @@ class BaseWork(_Tasks):
 
         result = ""
         for work in cls.works:
-            result += f"{work.__class__.__name__}: {work.state} <br>"
+            result += f"{work.__class__.__name__}: <br>"
             result += "<ul>"
+
+            result += f"<li>State     : {work.state}</li>"
+            result += f"<li>Input     : {work.stat.input_items}</li>"
+            result += f"<li>Output    : {work.stat.returned_items}</li>"
+            result += f"<li>Processed : {work.stat.processed_items}</li>"
+            result += f"<li>Speed     : {work.stat.speed:.2f} items&sol;s </li>"
+
+            result += "</ul>"
+
+        result += "<h3>Tasks:</h3>"
+        for work in cls.works:
+            result += f"{work.__class__.__name__}: <br>"
+            result += "<ul>"
+
             if not work.tasks:
                 result += f"<li>No tasks yet</li>"
             else:
                 for task, info in work.tasks.items():
                     result += f"<li>{html_escape(repr(info.item))}: {html_escape(str(info))}</li>"
+
             result += "</ul>"
+
         return result
 
     @property
@@ -113,6 +150,7 @@ class BaseWork(_Tasks):
             self.state = "Wait for new item"
 
             async for item in self.input():
+                self.stat.input_items += 1
                 repeats_count = 0
 
                 processed_callback = None
@@ -142,6 +180,7 @@ class BaseWork(_Tasks):
 
         self.state = "Shutdown"
         await self.shutdown()
+        self.stat.finished_time = time()
         self.state = "Finished"
 
     async def _run_process(self, item, info: Info, processed_callback=None):
@@ -150,10 +189,12 @@ class BaseWork(_Tasks):
         info.update(f"=> ...")
 
         async for result in self.process(item):
+            self.stat.returned_items += 1
             info.update(f"=> {html_escape(repr(result))}")
             await self.update(result)
             info.update(f"=> ...")
 
+        self.stat.processed_items += 1
         info.update("Finish processing")
 
         if processed_callback:

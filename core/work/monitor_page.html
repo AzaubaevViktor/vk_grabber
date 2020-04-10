@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>VK Grabber monitoring</title>
+<style>
+    p {
+        display: inline;
+    }
+</style>
 </head>
 <body>
 <h1>VK Grabber monitoring v0</h1>
 <pre id="app_status">Load JS...</pre>
 
 Last update:
-<pre id="last_update"></pre>
+<p id="last_update"></p><br>
 
 Monitoring:
 <pre id="status"></pre>
@@ -34,7 +39,7 @@ set_last_update();
 
 function watch_update() {
     let millis = Date.now() - _last_update_value;
-    let s =  `${millis / 1000}s`;
+    let s = `${millis / 1000}s ago`;
     document.getElementById("last_update").innerHTML = s;
 
     setTimeout(watch_update, 100);
