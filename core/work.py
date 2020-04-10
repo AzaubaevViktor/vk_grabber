@@ -88,9 +88,18 @@ class BaseWork:
         self.state = "Finished"
 
     async def _run_process(self, item):
+        processed_callback = None
+        if isinstance(item, tuple):
+            item, processed_callback = item
+
         self.state = f"{type(item)} => ???"
         async for result in self.process(item):
             self.state = f"{type(item)} => {type(result)}"
             await self.update(result)
             self.state = f"{type(item)} => ???"
+
+        if processed_callback:
+            self.log.info("Run processed callback", processed_callback=processed_callback)
+            await processed_callback
+
         self.state = "Wait for new item"
