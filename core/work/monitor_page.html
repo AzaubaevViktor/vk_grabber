@@ -6,23 +6,51 @@
 </head>
 <body>
 <h1>VK Grabber monitoring v0</h1>
-<pre id="status">Load JS...</pre>
+<pre id="app_status">Load JS...</pre>
+
+Last update:
+<pre id="last_update"></pre>
+
+Monitoring:
+<pre id="status"></pre>
 
 <script lang="javascript">
+
+function app_status(text) {
+    document.getElementById("app_status").innerHTML = text;
+}
 
 function status(text) {
     document.getElementById("status").innerHTML = text;
 }
 
-status("JS Loaded!");
+let _last_update_value = Date.now();
+
+function set_last_update() {
+    _last_update_value = Date.now();
+}
+
+set_last_update();
+
+function watch_update() {
+    let millis = Date.now() - _last_update_value;
+    let s =  `${millis / 1000}s`;
+    document.getElementById("last_update").innerHTML = s;
+
+    setTimeout(watch_update, 100);
+}
+
+watch_update();
+
+app_status("JS Loaded!");
 
 let hash = window.location.hash.substr(1);
 
-status("Wait for load data...");
+app_status("Wait for run");
 
 async function getData() {
   // Default options are marked with *
-  status("Send responce...");
+  app_status("💨");
   const response = await fetch("/metrics", {
     method: 'GET', // *GET, POST, PUT, DELETE, etc.
     mode: 'cors', // no-cors, *cors, same-origin
@@ -44,12 +72,15 @@ function MAIN () {
       .then((data) => {
         console.log(data);
         status(data['status']);
+        app_status("✅");
+        set_last_update();
 
         setTimeout(MAIN, 1000);
       })
       .catch((error) => {
-        status("Error!");
+        app_status("❌");
         console.error(error);
+
         setTimeout(MAIN, 5000);
       });
   }
