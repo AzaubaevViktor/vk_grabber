@@ -1,4 +1,5 @@
 import asyncio
+from typing import List
 
 from core import Log
 
@@ -24,6 +25,7 @@ class BaseWork:
         pass
 
     async def input(self):
+        yield
         raise NotImplementedError()
 
     async def process(self, item):
@@ -41,27 +43,50 @@ class BaseWork:
 
         repeats_count = 0
 
+        tasks: List[asyncio.Task] = []
+
         while True:
             self.state = "Wait for new item"
+
             async for item in self.input():
                 repeats_count = 0
-                asyncio.create_task(self._run_process(item))
+                tasks.append(asyncio.create_task(self._run_process(item)))
+
+            if tasks:
+                while tasks:
+                    finished = tuple(task for task in tasks if task.done())
+
+                    for task in finished:
+                        if task.cancelled():
+                            self.log.warning("Task was cancelled: ", task=task)
+                        else:
+                            try:
+                                result = await task
+                                if result:
+                                    self.log.important("Task say:", task=task, result=result)
+                            except Exception:
+                                self.log.exception("Task shout:", task=task)
+
+                        tasks.remove(task)
+                    await asyncio.sleep(1)
 
             if repeats_count < self.INPUT_REPEATS:
                 repeats_count += 1
                 self.state = f"Wait items, repeat №{repeats_count}"
                 await asyncio.sleep(repeats_count)
             else:
+                self.log.important("No tasks and too many retries, i'm think i'm done")
                 break
+
 
         self.state = "Shutdown"
         await self.shutdown()
         self.state = "Finished"
 
     async def _run_process(self, item):
-        self.state = f"{item} => ???"
+        self.state = f"{type(item)} => ???"
         async for result in self.process(item):
-            self.state = f"{item} => {result}"
+            self.state = f"{type(item)} => {type(result)}"
             await self.update(result)
-            self.state = f"{item} => ???"
+            self.state = f"{type(item)} => ???"
         self.state = "Wait for new item"
