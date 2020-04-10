@@ -1,13 +1,18 @@
 import asyncio
-from typing import List
+from time import time
+from typing import List, Dict, Type
 
 from ._tasks import _Tasks
 from .server import MonitoringServer
 
 
 class BaseWork(_Tasks):
+    start_time = time()
+
     INPUT_REPEATS = 1
     need_stop = False
+
+    works: List['BaseWork'] = []
 
     @classmethod
     async def _web_server_gracefull_shutdown(cls, server):
@@ -23,7 +28,7 @@ class BaseWork(_Tasks):
 
     @classmethod
     async def run_monitoring_server(cls):
-        server = MonitoringServer()
+        server = MonitoringServer(cls.collect_data)
         await server()
 
         asyncio.create_task(cls._web_server_gracefull_shutdown(server))
@@ -34,6 +39,14 @@ class BaseWork(_Tasks):
         super().__init__()
         self._state = None
         self.state = "Base class initialized"
+        self.works.append(self)
+
+    @classmethod
+    def collect_data(cls):
+        result = ""
+        for work in cls.works:
+            result += f"{work.__class__.__name__}: {work.state} <br>"
+        return result
 
     @property
     def state(self):

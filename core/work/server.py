@@ -9,7 +9,7 @@ from core import Log
 class MonitoringServer:
     instance: Optional["MonitoringServer"] = None
 
-    def __init__(self):
+    def __init__(self, monitor_method):
         if self.instance:
             raise RuntimeError("Run server only once, please")
 
@@ -17,12 +17,13 @@ class MonitoringServer:
 
         self.log = Log(self.__class__.__name__)
         self.template = None
+        self.monitor_method = monitor_method
 
     async def hello(self, request):
         return web.Response(body=self.template, content_type="text/html")
 
     async def monitor(self, request):
-        return web.json_response({'status': '<h1>Hi!</h1>This is <b>raw html</b>, <i>man</i>'})
+        return web.json_response({'status': self.monitor_method()})
 
     async def __call__(self):
         self.log.info("Load templates")
