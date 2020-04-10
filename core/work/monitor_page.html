@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VK Grabber monitoring</title>
+</head>
+<body>
+<h1>VK Grabber monitoring v0</h1>
+<pre id="status">Load JS...</pre>
+
+<script lang="javascript">
+
+function status(text) {
+    document.getElementById("status").innerHTML = text;
+}
+
+status("JS Loaded!");
+
+let hash = window.location.hash.substr(1);
+
+status("Wait for load data...");
+
+async function getData() {
+  // Default options are marked with *
+  status("Send responce...");
+  const response = await fetch("/metrics", {
+    method: 'GET', // *GET, POST, PUT, DELETE, etc.
+    mode: 'cors', // no-cors, *cors, same-origin
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: 'same-origin', // include, *same-origin, omit
+    //headers: {
+      //'Content-Type': 'application/json'
+      // 'Content-Type': 'application/x-www-form-urlencoded',
+    //},
+    redirect: 'follow', // manual, *follow, error
+    referrerPolicy: 'no-referrer', // no-referrer, *client
+    // body: JSON.stringify(data) // body data type must match "Content-Type" header
+  });
+  return await response.json(); // parses JSON response into native JavaScript objects
+}
+
+function MAIN () {
+    getData()
+      .then((data) => {
+        console.log(data);
+        status(data['status']);
+
+        setTimeout(MAIN, 1000);
+      })
+      .catch((error) => {
+        status("Error!");
+        console.error(error);
+        setTimeout(MAIN, 5000);
+      });
+  }
+
+MAIN();
+
+</script>
+
+</body>
+</html>

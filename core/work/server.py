@@ -1,22 +1,42 @@
+from typing import Optional
+
+import aiofiles
 from aiohttp import web
 
 from core import Log
 
 
 class MonitoringServer:
+    instance: Optional["MonitoringServer"] = None
+
     def __init__(self):
+        if self.instance:
+            raise RuntimeError("Run server only once, please")
+
+        self.__class__.instance = self
+
         self.log = Log(self.__class__.__name__)
+        self.template = None
+
+    async def hello(self, request):
+        return web.Response(body=self.template, content_type="text/html")
+
+    async def monitor(self, request):
+        return web.json_response({'status': '<h1>Hi!</h1>This is <b>raw html</b>, <i>man</i>'})
 
     async def __call__(self):
-        self.log.info("Start web server")
-        routes = web.RouteTableDef()
+        self.log.info("Load templates")
+        async with aiofiles.open("core/work/monitor_page.html", mode='rt') as f:
+            self.template = await f.read()
 
-        @routes.get('/')
-        async def hello(request):
-            return web.Response(text="Hello, world")
+        self.log.info("Start web server")
 
         app = web.Application()
-        app.add_routes(routes)
+
+        app.add_routes([
+            web.get('/', self.hello),
+            web.get('/metrics', self.monitor)
+        ])
 
         self.runner = web.AppRunner(app)
         await self.runner.setup()
