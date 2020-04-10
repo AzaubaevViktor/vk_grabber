@@ -194,9 +194,17 @@ class AttributeStorage(SearchableSubclasses, metaclass=MetaAttributeStorage):
 
         return self._storage == other._storage
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         attrs = "; ".join(
             f"{k}={getattr(self, k, None)}" for k in self.__attributes__
         )
 
         return f"<{self.__class__.__name__}: {attrs}>"
+
+    def __repr__(self):
+        attrs = "; ".join(
+            f"{k}={getattr(self, k, None)}" for k in self.__uids__
+        )
+
+        return f"<{self.__class__.__name__}: {attrs}>"
+

@@ -5,6 +5,8 @@ from typing import List, Dict, Type
 from ._tasks import _Tasks
 from .server import MonitoringServer
 
+from html import escape as html_escape
+
 
 class Info:
     def __init__(self, item):
@@ -57,7 +59,6 @@ class BaseWork(_Tasks):
 
     @classmethod
     def collect_data(cls):
-        from html import escape as html_escape
 
         result = ""
         for work in cls.works:
@@ -67,7 +68,7 @@ class BaseWork(_Tasks):
                 result += f"<li>No tasks yet</li>"
             else:
                 for task, info in work.tasks.items():
-                    result += f"<li>{html_escape(str(info.item))}: {html_escape(str(info))}</li>"
+                    result += f"<li>{html_escape(repr(info.item))}: {html_escape(str(info))}</li>"
             result += "</ul>"
         return result
 
@@ -113,8 +114,13 @@ class BaseWork(_Tasks):
 
             async for item in self.input():
                 repeats_count = 0
+
+                processed_callback = None
+                if isinstance(item, tuple):
+                    item, processed_callback = item
+
                 info = Info(item)
-                self.tasks[asyncio.create_task(self._run_process(item, info))] = info
+                self.tasks[asyncio.create_task(self._run_process(item, info, processed_callback))] = info
 
             while True:
                 self.state = f"Processing {len(self.tasks)} tasks"
@@ -138,17 +144,13 @@ class BaseWork(_Tasks):
         await self.shutdown()
         self.state = "Finished"
 
-    async def _run_process(self, item, info: Info):
+    async def _run_process(self, item, info: Info, processed_callback=None):
         info.update("Task started")
-        processed_callback = None
-
-        if isinstance(item, tuple):
-            item, processed_callback = item
 
         info.update(f"=> ...")
 
         async for result in self.process(item):
-            info.update(f"=> {result}")
+            info.update(f"=> {html_escape(repr(result))}")
             await self.update(result)
             info.update(f"=> ...")
 

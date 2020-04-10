@@ -116,3 +116,10 @@ class Model(AttributeStorage):
                 del kwargs[k]
 
         return cls(**kwargs)
+
+    def __repr__(self):
+        attrs = "; ".join(
+            f"{k}={getattr(self, k, None)}" for k, attr in self.__uids__.items() if not attr.is_id_alias
+        )
+
+        return f"<{self.__class__.__name__}: {attrs}>"
