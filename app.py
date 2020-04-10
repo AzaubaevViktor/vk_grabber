@@ -10,7 +10,7 @@ from vk_utils import VK, VKGroup, VKUser, VKPost, VKComment
 
 class BaseApplication:
     def __init__(self, config: LoadConfig,
-                 posts_count, persons_count, users_count):
+                 posts_count=None, participants_count=None, users_count=None):
         self.log = Log(self.__class__.__name__)
 
         self.config = config
@@ -22,9 +22,9 @@ class BaseApplication:
             config.mongo.database
         )
 
-        self.posts_count = posts_count
-        self.persons_count = persons_count
-        self.users_count = users_count or float("+inf")
+        self.posts_count = posts_count or config.app.posts_count
+        self.participants_count = participants_count or config.app.participants_count
+        self.users_count = users_count or config.app.users_count or float("+inf")
 
     async def warm_up(self):
         await self.vk.warm_up()
@@ -60,9 +60,9 @@ class LoadGroups(BaseWorkApp):
 
 
 class LoadPersons(BaseWorkApp):
-    def __init__(self, db: DBWrapper, vk: VK, persons_count=None):
+    def __init__(self, db: DBWrapper, vk: VK, participants_count=None):
         super().__init__(db, vk)
-        self.persons_count = persons_count
+        self.participants_count = participants_count
 
     async def input(self):
         async for group in self.db.find(VKGroup(), load_persons=None, limit=1):
@@ -71,7 +71,7 @@ class LoadPersons(BaseWorkApp):
 
     async def process(self, group: VKGroup):
         async for person_id in self.vk.group_participants_iter(
-                group.id, count=self.persons_count
+                group.id, count=self.participants_count
         ):
             yield person_id
 
@@ -162,9 +162,9 @@ class LoadPostComments(BaseWorkApp):
 
 class Application(BaseApplication):
     def __init__(self, config: LoadConfig,
-                 posts_count, persons_count, users_count,
+                 posts_count=None, participants_count=None, users_count=None,
                  clean=True):
-        super().__init__(config, posts_count, persons_count, users_count)
+        super().__init__(config, posts_count, participants_count, users_count)
         self.clean = clean
 
     async def warm_up(self):
@@ -180,7 +180,7 @@ class Application(BaseApplication):
         )
 
         await asyncio.gather(
-            LoadPersons(self.db, self.vk, persons_count=self.persons_count)(),
+            LoadPersons(self.db, self.vk, participants_count=self.participants_count)(),
             LoadPersonsPosts(self.db, self.vk, posts_count=self.posts_count)(),
             LoadGroupPosts(self.db, self.vk, posts_count=self.posts_count)(),
             LoadPostComments(self.db, self.vk)()

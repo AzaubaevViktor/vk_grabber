@@ -63,7 +63,7 @@ class __Application(BaseApplication):
         for group in groups:
             group = group.undummy()
             self.log.debug("Load persons", group=group)
-            person_ids = await self.vk.group_user_ids(group.id, count=self.persons_count)
+            person_ids = await self.vk.group_user_ids(group.id, count=self.participants_count)
 
             self.log.info(group=group.id, users_count=len(person_ids))
             users_dummy = tuple(VKUser.dummy(id=id_, is_checked=False) for id_ in person_ids)
