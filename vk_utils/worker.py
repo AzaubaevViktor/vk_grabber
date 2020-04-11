@@ -108,7 +108,6 @@ class VK:
     async def call_method(self, method, **params):
         self.log.debug(method=method, params=params)
 
-        self.stats.by_type[method] += 1
         self.stats.call_methods_count += 1
 
         try:
@@ -126,6 +125,7 @@ class VK:
                     params={**params, **self.additional_params},
                     timeout=10
                 )
+                self.stats.by_type[method] += 1
 
                 result = await response.json()
 
@@ -146,7 +146,7 @@ class VK:
 
                     if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
                         self.log.important("RATE LIMIT")
-                        raise
+                        raise vk_error
 
                     raise vk_error
                 else:
