@@ -44,7 +44,7 @@ class Stats:
         speed = self.speed
 
         if speed < 0.000001:
-            return float("+inf")
+            return 1
 
         return 1 / speed
 
@@ -193,7 +193,7 @@ class BaseWork(_Tasks):
                 if not self.tasks:
                     break
 
-                await asyncio.sleep(1)
+                await asyncio.sleep(self.stat.reverse_speed / 2)
 
             if repeats_count < self.INPUT_REPEATS:
                 repeats_count += 1

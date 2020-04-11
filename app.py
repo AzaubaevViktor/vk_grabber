@@ -4,8 +4,9 @@ import motor.motor_asyncio
 import pymongo.errors
 
 from core import LoadConfig, Log, BaseWork
-from database import DBWrapper
+from database import DBWrapper, Model, ModelAttribute
 from vk_utils import VK, VKGroup, VKUser, VKPost, VKComment
+from word_woker import tokenize
 
 
 class BaseApplication:
@@ -164,6 +165,31 @@ class LoadPostComments(BaseWorkApp):
             self.log.info("Exist", comment=comment)
 
 
+class Word(Model):
+    word: str = ModelAttribute()
+    date: int = ModelAttribute()
+
+
+class WordKnife(BaseWorkApp):
+    INPUT_REPEATS = 3
+
+    async def input(self):
+        async for post in self.db.find(VKPost(), word_processed=None, limit=20):
+            yield post, self.db.update(post, word_processed=True)
+
+    async def process(self, post: VKPost):
+        for word in tokenize(post.text):
+            yield Word(word=word, date=post.date)
+
+    async def update(self, word: Word):
+        try:
+            await self.db.insert_many(
+                word
+            )
+        except pymongo.errors.BulkWriteError:
+            self.log.info("Exist", word=word)
+
+
 class Application(BaseApplication):
     def __init__(self, config: LoadConfig):
         super().__init__(config)
@@ -194,7 +220,12 @@ class Application(BaseApplication):
     async def __call__(self):
         first = await self.prepare_services(LoadGroups)
 
-        second = await self.prepare_services(LoadParticipants, LoadPersonsPosts, LoadGroupPosts, LoadPostComments)
+        second = await self.prepare_services(
+            LoadParticipants,
+            LoadPersonsPosts,
+            LoadGroupPosts,
+            LoadPostComments,
+            WordKnife)
 
         await first
         await second
