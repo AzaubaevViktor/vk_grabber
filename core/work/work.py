@@ -1,6 +1,6 @@
 import asyncio
 from time import time
-from typing import List, Dict, Type
+from typing import List, Dict, Type, Any
 
 from ._tasks import _Tasks
 from .server import MonitoringServer
@@ -57,6 +57,8 @@ class BaseWork(_Tasks):
 
     works: List['BaseWork'] = []
 
+    for_monitoring: Dict[str, Any] = {}
+
     @classmethod
     async def _web_server_gracefull_shutdown(cls, server):
         while True:
@@ -89,8 +91,9 @@ class BaseWork(_Tasks):
 
     @classmethod
     def collect_data(cls):
-
         result = ""
+        result += f"<h3>Workers</h3>"
+
         for work in cls.works:
             result += f"{work.__class__.__name__}: <br>"
             result += "<ul>"
@@ -101,6 +104,18 @@ class BaseWork(_Tasks):
             result += f"<li>Processed : {work.stat.processed_items}</li>"
             result += f"<li>Speed     : {work.stat.speed:.2f} items&sol;s </li>"
             result += f"<li>1/Speed   : {work.stat.reverse_speed:.2f} s&sol;items </li>"
+
+            result += "</ul>"
+
+        for name, stat in cls.for_monitoring.items():
+            result += f"<h3>{name}</h3>"
+            result += "<ul>"
+
+            data = dict(stat)
+            key_len = max(len(k) for k in data.keys())
+
+            for k, v in data.items():
+                result += f"<li>{k:{key_len}} : {v}</li>"
 
             result += "</ul>"
 

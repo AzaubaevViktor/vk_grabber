@@ -169,6 +169,7 @@ class Application(BaseApplication):
         if self.clean:
             await self.db.delete_all(i_understand_delete_all=True)
         await self.vk.warm_up()
+        BaseWork.for_monitoring['vk'] = self.vk.stats
         await BaseWork.run_monitoring_server()
 
     async def __call__(self):
