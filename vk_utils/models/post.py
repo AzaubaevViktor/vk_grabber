@@ -24,6 +24,7 @@ class VKPost(Model):
     reply_owner_id = ModelAttribute(default=None)
     reply_post_id = ModelAttribute(default=None)
     final_post = ModelAttribute(default=False)
+    copyright = ModelAttribute(default=None)
 
     geo = ModelAttribute(default=None)
     friends_only: bool = ModelAttribute(default=False)
