@@ -160,10 +160,9 @@ class LoadPostComments(BaseWorkApp):
 
 class Application(BaseApplication):
     def __init__(self, config: LoadConfig,
-                 posts_count=None, participants_count=None, users_count=None,
-                 clean=True):
+                 posts_count=None, participants_count=None, users_count=None):
         super().__init__(config, posts_count, participants_count, users_count)
-        self.clean = clean
+        self.clean = config.app.clean
 
     async def warm_up(self):
         if self.clean:
