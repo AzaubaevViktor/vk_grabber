@@ -1,4 +1,7 @@
 import math
+
+import numpy as np
+
 from collections import defaultdict
 from typing import List, Optional, Dict
 
@@ -82,26 +85,28 @@ class Funcs:
 
 
 class TimeSeries:
-    def __init__(self, name: str, data: Optional[Dict] = None):
+    def __init__(self, name: str, times: np.ndarray, values: Optional[np.ndarray] = None):
         self.name = name
-        self.data = data or defaultdict(float)
+
+        self.times: np.ndarray = times
+        self.values = values or np.ones((len(self.times),), dtype=int)
+
+        assert len(self.times) == len(self.values)
 
     def sort(self):
-        x = self.data.keys()
-        # corresponding y axis values
-        y = self.data.values()
-
-        self.data = dict(sorted(zip(*[x, y])))
+        p = self.times.argsort()
+        self.times.sort()
+        self.values = self.values[p]
 
     def add(self, timestamp: int, value: float):
-        self.data[int(timestamp)] += value
+        raise NotImplementedError()
 
     def sum(self):
-        return sum(self.data.values())
+        return self.values.sum()
 
     def sampling(self, dt, f=Funcs.eq):
-        _min = min(self.data.keys())
-        _max = max(self.data.keys())
+        _min = self.times.min()
+        _max = self.times.max()
 
         new_ts = TimeSeries(f"Sampled[{self.name};{f.__name__}]")
 
