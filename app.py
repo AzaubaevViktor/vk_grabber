@@ -166,6 +166,12 @@ class Application(BaseApplication):
 
     async def warm_up(self):
         if self.clean:
+            self.log.important("⚠️⚠️⚠️ NOW I DELETE ALL DATABASE ⚠️⚠️⚠️")
+            self.log.important("This", name=self.db.db_name, db=self.db)
+            countdown = 15
+            for i in range(countdown):
+                await asyncio.sleep(1)
+                self.log.warning(countdown - i)
             await self.db.delete_all(i_understand_delete_all=True)
         await self.vk.warm_up()
         BaseWork.for_monitoring['vk'] = self.vk.stats

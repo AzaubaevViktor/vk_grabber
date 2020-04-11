@@ -96,4 +96,8 @@ class DBWrapper:
 
     async def delete_all(self, i_understand_delete_all=False):
         assert i_understand_delete_all
+        self.log.important("Delete database", db=self.db)
         await self.client.drop_database(self.db)
+
+    def __str__(self):
+        return f"<DBWrapper (mongo): {self.db.name} {self.db}>"
