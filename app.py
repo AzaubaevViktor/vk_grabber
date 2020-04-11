@@ -9,10 +9,18 @@ from vk_utils import VK, VKGroup, VKUser, VKPost, VKComment
 
 
 class BaseApplication:
-    def __init__(self, config: LoadConfig,
-                 posts_count=None, participants_count=None, users_count=None):
+    def __init__(self, config: LoadConfig):
         self.log = Log(self.__class__.__name__)
 
+        self.config = config
+        self.ctx = AppContext(self.config)
+
+    async def warm_up(self):
+        await self.ctx.warm_up()
+
+
+class AppContext:
+    def __init__(self, config: LoadConfig):
         self.config = config
         self.vk = VK(config.vk)
         self.db = DBWrapper(
@@ -22,31 +30,29 @@ class BaseApplication:
             config.mongo.database
         )
 
-        self.posts_count = posts_count or config.app.posts_count
-        self.participants_count = participants_count or config.app.participants_count
-        self.users_count = users_count or config.app.users_count or float("+inf")
+        self.started_groups = config.vk.groups
+
+        self.posts_count = config.app.posts_count
+        self.participants_count = config.app.participants_count
 
     async def warm_up(self):
         await self.vk.warm_up()
 
 
 class BaseWorkApp(BaseWork):
-    def __init__(self, db: DBWrapper, vk: VK):
+    def __init__(self, ctx: AppContext):
         super().__init__()
-        self.db = db
-        self.vk = vk
+        self.ctx = ctx
+        self.db = self.ctx.db
+        self.vk = self.ctx.vk
         self.state = f"{BaseWorkApp.__name__} initialized"
 
 
 class LoadGroups(BaseWorkApp):
     INPUT_REPEATS = 0
 
-    def __init__(self, *args, groups):
-        super().__init__(*args)
-        self.groups = groups
-
     async def input(self):
-        for item in self.groups:
+        for item in self.ctx.started_groups:
             yield item
 
     async def process(self, item: int):
@@ -62,9 +68,9 @@ class LoadGroups(BaseWorkApp):
 
 
 class LoadParticipants(BaseWorkApp):
-    def __init__(self, db: DBWrapper, vk: VK, participants_count=None):
-        super().__init__(db, vk)
-        self.participants_count = participants_count
+    def __init__(self, ctx: AppContext):
+        super().__init__(ctx)
+        self.participants_count = self.ctx.participants_count
 
     async def input(self):
         async for group in self.db.find(VKGroup(), load_persons=None, limit=1):
@@ -92,10 +98,10 @@ class LoadPosts(BaseWorkApp):
     MODEL = None
     FLAG = 'load_posts'
 
-    def __init__(self, db: DBWrapper, vk: VK, posts_count=None):
-        super().__init__(db, vk)
+    def __init__(self, ctx: AppContext):
+        super().__init__(ctx)
         assert self.FLAG is not None, "FLAG Unsetted"
-        self.posts_count = posts_count
+        self.posts_count = self.ctx.posts_count
 
     async def input(self):
         async for item in self.db.find(self.MODEL(), **{self.FLAG: None}, limit=5):
@@ -159,37 +165,49 @@ class LoadPostComments(BaseWorkApp):
 
 
 class Application(BaseApplication):
-    def __init__(self, config: LoadConfig,
-                 posts_count=None, participants_count=None, users_count=None):
-        super().__init__(config, posts_count, participants_count, users_count)
+    def __init__(self, config: LoadConfig):
+        super().__init__(config)
         self.clean = config.app.clean
 
     async def warm_up(self):
         if self.clean:
+            self.log.important("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
+            self.log.important("⚠️⚠️⚠️                           ⚠️⚠️⚠️")
             self.log.important("⚠️⚠️⚠️ NOW I DELETE ALL DATABASE ⚠️⚠️⚠️")
-            self.log.important("This", name=self.db.db_name, db=self.db)
-            countdown = 15
+            self.log.important("⚠️⚠️⚠️                           ⚠️⚠️⚠️")
+            self.log.important("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
+            self.log.important("This", name=self.ctx.db.db_name, db=self.ctx.db)
+            
+            countdown = 10
             for i in range(countdown):
                 await asyncio.sleep(1)
                 self.log.warning(countdown - i)
-            await self.db.delete_all(i_understand_delete_all=True)
-        await self.vk.warm_up()
-        BaseWork.for_monitoring['vk'] = self.vk.stats
+            await self.ctx.db.delete_all(i_understand_delete_all=True)
+
+        await self.ctx.warm_up()
+
+        BaseWork.for_monitoring['vk'] = self.ctx.vk.stats
         await BaseWork.run_monitoring_server()
 
-    async def __call__(self):
         await self._add_handlers()
 
-        await asyncio.gather(
-            LoadGroups(self.db, self.vk, groups=self.config.vk.groups)()
-        )
+    async def __call__(self):
+        first = await self.prepare_services(LoadGroups)
 
-        await asyncio.gather(
-            LoadParticipants(self.db, self.vk, participants_count=self.participants_count)(),
-            LoadPersonsPosts(self.db, self.vk, posts_count=self.posts_count)(),
-            LoadGroupPosts(self.db, self.vk, posts_count=self.posts_count)(),
-            LoadPostComments(self.db, self.vk)()
-        )
+        second = await self.prepare_services(LoadParticipants, LoadPersonsPosts, LoadGroupPosts, LoadPostComments)
+
+        await first
+        await second
+
+    async def prepare_services(self, *services):
+        first_step_tasks = []
+        for item in services:
+            if self.config.app.services[item.__name__]:
+                self.log.info("Service postponed", service=item)
+                first_step_tasks.append(item(self.ctx)())
+            else:
+                self.log.info("Service disabled by config", service=item)
+        return asyncio.gather(*first_step_tasks)
 
     async def _add_handlers(self):
         import signal

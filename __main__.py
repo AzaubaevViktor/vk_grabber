@@ -5,8 +5,8 @@ from app import Application
 from core import LoadConfig
 
 
-async def main(*counts, **kwargs):
-    app = Application(LoadConfig(argv[1]), *counts, **kwargs)
+async def main():
+    app = Application(LoadConfig(argv[1]))
     await app.warm_up()
     await app()
 
