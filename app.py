@@ -170,24 +170,30 @@ class Word(Model):
     date: int = ModelAttribute()
 
 
-class WordKnife(BaseWorkApp):
+class BaseWordKnife(BaseWorkApp):
     INPUT_REPEATS = 3
+    MODEL = None
 
     async def input(self):
-        async for post in self.db.find(VKPost(), word_processed=None, limit=20):
+        async for post in self.db.find(self.MODEL(), word_processed=None, limit=20):
             yield post, self.db.update(post, word_processed=True)
 
-    async def process(self, post: VKPost):
+    async def process(self, post):
         for word in tokenize(post.text):
             yield Word(word=word, date=post.date)
 
     async def update(self, word: Word):
-        try:
-            await self.db.insert_many(
-                word
-            )
-        except pymongo.errors.BulkWriteError:
-            self.log.info("Exist", word=word)
+        await self.db.insert_many(
+            word
+        )
+
+
+class WordKnifePost(BaseWordKnife):
+    MODEL = VKPost
+
+
+class WordKnifeComment(BaseWordKnife):
+    MODEL = VKComment
 
 
 class Application(BaseApplication):
@@ -225,7 +231,9 @@ class Application(BaseApplication):
             LoadPersonsPosts,
             LoadGroupPosts,
             LoadPostComments,
-            WordKnife)
+            WordKnifePost,
+            WordKnifeComment,
+        )
 
         await first
         await second
