@@ -1,4 +1,5 @@
 import asyncio
+from collections import defaultdict
 from time import time
 from typing import List, Sequence
 
@@ -27,6 +28,29 @@ class VKError(Exception):
 
     def __str__(self):
         return f"VK Error#{self.error_code}: {self.error_msg}"
+
+
+class VKStats:
+    def __init__(self):
+        self.threshold = 0
+        self.call_methods_count = 0
+        self.success = 0
+        self.errors = 0
+        self.errors_too_many = 0
+        self.queries = 0
+        self.by_type = defaultdict(int)
+
+    def __iter__(self):
+        yield "Threshold", f"{self.threshold:.5f}s"
+        yield "Parallel", self.call_methods_count
+        q = self.queries or 1
+        yield "Success", f"{self.success} ({self.success * 100 / q:.2f}%)"
+        yield "Errors", f"{self.errors} ({self.errors * 100 / q:.2f}%)"
+        yield "Errors (TMR)", f"{self.errors_too_many} ({self.errors_too_many * 100 / q:.2f}%)"
+        yield "Queries", self.queries
+
+        for name, value in self.by_type.items():
+            yield f"{name}", f"{value} ({value * 100 / q:.2f}%)"
 
 
 class VK:
@@ -74,49 +98,65 @@ class VK:
 
         self._update_token = None
 
+        self.query_lock = asyncio.Lock()
+
+        self.stats = VKStats()
+
     async def warm_up(self):
         self.session = aiohttp.ClientSession()
 
     async def call_method(self, method, **params):
         self.log.debug(method=method, params=params)
-        while True:
-            assert self.session is not None, "call `await .warm_up()` first"
 
-            if time() - self.threshold < self.last_call:
-                self.log.deep("Sleep", threshold=self.threshold)
-                await asyncio.sleep(self.threshold)
+        self.stats.by_type[method] += 1
+        self.stats.call_methods_count += 1
 
-            self.last_call = time()
-            response = await self.session.get(
-                url=f"{self.config['api_host']}{method}",
-                params={**params, **self.additional_params},
-                timeout=10
-            )
+        try:
+            while True:
+                assert self.session is not None, "call `await .warm_up()` first"
+                async with self.query_lock:
+                    if time() - self.threshold < self.last_call:
+                        self.log.deep("Sleep", threshold=self.threshold)
+                        await asyncio.sleep(self.threshold)
 
-            result = await response.json()
+                self.last_call = time()
+                self.stats.queries += 1
+                response = await self.session.get(
+                    url=f"{self.config['api_host']}{method}",
+                    params={**params, **self.additional_params},
+                    timeout=10
+                )
 
-            if 'error' in result:
-                vk_error = VKError(result['error'])
-                if vk_error.error_code == VKError.TOO_MANY_REQUESTS:
-                    self.threshold *= 1.01
-                    if self.threshold > 1:
-                        self.threshold = 1
-                    self.log.warning("Too many requests", threshold=self.threshold)
-                    continue
+                result = await response.json()
 
-                if vk_error.error_code == VKError.INVALID_SESSION:
-                    await self.do_auth()
-                    continue
+                if 'error' in result:
+                    self.stats.errors += 1
+                    vk_error = VKError(result['error'])
+                    if vk_error.error_code == VKError.TOO_MANY_REQUESTS:
+                        self.stats.errors_too_many += 1
+                        self.threshold *= 1.1
+                        if self.threshold > 1:
+                            self.threshold = 1
+                        self.log.warning("Too many requests", threshold=self.threshold)
+                        continue
 
-                if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
-                    self.log.important("RATE LIMIT")
-                    raise
+                    if vk_error.error_code == VKError.INVALID_SESSION:
+                        await self.do_auth()
+                        continue
 
-                raise vk_error
-            else:
-                assert 'response' in result
-                self.threshold *= 0.999
-                return result['response']
+                    if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
+                        self.log.important("RATE LIMIT")
+                        raise
+
+                    raise vk_error
+                else:
+                    self.stats.success += 1
+                    assert 'response' in result
+                    self.threshold *= 0.991
+                    return result['response']
+        finally:
+            self.stats.call_methods_count -= 1
+            self.stats.threshold = self.threshold
 
     async def users_info(self, *user_ids) -> Sequence[VKUser]:
         answer = await self.call_method(
