@@ -49,7 +49,8 @@ def check_word(analyze_result):
 
 
 def cleanup(raw_text):
-    return "".join(ch for ch in raw_text if ch in good_chars)
+    return "".join(ch.lower() if ch in good_chars else ' '
+                   for ch in raw_text)
 
 
 def replace(raw_text: str):

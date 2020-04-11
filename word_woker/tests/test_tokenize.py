@@ -34,12 +34,15 @@ def test_nsu():
 def test_cleanup():
     text = "МаМа мЫлА РаМу"
 
-    wrong_chars = '!-,+2=9^>.?}$§%*{/~&<±@:[\\]13456780#_`|'
+    wrong_chars = '!,+2=9^>.?}$§%*{/~&<±@:[\\]13456780#_`|'
 
     new_text = ""
 
     for ch in text:
-        new_text += random.choice(wrong_chars) + ch
+        if ch == ' ':
+            new_text += random.choice(wrong_chars)
+        else:
+            new_text += ch
 
     assert tokenize(text) == tokenize(new_text)
 
@@ -47,5 +50,11 @@ def test_cleanup():
 def test_new_line():
     text = "мама\nмыла\nраму"
 
+    x = tokenize(text)
+    assert x == ['мама', 'мыть', 'рама']
+
+
+def test_splitted_word():
+    text = "мама:мыла:раму"
     x = tokenize(text)
     assert x == ['мама', 'мыть', 'рама']
