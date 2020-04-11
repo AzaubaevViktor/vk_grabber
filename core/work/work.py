@@ -164,8 +164,18 @@ class BaseWork(_Tasks):
         self.state = "🔥 Warming up"
         await self.warm_up()
 
-        repeats_count = 0
+        try:
+            await self.main_cycle()
+        except Exception:
+            self.log.exception("MAIN CYCLE")
 
+        self.state = "🛑 Shutdown"
+        await self.shutdown()
+        self.stat.finished_time = time()
+        self.state = "🏁 Finished"
+
+    async def main_cycle(self):
+        repeats_count = 0
         while True:
             if self.need_stop:
                 self.state = "Gracefully shutdown"
@@ -202,11 +212,6 @@ class BaseWork(_Tasks):
             else:
                 self.log.important("No tasks and too many retries, i'm think i'm done")
                 break
-
-        self.state = "🛑 Shutdown"
-        await self.shutdown()
-        self.stat.finished_time = time()
-        self.state = "🏁 Finished"
 
     async def _run_process(self, item, info: Info, processed_callback=None):
         info.update("🎬 Task started")
