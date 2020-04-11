@@ -58,3 +58,11 @@ def test_splitted_word():
     text = "мама:мыла:раму"
     x = tokenize(text)
     assert x == ['мама', 'мыть', 'рама']
+
+
+def test_none():
+    assert [] == tokenize(None)
+
+
+def test_empty():
+    assert [] == tokenize("")

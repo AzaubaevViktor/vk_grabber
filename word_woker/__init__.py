@@ -61,6 +61,9 @@ def replace(raw_text: str):
 
 
 def tokenize(raw_text):
+    if raw_text is None:
+        return []
+
     words = replace(cleanup(raw_text))
 
     return [x for word in m.analyze(words)
