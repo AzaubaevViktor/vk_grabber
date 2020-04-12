@@ -3,7 +3,7 @@ from database import ModelAttribute, Model
 
 
 class VKComment(Model):
-    id = ModelAttribute(uid=True)
+    id = ModelAttribute()
 
     text = ModelAttribute()
     date = ModelAttribute()
