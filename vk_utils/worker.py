@@ -146,7 +146,7 @@ class VK:
 
                     if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
                         self.log.important("RATE LIMIT")
-                        raise vk_error
+                        raise RuntimeError("Rate limit")
 
                     raise vk_error
                 else:
