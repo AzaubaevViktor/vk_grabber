@@ -168,6 +168,8 @@ class LoadPostComments(BaseWorkApp):
 class Word(Model):
     word: str = ModelAttribute()
     date: int = ModelAttribute()
+    from_id: int = ModelAttribute()
+    post_id: int = ModelAttribute()
 
 
 class BaseWordKnife(BaseWorkApp):
@@ -178,9 +180,12 @@ class BaseWordKnife(BaseWorkApp):
         async for post in self.db.find(self.MODEL(), word_processed=None, limit=20):
             yield post, self.db.update(post, word_processed=True)
 
-    async def process(self, post):
+    async def process(self, post: VKPost):
         for word in tokenize(post.text):
-            yield Word(word=word, date=post.date)
+            yield Word(word=word,
+                       post_id=post.id,
+                       from_id=post.from_id,
+                       date=post.date,)
 
     async def update(self, word: Word):
         await self.db.insert_many(
