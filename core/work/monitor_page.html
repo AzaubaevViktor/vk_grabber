@@ -10,7 +10,9 @@
 </style>
 </head>
 <body>
-<h1>VK Grabber monitoring v0</h1>
+<h1>VK Grabber monitoring</h1>
+Stage: <p id="stage">unknown</p>
+Commit: <p id="version">unknown</p>
 <pre id="app_status">Load JS...</pre>
 
 Last update:
@@ -27,6 +29,14 @@ function app_status(text) {
 
 function status(text) {
     document.getElementById("status").innerHTML = text;
+}
+
+function stage(text) {
+    document.getElementById("stage").innerHTML = text;
+}
+
+function version(text) {
+    document.getElementById("version").innerHTML = text;
 }
 
 let _last_update_value = Date.now();
@@ -53,10 +63,10 @@ let hash = window.location.hash.substr(1);
 
 app_status("Wait for run");
 
-async function getData() {
+async function getData(url) {
   // Default options are marked with *
   app_status("💨");
-  const response = await fetch("/metrics", {
+  const response = await fetch(url, {
     method: 'GET', // *GET, POST, PUT, DELETE, etc.
     mode: 'cors', // no-cors, *cors, same-origin
     cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
@@ -73,7 +83,7 @@ async function getData() {
 }
 
 function MAIN () {
-    getData()
+    getData("/metrics")
       .then((data) => {
         console.log(data);
         status(data['status']);
@@ -91,6 +101,22 @@ function MAIN () {
   }
 
 MAIN();
+
+function VERSION () {
+    getData("/info")
+      .then((data) => {
+        console.log(data);
+        version(data['version']);
+        stage(data['stage']);
+
+        setTimeout(VERSION, 10000);
+      })
+      .catch((error) => {
+        setTimeout(VERSION, 60000);
+      });
+  }
+
+VERSION();
 
 </script>
 

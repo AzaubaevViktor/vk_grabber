@@ -23,6 +23,7 @@ class BaseApplication:
 class AppContext:
     def __init__(self, config: LoadConfig):
         self.config = config
+        self.stage_name = config.app.stage
         self.vk = VK(config.vk)
         self.db = DBWrapper(
             motor.motor_asyncio.AsyncIOMotorClient(
@@ -141,7 +142,7 @@ class LoadPersonsPosts(LoadPosts):
 
 
 class LoadPostComments(BaseWorkApp):
-    INPUT_REPEATS = 3
+    INPUT_REPEATS = 20
 
     async def input(self):
         async for post in self.db.find(VKPost(), load_comments=None, limit=5):
@@ -173,7 +174,7 @@ class Word(Model):
 
 
 class BaseWordKnife(BaseWorkApp):
-    INPUT_REPEATS = 3
+    INPUT_REPEATS = 5
     MODEL = None
 
     async def input(self):
@@ -211,6 +212,7 @@ class Application(BaseApplication):
             self.log.important("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
             self.log.important("⚠️⚠️⚠️                           ⚠️⚠️⚠️")
             self.log.important("⚠️⚠️⚠️ NOW I DELETE ALL DATABASE ⚠️⚠️⚠️")
+            self.log.important(f"⚠️⚠️⚠️{self.ctx.db.db_name:^27}⚠️⚠️⚠️")
             self.log.important("⚠️⚠️⚠️                           ⚠️⚠️⚠️")
             self.log.important("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
             self.log.important("This", name=self.ctx.db.db_name, db=self.ctx.db)
@@ -224,7 +226,7 @@ class Application(BaseApplication):
         await self.ctx.warm_up()
 
         BaseWork.for_monitoring['vk'] = self.ctx.vk.stats
-        await BaseWork.run_monitoring_server()
+        await BaseWork.run_monitoring_server(self.config.app)
 
         await self._add_handlers()
 

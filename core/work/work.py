@@ -72,8 +72,8 @@ class BaseWork(_Tasks):
         await server.shutdown()
 
     @classmethod
-    async def run_monitoring_server(cls):
-        server = MonitoringServer(cls.collect_data)
+    async def run_monitoring_server(cls, app_info):
+        server = MonitoringServer(cls.collect_data, app_info)
         await server()
 
         asyncio.create_task(cls._web_server_gracefull_shutdown(server))
