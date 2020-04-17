@@ -51,8 +51,8 @@ def test_sum(source):
     assert ts.sum() == ts.vs.sum()
 
 
-@pytest.mark.parametrize('start', (None, 1586000000, 1586900001))
-@pytest.mark.parametrize('stop', (None, 1587300000, 1588000000))
+@pytest.mark.parametrize('start', (None, 1500000000, 1586000000, 1586900001))
+@pytest.mark.parametrize('stop', (None, 1587300000, 1588000000, 1600000000))
 @pytest.mark.parametrize('count', (1, 2, 5, 10))
 def test_to_grid(start, stop, count):
     ts = TimeSeries("test", dates_perc)
@@ -61,9 +61,15 @@ def test_to_grid(start, stop, count):
     assert len(sliced.ts)
     assert sliced.sum()
 
-    period = (sliced.ts.max() - sliced.ts.min()) / count
+    period = ((stop or sliced.ts.max()) - (start or sliced.ts.min())) / count
 
     gridded = ts[start:stop:period]
+
+    if start:
+        assert gridded.ts.min() == start
+    if count != 1 and stop:
+        assert gridded.ts.max() == stop
+
     assert len(gridded.ts) == count
     assert ts[start:stop].sum() == gridded.sum()
 
@@ -87,4 +93,7 @@ def test_div(source, x):
 def test_dist():
     ts1 = TimeSeries('test', dates_perc)
     ts2 = TimeSeries('tost', dates_cut)
-    print(ts1.dist(ts2))
+    assert ts1.sum() != ts2.sum()
+    dist = ts1.dist(ts2)
+    print(dist)
+    assert dist > 0

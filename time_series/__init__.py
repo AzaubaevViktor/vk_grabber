@@ -24,10 +24,10 @@ class TimeSeries:
         assert len(self.ts) == len(self.vs)
 
     def __getitem__(self, item: slice) -> "TimeSeries":
-        if item.start or item.stop:
-            start = item.start or self.ts.min()
-            stop = item.stop or self.ts.max()
+        start = item.start or self.ts.min()
+        stop = item.stop or self.ts.max()
 
+        if item.start or item.stop:
             filter_ = (start <= self.ts) & (self.ts <= stop)
             t, v = self.ts[filter_], self.vs[filter_]
         else:
@@ -36,12 +36,12 @@ class TimeSeries:
         if not item.step:
             return TimeSeries(f"{self.name}[sliced]", t, v)
 
-        count = int((t.max() - t.min()) // item.step) or 1
+        count = int((stop - start) / item.step) or 1
 
-        xi = np.linspace(t.min(), t.max(), num=count, dtype=int)
+        xi = np.linspace(start, stop, num=count, dtype=int)
         new_v = np.zeros((len(xi) + 1,), dtype=int)
 
-        indexes = ((t - t.min()) // item.step).round().astype(int)
+        indexes = ((t - start) // item.step).round().astype(int)
 
         np.add.at(new_v, indexes, v)
         new_v[-2] += new_v[-1]
@@ -64,3 +64,18 @@ class TimeSeries:
 
     def __truediv__(self, other: float):
         return TimeSeries(f"{self.name} / {other}", self.ts, self.vs / other)
+
+    def dist(self, ts: "TimeSeries"):
+        tss = np.unique(np.append(self.ts, ts.ts))
+        tss.sort()
+        start = tss.min()
+        stop = tss.max()
+        step = np.percentile(np.diff(tss), 50)
+        print("Grid:", start, stop, step)
+
+        self_g = self[start:stop:step]
+        ts_g = ts[start:stop:step]
+
+        dist = np.sum((self_g.vs - ts_g.vs) ** 2) ** 0.5
+        return dist
+
