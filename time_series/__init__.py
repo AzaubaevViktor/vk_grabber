@@ -1,3 +1,4 @@
+import datetime
 from typing import Optional, Sequence, Union
 
 import numpy as np
@@ -23,9 +24,26 @@ class TimeSeries:
 
         assert len(self.ts) == len(self.vs)
 
+    @staticmethod
+    def _normalize(t):
+        if t is None:
+            return t
+
+        if isinstance(t, (int, float, np.int64, np.uint, np.integer, np.float)):
+            return t
+
+        if isinstance(t, datetime.datetime):
+            return t.timestamp()
+
+        if isinstance(t, datetime.timedelta):
+            return t.total_seconds()
+
+        raise TypeError(type(t))
+
     def __getitem__(self, item: slice) -> "TimeSeries":
-        start = item.start or self.ts.min()
-        stop = item.stop or self.ts.max()
+        start = self._normalize(item.start or self.ts.min())
+        stop = self._normalize(item.stop or self.ts.max())
+        step = self._normalize(item.step)
 
         if item.start or item.stop:
             filter_ = (start <= self.ts) & (self.ts <= stop)
@@ -33,15 +51,15 @@ class TimeSeries:
         else:
             t, v = self.ts, self.vs
 
-        if not item.step:
+        if not step:
             return TimeSeries(f"{self.name}[sliced]", t, v)
 
-        count = int((stop - start) / item.step) or 1
+        count = int((stop - start) / step) or 1
 
         xi = np.linspace(start, stop, num=count, dtype=int)
         new_v = np.zeros((len(xi) + 1,), dtype=int)
 
-        indexes = ((t - start) // item.step).round().astype(int)
+        indexes = ((t - start) // step).round().astype(int)
 
         np.add.at(new_v, indexes, v)
         new_v[-2] += new_v[-1]
@@ -79,3 +97,19 @@ class TimeSeries:
         dist = np.sum((self_g.vs - ts_g.vs) ** 2) ** 0.5
         return dist
 
+    @staticmethod
+    def _date(time_stamp):
+        return datetime.datetime.utcfromtimestamp(time_stamp).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def __eq__(self, other: "TimeSeries"):
+        return np.array_equal(self.ts, other.ts) and np.array_equal(self.vs, other.vs)
+
+    def __repr__(self):
+        from_ = self.ts.min()
+        to_ = self.ts.max()
+
+        return f"<TimeSeries of `{self.name}` " \
+               f"[{self._date(from_)} - {self._date(to_)}] " \
+               f"{len(self.ts)} items, " \
+               f"∑={self.vs.sum():.2f}" \
+               f">"
