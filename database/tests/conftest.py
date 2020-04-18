@@ -3,6 +3,7 @@ import asyncio
 import pytest
 import motor.motor_asyncio
 
+from core import Log
 from database import DBWrapper
 
 
@@ -14,8 +15,19 @@ def event_loop(request):
 
 
 @pytest.fixture(scope='session')
-async def client(config):
-    return motor.motor_asyncio.AsyncIOMotorClient(config.mongo.uri)
+def log():
+    return Log("db_test")
+
+
+@pytest.fixture(scope='session')
+async def client(config, log):
+    client = motor.motor_asyncio.AsyncIOMotorClient(config.mongo.uri)
+    log.info("Try to conenct to mongo server")
+    log.info("Connection info", await client.server_info())
+
+    yield client
+
+    client.close()
 
 
 @pytest.fixture(scope='function')
