@@ -84,8 +84,14 @@ class TimeSeries:
         return TimeSeries(f"{self.name} / {other}", self.ts, self.vs / other)
 
     def dist(self, ts: "TimeSeries"):
+        assert np.array_equal(self.ts, ts.ts), "Need identical grid for dist calculation. Use `.dist_grid`"
+        dist = np.sum((self.vs - ts.vs) ** 2) ** 0.5
+        return dist
+
+    def dist_grid(self, ts: "TimeSeries"):
         tss = np.unique(np.append(self.ts, ts.ts))
         tss.sort()
+
         start = tss.min()
         stop = tss.max()
         step = np.percentile(np.diff(tss), 50)
@@ -94,12 +100,14 @@ class TimeSeries:
         self_g = self[start:stop:step]
         ts_g = ts[start:stop:step]
 
-        dist = np.sum((self_g.vs - ts_g.vs) ** 2) ** 0.5
-        return dist
+        self_g.dist(ts_g)
 
     @staticmethod
     def _date(time_stamp):
         return datetime.datetime.utcfromtimestamp(time_stamp).strftime('%Y-%m-%dT%H:%M:%SZ')
+
+    def __len__(self):
+        return len(self.ts)
 
     def __eq__(self, other: "TimeSeries"):
         return np.array_equal(self.ts, other.ts) and np.array_equal(self.vs, other.vs)
