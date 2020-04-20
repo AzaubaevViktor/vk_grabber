@@ -53,6 +53,8 @@ class BaseWork(_Tasks):
     start_time = time()
 
     INPUT_REPEATS = 1
+    WAIT_COEF = 1
+
     need_stop = False
 
     works: List['BaseWork'] = []
@@ -203,12 +205,12 @@ class BaseWork(_Tasks):
                 if not self.tasks:
                     break
 
-                await asyncio.sleep(self.stat.reverse_speed / 2)
+                await asyncio.sleep(min(1, self.stat.reverse_speed / 2))
 
             if repeats_count < self.INPUT_REPEATS:
                 repeats_count += 1
                 self.state = f"🔎 Wait items, repeat №{repeats_count}"
-                await asyncio.sleep(repeats_count)
+                await asyncio.sleep(repeats_count * self.WAIT_COEF)
             else:
                 self.log.important("No tasks and too many retries, i'm think i'm done")
                 break
