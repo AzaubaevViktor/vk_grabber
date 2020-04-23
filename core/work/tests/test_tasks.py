@@ -34,16 +34,16 @@ class TestTasksManager:
         self.tasks_count -= 1
 
     @pytest.mark.parametrize('max_tasks', [
-        1, 2, 10
+        1, 2, 5
     ])
     @pytest.mark.parametrize('sleep_time', [
         0.1, 0.01
     ])
     @pytest.mark.parametrize('check_coef', [
-        1, 10, 100
+        1, 3, 7
     ])
     @pytest.mark.parametrize('real_tasks_coef', [
-        1, 2, 10
+        1, 2, 3
     ])
     @pytest.mark.parametrize('task_type_name', [
         "task_after", "task_before", "task_mid"
