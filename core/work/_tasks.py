@@ -1,4 +1,5 @@
 import asyncio
+from traceback import format_exc
 from typing import List, Dict, Any
 
 from core import Log
@@ -40,34 +41,39 @@ class TasksManager:
         self._tasks = asyncio.Queue(self.size)
 
         self._results = asyncio.Queue()
+        self._exceptions = asyncio.Queue()
 
         self.executors = [
-            asyncio.create_task(self._executor())
+            asyncio.create_task(self._executor(i)) for i in range(max_size)
         ]
 
         self.is_run = True
 
-    async def _executor(self):
-        self.log.debug("Executor started")
+    async def _executor(self, index: int):
+        log = self.log['executor'][index]
+        log.debug("Executor started")
         while self.is_run:
             try:
                 coro = await asyncio.wait_for(self._tasks.get(), self.TIMEOUT)
             except asyncio.TimeoutError:
-                self.log.debug("No tasks, wait")
                 continue
 
             # TODO: Check task
-
-            self.log.info("New task", task=coro)
-            async for result in coro:
-                self.log.info("New result", result=result, task=coro)
-                await self._results.put(result)
+            try:
+                async for result in coro:
+                    await self._results.put(result)
+            except Exception as e:
+                log.exception(task=coro)
+                await self._exceptions.put((e, format_exc(), coro))
 
     async def put(self, coro):
         await self._tasks.put(coro)
 
     async def take(self):
         return await self._results.get()
+
+    async def take_error(self):
+        return await self._exceptions.get()
 
     async def stop(self):
         self.is_run = False

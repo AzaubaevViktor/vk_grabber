@@ -95,3 +95,6 @@ class Log:
 
     def error(self, *args, **kwargs):
         self._print(LogLevel.ERROR, *args, **kwargs)
+
+    def __getitem__(self, item) -> 'Log':
+        return Log(f"{self.name}:{item}")
