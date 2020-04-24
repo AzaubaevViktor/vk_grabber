@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from core import Log
+from core import Log, BaseWork
 from core.work import TasksManager
 
 pytestmark = pytest.mark.asyncio
@@ -45,3 +45,9 @@ class TestError:
         assert len(excs) == error_count
 
         await tasks_manager.stop()
+
+
+def test_input_repeats():
+    with pytest.raises(DeprecationWarning):
+        class X(BaseWork):
+            INPUT_REPEATS = 1
