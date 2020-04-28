@@ -2,10 +2,12 @@ import asyncio
 from time import time
 from typing import List, Dict, Type, Any
 
-from ._tasks import _Tasks
+from ._tasks import _Tasks, TasksManager
 from .server import MonitoringServer
 
 from html import escape as html_escape
+
+from .. import Log
 
 
 class Info:
@@ -49,10 +51,10 @@ class Stats:
         return 1 / speed
 
 
-class BaseWork(_Tasks):
+class BaseWork:
     start_time = time()
 
-    INPUT_REPEATS = 1
+    PARALLEL = 10
     WAIT_COEF = 1
 
     need_stop = False
@@ -83,10 +85,12 @@ class BaseWork(_Tasks):
         # await task
 
     def __init__(self):
-        super().__init__()
+        self.log = Log(self.__class__.__name__)
+
         self._state = None
         self.state = "Base class initialized"
-        self.tasks: Dict[asyncio.Task, Info] = {}
+        self.task_manager = TasksManager(self.PARALLEL)
+        self.infos = []
         self.stat = Stats(self.start_time)
 
         self.works.append(self)
@@ -126,11 +130,12 @@ class BaseWork(_Tasks):
             result += f"{work.__class__.__name__}: <br>"
             result += "<ul>"
 
-            if not work.tasks:
-                result += f"<li>No tasks yet</li>"
-            else:
-                for task, info in work.tasks.items():
-                    result += f"<li>{html_escape(repr(info.item))}: {html_escape(str(info))}</li>"
+            # TODO: Add task manager stats
+            # if not work.tasks:
+            #     result += f"<li>No tasks yet</li>"
+            # else:
+            #     for task, info in work.tasks.items():
+            #         result += f"<li>{html_escape(repr(info.item))}: {html_escape(str(info))}</li>"
 
             result += "</ul>"
 
@@ -177,6 +182,21 @@ class BaseWork(_Tasks):
         self.state = "🏁 Finished"
 
     async def main_cycle(self):
+        while not self.need_stop:
+            self.state = "🔎 Wait for new item"
+
+            async for item in self.input():
+                processed_callback = None
+                if isinstance(item, tuple):
+                    item, processed_callback = item
+
+                info = Info(item)
+
+                await self.task_manager.put(self._run_process(
+                    item, info, processed_callback
+                ))
+
+    async def _main_cycle(self):
         repeats_count = 0
         while True:
             if self.need_stop:
@@ -216,6 +236,8 @@ class BaseWork(_Tasks):
                 break
 
     async def _run_process(self, item, info: Info, processed_callback=None):
+        self.infos.append(info)
+
         info.update("🎬 Task started")
 
         info.update(f"🛠 Processing")
@@ -236,3 +258,5 @@ class BaseWork(_Tasks):
             await processed_callback
 
         info.update("🏁 Task finished")
+
+        self.infos.remove(info)
