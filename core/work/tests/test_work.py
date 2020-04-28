@@ -10,7 +10,7 @@ pytestmark = pytest.mark.asyncio
 
 
 class TWork(BaseWork):
-    INPUT_REPEATS = 1
+    INPUT_RETRIES = 1
     WAIT_COEF = 0.01
 
     def __init__(self, items: Sequence):

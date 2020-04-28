@@ -10,9 +10,14 @@ from html import escape as html_escape
 from .. import Log
 
 
-class Info:
+class Task:
     def __init__(self, item):
-        self.item = item
+        self.processed_callback = None
+        if isinstance(item, tuple):
+            self.item, self.processed_callback = item
+        else:
+            self.item = item
+
         self.state = "💤 Not running"
 
     def update(self, new_state):
@@ -29,6 +34,7 @@ class Stats:
         self.input_items = 0
         self.processed_items = 0
         self.returned_items = 0
+        self.updated_items = 0
 
         self.finished_time = None
 
@@ -55,6 +61,7 @@ class BaseWork:
     start_time = time()
 
     PARALLEL = 10
+    INPUT_RETRIES = 0
     WAIT_COEF = 1
 
     need_stop = False
@@ -90,7 +97,7 @@ class BaseWork:
         self._state = None
         self.state = "Base class initialized"
         self.task_manager = TasksManager(self.PARALLEL)
-        self.infos = []
+        self.tasks: List[Task] = []
         self.stat = Stats(self.start_time)
 
         self.works.append(self)
@@ -106,7 +113,8 @@ class BaseWork:
 
             result += f"<li>State     : {work.state}</li>"
             result += f"<li>Input     : {work.stat.input_items}</li>"
-            result += f"<li>Output    : {work.stat.returned_items}</li>"
+            result += f"<li>Returned  : {work.stat.returned_items}</li>"
+            result += f"<li>Updated   : {work.stat.updated_items}</li>"
             result += f"<li>Processed : {work.stat.processed_items}</li>"
             result += f"<li>Speed     : {work.stat.speed:.2f} items&sol;s </li>"
             result += f"<li>1/Speed   : {work.stat.reverse_speed:.2f} s&sol;items </li>"
@@ -130,12 +138,11 @@ class BaseWork:
             result += f"{work.__class__.__name__}: <br>"
             result += "<ul>"
 
-            # TODO: Add task manager stats
-            # if not work.tasks:
-            #     result += f"<li>No tasks yet</li>"
-            # else:
-            #     for task, info in work.tasks.items():
-            #         result += f"<li>{html_escape(repr(info.item))}: {html_escape(str(info))}</li>"
+            if not work.tasks:
+                result += f"<li>No tasks yet</li>"
+            else:
+                for task in work.tasks:
+                    result += f"<li>{html_escape(str(task))} // {html_escape(repr(task.item))}</li>"
 
             result += "</ul>"
 
@@ -178,23 +185,54 @@ class BaseWork:
 
         self.state = "🛑 Shutdown"
         await self.shutdown()
+
         self.stat.finished_time = time()
         self.state = "🏁 Finished"
 
     async def main_cycle(self):
+        await asyncio.gather(
+            self._input_cycle(),
+            self._result_cycle()
+        )
+
+    async def _result_cycle(self):
+        while True:
+            try:
+                result = await asyncio.wait_for(self.task_manager.take(), 1)
+            except asyncio.TimeoutError:
+                continue
+
+            if isinstance(result, TasksManager.Finish):
+                break
+
+            await self.update(result)
+
+    async def _input_cycle(self):
+        retries = 0
+
         while not self.need_stop:
             self.state = "🔎 Wait for new item"
 
             async for item in self.input():
-                processed_callback = None
-                if isinstance(item, tuple):
-                    item, processed_callback = item
-
-                info = Info(item)
-
-                await self.task_manager.put(self._run_process(
-                    item, info, processed_callback
+                await self.task_manager.put(self._run_task(
+                    Task(item)
                 ))
+                retries = None
+
+            if retries is None:
+                retries = 0
+                continue
+
+            if retries >= self.INPUT_RETRIES:
+                self.log.warning("Too many retries, i'm done", retries=retries)
+                self.need_stop = True
+                continue
+
+            retries += 1
+            self.state = f"🔎 Wait items, repeat №{retries}"
+            await asyncio.sleep(retries * self.WAIT_COEF)
+
+        await self.task_manager.stop()
 
     async def _main_cycle(self):
         repeats_count = 0
@@ -214,8 +252,8 @@ class BaseWork:
                 if isinstance(item, tuple):
                     item, processed_callback = item
 
-                info = Info(item)
-                self.tasks[asyncio.create_task(self._run_process(item, info, processed_callback))] = info
+                info = Task(item)
+                self.tasks[asyncio.create_task(self._run_task(item, info, processed_callback))] = info
 
             while True:
                 self.state = f"🛠 Processing {len(self.tasks)} tasks"
@@ -227,7 +265,7 @@ class BaseWork:
 
                 await asyncio.sleep(min(1, self.stat.reverse_speed / 2))
 
-            if repeats_count < self.INPUT_REPEATS:
+            if repeats_count < self.INPUT_RETRIES:
                 repeats_count += 1
                 self.state = f"🔎 Wait items, repeat №{repeats_count}"
                 await asyncio.sleep(repeats_count * self.WAIT_COEF)
@@ -235,17 +273,17 @@ class BaseWork:
                 self.log.important("No tasks and too many retries, i'm think i'm done")
                 break
 
-    async def _run_process(self, item, info: Info, processed_callback=None):
-        self.infos.append(info)
+    async def _run_task(self, info: Task, processed_callback=None):
+        self.tasks.append(info)
 
         info.update("🎬 Task started")
 
         info.update(f"🛠 Processing")
 
-        async for result in self.process(item):
+        async for result in self.process(info.item):
             self.stat.returned_items += 1
             info.update(f"🛠 {repr(result)}")
-            await self.update(result)
+            yield result
             info.update(f"🛠 Processing")
 
         self.stat.processed_items += 1
@@ -259,4 +297,4 @@ class BaseWork:
 
         info.update("🏁 Task finished")
 
-        self.infos.remove(info)
+        self.tasks.remove(info)

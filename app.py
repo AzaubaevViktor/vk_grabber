@@ -51,7 +51,7 @@ class BaseWorkApp(BaseWork):
 
 
 class LoadGroups(BaseWorkApp):
-    INPUT_REPEATS = 0
+    INPUT_RETRIES = 0
 
     async def input(self):
         for item in self.ctx.started_groups:
@@ -133,7 +133,7 @@ class LoadGroupPosts(LoadPosts):
 
 
 class LoadPersonsPosts(LoadPosts):
-    INPUT_REPEATS = 3
+    INPUT_RETRIES = 3
     MODEL = VKUser
 
     async def process(self, user: VKUser):
@@ -142,7 +142,7 @@ class LoadPersonsPosts(LoadPosts):
 
 
 class LoadPostComments(BaseWorkApp):
-    INPUT_REPEATS = 20
+    INPUT_RETRIES = 20
 
     async def input(self):
         async for post in self.db.find(VKPost(), load_comments=None, limit=5):
@@ -174,7 +174,7 @@ class Word(Model):
 
 
 class BaseWordKnife(BaseWorkApp):
-    INPUT_REPEATS = 5
+    INPUT_RETRIES = 5
     MODEL = None
 
     async def input(self):

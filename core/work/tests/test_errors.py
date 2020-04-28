@@ -50,4 +50,4 @@ class TestError:
 def test_input_repeats():
     with pytest.raises(DeprecationWarning):
         class X(BaseWork):
-            INPUT_REPEATS = 1
+            INPUT_RETRIES = 1

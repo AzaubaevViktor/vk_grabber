@@ -32,6 +32,9 @@ class _Tasks:
 
 
 class TasksManager:
+    class Finish:
+        pass
+
     TIMEOUT = 1
 
     def __init__(self, max_size: int):
@@ -79,5 +82,8 @@ class TasksManager:
         self.is_run = False
         for task in self.executors:
             await task
+
+        await self._results.put(self.Finish())
+        await self._exceptions.put(self.Finish())
 
         del self.executors
