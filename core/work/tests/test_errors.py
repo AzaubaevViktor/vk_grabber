@@ -45,9 +45,3 @@ class TestError:
         assert len(excs) == error_count
 
         await tasks_manager.stop()
-
-
-def test_input_repeats():
-    with pytest.raises(DeprecationWarning):
-        class X(BaseWork):
-            INPUT_RETRIES = 1

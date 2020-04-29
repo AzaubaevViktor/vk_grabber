@@ -205,6 +205,8 @@ class BaseWork:
             if isinstance(result, TasksManager.Finish):
                 break
 
+            self.stat.updated_items += 1
+
             await self.update(result)
 
     async def _input_cycle(self):
@@ -219,8 +221,13 @@ class BaseWork:
                 ))
                 retries = None
 
+            if self.INPUT_RETRIES == 0:
+                self.need_stop = True
+                continue
+
             if retries is None:
                 retries = 0
+                await asyncio.sleep(0)
                 continue
 
             if retries >= self.INPUT_RETRIES:
