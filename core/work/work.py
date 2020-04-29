@@ -219,6 +219,7 @@ class BaseWork:
                 await self.task_manager.put(self._run_task(
                     Task(item)
                 ))
+                self.stat.input_items += 1
                 retries = None
 
             if self.INPUT_RETRIES == 0:
@@ -280,7 +281,7 @@ class BaseWork:
                 self.log.important("No tasks and too many retries, i'm think i'm done")
                 break
 
-    async def _run_task(self, info: Task, processed_callback=None):
+    async def _run_task(self, info: Task):
         self.tasks.append(info)
 
         info.update("🎬 Task started")
@@ -296,11 +297,11 @@ class BaseWork:
         self.stat.processed_items += 1
         info.update("✅ Finish processing")
 
-        if processed_callback:
+        if info.processed_callback:
             info.update("🤙 Run callback")
 
-            self.log.info("Run processed callback", processed_callback=processed_callback)
-            await processed_callback
+            self.log.info("Run processed callback", processed_callback=info.processed_callback)
+            await info.processed_callback
 
         info.update("🏁 Task finished")
 

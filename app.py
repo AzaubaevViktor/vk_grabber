@@ -70,6 +70,8 @@ class LoadGroups(BaseWorkApp):
 
 
 class LoadParticipants(BaseWorkApp):
+    INPUT_RETRIES = 3
+
     def __init__(self, ctx: AppContext):
         super().__init__(ctx)
         self.participants_count = self.ctx.participants_count
