@@ -113,11 +113,11 @@ class BaseWork:
 
             result += f"<li>State     : {work.state}</li>"
             result += f"<li>Input     : {work.stat.input_items}</li>"
-            result += f"<li>Returned  : {work.stat.returned_items}</li>"
-            result += f"<li>Updated   : {work.stat.updated_items}</li>"
             result += f"<li>Processed : {work.stat.processed_items}</li>"
             result += f"<li>Speed     : {work.stat.speed:.2f} items&sol;s </li>"
             result += f"<li>1/Speed   : {work.stat.reverse_speed:.2f} s&sol;items </li>"
+            result += f"<li>Updated   : {work.stat.updated_items}</li>"
+            result += f"<li>Returned  : {work.stat.returned_items}</li>"
 
             result += "</ul>"
 
@@ -241,45 +241,6 @@ class BaseWork:
             await asyncio.sleep(retries * self.WAIT_COEF)
 
         await self.task_manager.stop()
-
-    async def _main_cycle(self):
-        repeats_count = 0
-        while True:
-            if self.need_stop:
-                self.state = "Gracefully shutdown"
-                self.log.warning("Gracefully shutdown")
-                break
-
-            self.state = "🔎 Wait for new item"
-
-            async for item in self.input():
-                self.stat.input_items += 1
-                repeats_count = 0
-
-                processed_callback = None
-                if isinstance(item, tuple):
-                    item, processed_callback = item
-
-                info = Task(item)
-                self.tasks[asyncio.create_task(self._run_task(item, info, processed_callback))] = info
-
-            while True:
-                self.state = f"🛠 Processing {len(self.tasks)} tasks"
-
-                await self.remove_tasks(self.tasks)
-
-                if not self.tasks:
-                    break
-
-                await asyncio.sleep(min(1, self.stat.reverse_speed / 2))
-
-            if repeats_count < self.INPUT_RETRIES:
-                repeats_count += 1
-                self.state = f"🔎 Wait items, repeat №{repeats_count}"
-                await asyncio.sleep(repeats_count * self.WAIT_COEF)
-            else:
-                self.log.important("No tasks and too many retries, i'm think i'm done")
-                break
 
     async def _run_task(self, info: Task):
         self.tasks.append(info)
