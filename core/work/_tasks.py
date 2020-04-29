@@ -46,11 +46,11 @@ class TasksManager:
         self._results = asyncio.Queue()
         self._exceptions = asyncio.Queue()
 
+        self.is_run = True
+
         self.executors = [
             asyncio.create_task(self._executor(i)) for i in range(max_size)
         ]
-
-        self.is_run = True
 
     async def _executor(self, index: int):
         log = self.log['executor'][index]
