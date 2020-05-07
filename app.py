@@ -71,24 +71,38 @@ class LoadGroups(BaseWorkApp):
 
 class _LoadModelField(BaseWorkApp):
     MODEL_CLASS = None
-    FLAG = None
+    FIELD_NAME = None
+    INPUT_QUERY_LIMIT = 5
 
     async def warm_up(self):
         # Clean field=False
-        self.db.update()
+        assert self.MODEL_CLASS
+        assert self.FIELD_NAME
+
+        count = 0
+        async for _ in self.db.update({'@model': self.MODEL_CLASS, self.FIELD_NAME: False},
+                                      {self.FIELD_NAME: None}):
+            count += 1
+
+        self.log.info("Cleanup old tasks", count=count)
+
+    async def input(self):
+        async for item in self.db.update({'@model': self.MODEL_CLASS, self.FIELD_NAME: None},
+                                         {self.FIELD_NAME: False},
+                                         limit=self.INPUT_QUERY_LIMIT):
+            yield item, self.db.update_model(item, **{self.FIELD_NAME: True})
 
 
-
-class LoadParticipants(BaseWorkApp):
+class LoadParticipants(_LoadModelField):
     INPUT_RETRIES = 3
+
+    MODEL_CLASS = VKGroup
+    FIELD_NAME = "load_persons"
+    INPUT_QUERY_LIMIT = 1
 
     def __init__(self, ctx: AppContext):
         super().__init__(ctx)
         self.participants_count = self.ctx.participants_count
-
-    async def input(self):
-        async for group in self.db.find(VKGroup(), load_persons=None, limit=1):
-            yield group, self.db.update_model(group, load_persons=True)
 
     async def process(self, group: VKGroup):
         async for person_id in self.vk.group_participants_iter(
@@ -108,18 +122,12 @@ class LoadParticipants(BaseWorkApp):
             self.log.info("Exist", user=user)
 
 
-class LoadPosts(BaseWorkApp):
-    MODEL = None
-    FLAG = 'load_posts'
+class LoadPosts(_LoadModelField):
+    FIELD_NAME = "load_posts"
 
     def __init__(self, ctx: AppContext):
         super().__init__(ctx)
-        assert self.FLAG is not None, "FLAG Unsetted"
         self.posts_count = self.ctx.posts_count
-
-    async def input(self):
-        async for item in self.db.find(self.MODEL(), **{self.FLAG: None}, limit=5):
-            yield item, self.db.update_model(item, **{self.FLAG: True})
 
     async def update(self, post):
         if not post.text:
@@ -135,7 +143,8 @@ class LoadPosts(BaseWorkApp):
 
 
 class LoadGroupPosts(LoadPosts):
-    MODEL = VKGroup
+    INPUT_RETRIES = 3
+    MODEL_CLASS = VKGroup
 
     async def process(self, group: VKGroup):
         async for post in self.vk.group_posts_iter(
@@ -146,19 +155,18 @@ class LoadGroupPosts(LoadPosts):
 
 class LoadPersonsPosts(LoadPosts):
     INPUT_RETRIES = 3
-    MODEL = VKUser
+    MODEL_CLASS = VKUser
 
     async def process(self, user: VKUser):
         async for post in self.vk.user_posts_iter(user_id=user.id, count=self.posts_count):
             yield post
 
 
-class LoadPostComments(BaseWorkApp):
+class LoadPostComments(_LoadModelField):
     INPUT_RETRIES = 20
 
-    async def input(self):
-        async for post in self.db.find(VKPost(), load_comments=None, limit=5):
-            yield post, self.db.update_model(post, load_comments=True)
+    MODEL_CLASS = VKPost
+    FIELD_NAME = "load_comments"
 
     async def process(self, post: VKPost):
         async for comment in self.vk.comments_iter(owner_id=post.owner_id, post_id=post.id):
@@ -228,7 +236,7 @@ class Application(BaseApplication):
             self.log.important("⚠️⚠️⚠️                           ⚠️⚠️⚠️")
             self.log.important("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
             self.log.important("This", name=self.ctx.db.db_name, db=self.ctx.db)
-            
+
             countdown = 10
             for i in range(countdown):
                 await asyncio.sleep(1)
