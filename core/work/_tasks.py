@@ -69,6 +69,8 @@ class TasksManager:
                 log.exception(task=coro)
                 await self._exceptions.put((e, format_exc(), coro))
 
+            await asyncio.sleep(0)  #
+
     async def put(self, coro):
         await self._tasks.put(coro)
 
@@ -77,6 +79,9 @@ class TasksManager:
 
     async def take_error(self):
         return await self._exceptions.get()
+
+    def has_errors(self) -> bool:
+        return not self._exceptions.empty()
 
     async def stop(self):
         self.is_run = False

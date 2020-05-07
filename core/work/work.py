@@ -60,6 +60,8 @@ class Stats:
 class BaseWork:
     start_time = time()
 
+    MUTE_EXCEPTION = True
+
     PARALLEL = 10
     INPUT_RETRIES = 0
     WAIT_COEF = 1
@@ -182,6 +184,8 @@ class BaseWork:
             await self.main_cycle()
         except Exception:
             self.log.exception("MAIN CYCLE")
+            if not self.MUTE_EXCEPTION:
+                raise
 
         self.state = "🛑 Shutdown"
         await self.shutdown()
@@ -267,3 +271,6 @@ class BaseWork:
         info.update("🏁 Task finished")
 
         self.tasks.remove(info)
+
+    async def take_error(self):
+        return await self.task_manager.take_error()

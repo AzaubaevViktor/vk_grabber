@@ -69,6 +69,16 @@ class LoadGroups(BaseWorkApp):
             self.log.info("Exist", result=result)
 
 
+class _LoadModelField(BaseWorkApp):
+    MODEL_CLASS = None
+    FLAG = None
+
+    async def warm_up(self):
+        # Clean field=False
+        self.db.update()
+
+
+
 class LoadParticipants(BaseWorkApp):
     INPUT_RETRIES = 3
 
@@ -78,7 +88,7 @@ class LoadParticipants(BaseWorkApp):
 
     async def input(self):
         async for group in self.db.find(VKGroup(), load_persons=None, limit=1):
-            yield group, self.db.update(group, load_persons=True)
+            yield group, self.db.update_model(group, load_persons=True)
 
     async def process(self, group: VKGroup):
         async for person_id in self.vk.group_participants_iter(
@@ -109,7 +119,7 @@ class LoadPosts(BaseWorkApp):
 
     async def input(self):
         async for item in self.db.find(self.MODEL(), **{self.FLAG: None}, limit=5):
-            yield item, self.db.update(item, **{self.FLAG: True})
+            yield item, self.db.update_model(item, **{self.FLAG: True})
 
     async def update(self, post):
         if not post.text:
@@ -148,7 +158,7 @@ class LoadPostComments(BaseWorkApp):
 
     async def input(self):
         async for post in self.db.find(VKPost(), load_comments=None, limit=5):
-            yield post, self.db.update(post, load_comments=True)
+            yield post, self.db.update_model(post, load_comments=True)
 
     async def process(self, post: VKPost):
         async for comment in self.vk.comments_iter(owner_id=post.owner_id, post_id=post.id):
@@ -181,7 +191,7 @@ class BaseWordKnife(BaseWorkApp):
 
     async def input(self):
         async for post in self.db.find(self.MODEL(), word_processed=None, limit=20):
-            yield post, self.db.update(post, word_processed=True)
+            yield post, self.db.update_model(post, word_processed=True)
 
     async def process(self, post: VKPost):
         for word in tokenize(post.text):

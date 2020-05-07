@@ -8,6 +8,7 @@ from database import Model
 
 
 ModelT = TypeVar("ModelT", Model, Model)
+ModelCollectionT = Union[Type[Model], Model]
 
 
 class DBWrapper:
@@ -20,7 +21,7 @@ class DBWrapper:
         self.db = self.client[self.db_name]
         self._collections = {}
 
-    def _get_collection(self, obj: Union[Type[Model], Model]):
+    def _get_collection(self, obj: ModelCollectionT):
         if isinstance(obj, Model):
             klass = obj.__class__
         elif issubclass(obj, Model):
@@ -48,7 +49,7 @@ class DBWrapper:
             classes[obj.__class__].append(obj)
 
         for klass, items in classes.items():
-            # TODO: Make tasks
+            # TODO: Insert with update if exist
             collection = self._get_collection(klass)
 
             results = await collection.insert_many([
@@ -58,8 +59,9 @@ class DBWrapper:
             for obj, _id in zip(items, results.inserted_ids):
                 obj._id = _id
 
-    def _transform(self, obj: Model, item_raw):
-        item = type(obj).soft_create(**item_raw)
+    def _transform(self, obj: Union[Type[Model], Model], item_raw):
+        ModelType = type(obj) if not isinstance(obj, type) else obj
+        item = ModelType.soft_create(**item_raw)
         item.drop_updates()
         return item
 
@@ -79,7 +81,7 @@ class DBWrapper:
         item_raw = await collection.find_one(obj.query())
         return self._transform(obj, item_raw)
 
-    async def update(self, obj: Model, **params):
+    async def update_model(self, obj: Model, **params):
         collection = self._get_collection(obj)
 
         assert obj._id is not None
@@ -94,10 +96,43 @@ class DBWrapper:
 
         obj.drop_updates()
 
+    async def update(self, query: dict, upd: dict, limit=None) -> AsyncIterable[ModelT]:
+        Class = query['@model']
+        del query['@model']
+        collection = self._get_collection(Class)
+
+        # Find ids by query
+
+        # TODO: Get only id's
+        cursor = collection.find(query, projection=['_id'])
+        if limit is not None:
+            cursor = cursor.limit(limit)
+
+        ids = []
+        async for item in cursor:
+            ids.append(item['_id'])
+
+        # Update by upd
+        new_query = {'_id': {'$in': ids}}
+        result = await collection.update_many(
+            new_query,
+            {'$set': upd}
+        )
+
+        # Get updated items by id
+
+        async for item_raw in collection.find(new_query):
+            yield self._transform(Class, item_raw)
+
     async def delete_all(self, i_understand_delete_all=False):
         assert i_understand_delete_all
         self.log.important("Delete database", db=self.db)
         await self.client.drop_database(self.db)
+
+    async def count(self, ModelClass: Type[Model]) -> int:
+        assert issubclass(ModelClass, Model)
+        collection = self._get_collection(ModelClass)
+        return await collection.count_documents({})
 
     def __str__(self):
         return f"<DBWrapper (mongo): {self.db.name} {self.db}>"

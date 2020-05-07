@@ -26,7 +26,7 @@ async def test_find_kwargs(db):
 
     for item in found_items:
         item.p = - item.p - 100
-        await db.update(item, processed=True)
+        await db.update_model(item, processed=True)
 
     not_processed_yet = []
 

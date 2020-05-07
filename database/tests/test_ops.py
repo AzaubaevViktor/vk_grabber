@@ -68,7 +68,7 @@ async def test_update_one_time(db):
 
     items[5].x = -1
 
-    await db.update(items[5])
+    await db.update_model(items[5])
 
     item = await db.find_one(Check(param=5))
     assert item.x == -1
@@ -86,8 +86,8 @@ async def test_update_many_times(db):
     item.x = 100
     item2.param = 100
 
-    await db.update(item)
-    await db.update(item2)
+    await db.update_model(item)
+    await db.update_model(item2)
 
     new_item = await db.find_one(Check(_id=item._id))
 
