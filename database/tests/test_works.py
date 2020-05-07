@@ -1,4 +1,5 @@
 import asyncio
+from typing import Type
 
 import pytest
 
@@ -11,11 +12,13 @@ pytestmark = pytest.mark.asyncio
 
 class A(Model):
     number = ModelAttribute()
+    processed = ModelAttribute(default=None)
 
 
 class B(Model):
     id = ModelAttribute(uid=True)
     number10 = ModelAttribute()
+    processed = ModelAttribute(default=None)
 
 
 class C(Model):
@@ -37,6 +40,13 @@ class BaseTestWork(BaseWork):
                 e, fmt, _ = err
                 print(fmt)
                 raise e
+
+    async def _check_models(self, Class: Type[Model]):
+        found = False
+        async for item in self.db.find(Class()):
+            found = True
+            assert item.processed is True
+        assert found
 
 
 class AGenerator(BaseTestWork):
@@ -67,7 +77,7 @@ class AGenerator(BaseTestWork):
 
 
 class ABWorker(BaseTestWork):
-    INPUT_RETRIES = 1
+    INPUT_RETRIES = 5
     MUTE_EXCEPTION = False
 
     async def input(self):
@@ -90,10 +100,11 @@ class ABWorker(BaseTestWork):
         assert await self.db.count(B) == self.stat.returned_items
         assert self.stat.input_items * self.MULTIPLIER == self.stat.returned_items
         await self._check_exc()
+        await self._check_models(A)
 
 
 class BCWorker(BaseTestWork):
-    INPUT_RETRIES = 1
+    INPUT_RETRIES = 5
     MUTE_EXCEPTION = False
 
     async def input(self):
@@ -111,9 +122,12 @@ class BCWorker(BaseTestWork):
 
     async def test(self):
         await self()
+
+        assert self.stat.input_items != 0
         assert await self.db.count(C) == self.stat.returned_items
         assert self.stat.input_items * self.MULTIPLIER == self.stat.returned_items
         await self._check_exc()
+        await self._check_models(B)
 
 
 @pytest.mark.parametrize('count', [1, 5, 10])
