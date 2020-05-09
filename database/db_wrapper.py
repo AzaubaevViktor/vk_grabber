@@ -35,6 +35,12 @@ class DBWrapper:
         return self._collections[klass]
 
     async def insert_many(self, *objs: Model, force=False, **kwargs):
+        for item in objs:
+            collection = self._get_collection(item)
+            collection.update_one({})
+
+
+
         # Divide by classes
         classes: Dict[Type[Model], List[Model]] = defaultdict(list)
 
@@ -44,13 +50,22 @@ class DBWrapper:
             except ValueError:
                 if not force:
                     raise
-                self.log.exception("It's ok because force write mode")
 
             classes[obj.__class__].append(obj)
+
+        # TODO: Parallel this please
 
         for klass, items in classes.items():
             # TODO: Insert with update if exist
             collection = self._get_collection(klass)
+
+            items_insert = []
+
+
+            for item in items:
+                if item._id is not None:
+                    if await collection.count_documents({'_id': item._id}, {'limit': 1}):
+
 
             results = await collection.insert_many([
                 {**item.serialize(), **kwargs} for item in items

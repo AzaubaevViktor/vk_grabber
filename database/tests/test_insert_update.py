@@ -47,3 +47,16 @@ async def test_insert_update(db: DBWrapper, variant):
     assert result.a == 1
     assert result.b == 3
     assert result.c == 4
+
+
+def update_particular(db: DBWrapper):
+    obj1 = OneID(a=1, b=2, c=3)
+    await db.insert_many(obj1)
+
+    await db.insert_many(OneID(a=1))
+
+    result = await db.find_one(OneID(a=1))
+
+    assert result.a == 1
+    assert result.b == 2
+    assert result.c == 3
