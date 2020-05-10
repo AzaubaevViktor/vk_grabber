@@ -21,6 +21,17 @@ class DBWrapper:
         self.db = self.client[self.db_name]
         self._collections = {}
 
+    def get_collection(self, klass: Model):
+        if klass not in self._collections:
+            if klass.COLLECTION is not None:
+                self._collections[klass] = self.db[klass.COLLECTION]
+            else:
+                self._collections[klass] = self.db[klass.__name__]
+
+        return self._collections[klass]
+
+    # DEPRECATED
+
     def _get_collection(self, obj: ModelCollectionT):
         if isinstance(obj, Model):
             klass = obj.__class__
@@ -61,11 +72,10 @@ class DBWrapper:
 
             items_insert = []
 
-
             for item in items:
                 if item._id is not None:
                     if await collection.count_documents({'_id': item._id}, {'limit': 1}):
-
+                        pass
 
             results = await collection.insert_many([
                 {**item.serialize(), **kwargs} for item in items

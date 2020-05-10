@@ -39,6 +39,8 @@ class ModelAttribute(Attribute):
 
 
 class Model(AttributeStorage):
+    COLLECTION: str = None
+
     __attributes__: Dict[str, ModelAttribute]
     __kwargs_attribute__: Optional[ModelAttribute] = None
     __uids__: Dict[str, ModelAttribute]
