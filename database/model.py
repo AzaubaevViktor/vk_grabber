@@ -64,8 +64,9 @@ class _UidAttribute(ModelAttribute):
 
     def _hash_method(self, w):
         import hashlib
-        h = hashlib.md5(w)
-        return h.digest().decode("base64")
+        h = hashlib.md5(bytes(w, 'UTF-8'))
+        import base64
+        return base64.encodebytes(h.digest())
 
     def __get__(self, instance: "Model", owner: Type["Model"]):
         if instance is None:
@@ -83,7 +84,7 @@ class _UidAttribute(ModelAttribute):
 
         self.logger.deep(uid=s)
 
-        return s
+        return self._hash_method(s)
 
 
 class Model(AttributeStorage):

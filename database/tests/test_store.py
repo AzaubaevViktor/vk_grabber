@@ -55,6 +55,11 @@ async def test_store_exist_update(db):
     n = OneID(a=1, c=3)
 
     await db.store(m)
+    result = await db.find_one(OneID, a=1)
+    assert result.a == 1
+    assert result.b == 2
+    assert result.c is None
+
     await db.store(n)
 
     result = await db.find_one(OneID, a=1)

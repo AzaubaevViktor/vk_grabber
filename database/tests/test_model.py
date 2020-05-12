@@ -5,6 +5,7 @@ from database.model import ModelAttribute, Model
 
 
 class TModel(Model):
+    uid = ModelAttribute(uid=True)
     first = ModelAttribute()
     second = ModelAttribute(default=False)
     third = ModelAttribute(default=100)
@@ -12,8 +13,8 @@ class TModel(Model):
 
 
 def test_create():
-    model = TModel(_id=10, first=20)
-    assert model._id == 10
+    model = TModel(uid=10, first=20)
+    assert model.uid == 10
     assert model.first == 20
     assert model.second is False
     assert model.third == 100
@@ -21,28 +22,27 @@ def test_create():
 
     assert model.verificate()
 
-    assert model.serialize() == {
-        '_id': 10,
+    serialized = model.serialize()
+    assert '_id' in serialized
+    del serialized['_id']
+
+    assert serialized == {
+        'uid': 10,
         'first': 20,
         'second': False,
         'third': 100
     }
 
-    assert model.query() == {
-        '_id': 10,
-        'first': 20,
-    }
-
     assert model.updates() == {
-        '_id': 10,
+        'uid': 10,
         'first': 20,
     }
 
 
-@pytest.mark.parametrize('_id', (0, False, None, 100, -100, "kafskljasf", '🤔'))
-def test_query(_id):
-    model = TModel(_id=_id)
-    assert model._id == _id
+@pytest.mark.parametrize('uid', (0, False, None, 100, -100, "kafskljasf", '🤔'))
+def test_query(uid):
+    model = TModel(uid=uid)
+    assert model.uid == uid
     assert model.first is None
     assert model.second is False
     assert model.third == 100
@@ -51,18 +51,17 @@ def test_query(_id):
     with pytest.raises(ValueError):
         model.verificate()
 
-    assert model.serialize() == {
-        **({} if _id is None else {'_id': _id}),
+    serialized = model.serialize()
+    assert serialized['_id']
+    del serialized['_id']
+    assert serialized == {
+        **({} if uid is None else {'uid': uid}),
         'second': False,
         'third': 100
     }
 
-    assert model.query() == {
-        '_id': _id
-    }
-
     assert model.updates() == {
-        '_id': _id
+        'uid': uid
     }
 
 
@@ -79,8 +78,8 @@ def test_default(second, third, fourth):
     if fourth is not None:
         kwargs['fourth'] = fourth
 
-    model = TModel(_id=10, first=20, **kwargs)
-    assert model._id == 10
+    model = TModel(uid=10, first=20, **kwargs)
+    assert model.uid == 10
     assert model.first == 20
 
     if second is not None:
@@ -92,8 +91,11 @@ def test_default(second, third, fourth):
 
     model.verificate()
 
-    assert model.serialize() == {
-        '_id': 10,
+    serialized = model.serialize()
+    assert serialized['_id']
+    del serialized['_id']
+    assert serialized == {
+        'uid': 10,
         'first': 20,
         'second': False if (second is None) else second,
         'third': 100 if (third is None) else third,
@@ -101,7 +103,7 @@ def test_default(second, third, fourth):
     }
 
     q = {
-        '_id': 10,
+        'uid': 10,
         'first': 20
     }
 
@@ -112,14 +114,13 @@ def test_default(second, third, fourth):
     if fourth is not None:
         q['fourth'] = fourth
 
-    assert model.query() == q
     assert model.updates() == q
 
 
 def test_updates():
-    item = TModel(_id=1)
+    item = TModel(uid=1)
 
-    assert item.updates() == {'_id': 1}
+    assert item.updates() == {'uid': 1}
     item.drop_updates()
     assert item.updates() == {}
 
