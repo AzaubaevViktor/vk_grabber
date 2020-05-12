@@ -62,11 +62,12 @@ class _UidAttribute(ModelAttribute):
             if value != '_id':
                 raise ValueError("Use `ModelAttribute(uid=True)`")
 
-    def _hash_method(self, w):
+    @staticmethod
+    def _hash_method(w):
         import hashlib
         h = hashlib.md5(bytes(w, 'UTF-8'))
         import base64
-        return base64.encodebytes(h.digest())
+        return base64.encodebytes(h.digest()).strip()
 
     def __get__(self, instance: "Model", owner: Type["Model"]):
         if instance is None:
