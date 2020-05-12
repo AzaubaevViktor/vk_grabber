@@ -73,10 +73,10 @@ class DBWrapper:
         return None
 
     async def find_raw(self, klass: Type[ModelT],
-                           query_: Optional[dict] = None,
-                           limit_ : Optional[int] = None,
-                           sort_: Optional[Dict] = None,
-                           **kwargs) -> AsyncIterable[ModelT]:
+                       query_: Optional[dict] = None,
+                       limit_ : Optional[int] = None,
+                       sort_: Optional[Dict] = None,
+                       **kwargs) -> AsyncIterable[ModelT]:
         # TODO: check attributes from kwargs in Model
         assert not kwargs, NotImplementedError()
 
@@ -123,8 +123,6 @@ class DBWrapper:
         for item in objs:
             collection = self._get_collection(item)
             collection.update_one({})
-
-
 
         # Divide by classes
         classes: Dict[Type[Model], List[Model]] = defaultdict(list)
