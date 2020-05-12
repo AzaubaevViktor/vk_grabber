@@ -102,7 +102,7 @@ async def test_store_exist_rewrite_2(db):
     m = TwoID(a=1, b=2, c=3)
     n = TwoID(a=1, b=2, d=4)
 
-    await db.store(m)
+    await db.store(m, rewrite=True)
 
     assert await db.count(TwoID) == 1
 
@@ -112,12 +112,12 @@ async def test_store_exist_rewrite_2(db):
     assert result.c == 3
     assert result.d is None
 
-    await db.store(n)
+    await db.store(n, rewrite=True)
 
     assert await db.count(TwoID) == 1
 
     result = await db.find_one(TwoID, a=1)
     assert result.a == 1
     assert result.b == 2
-    assert result.c is None
+    assert result.c is None, (n._storage, result._storage)
     assert result.d == 4

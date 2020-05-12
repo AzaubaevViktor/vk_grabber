@@ -35,17 +35,25 @@ class DBWrapper:
 
         return self._collections[klass]
 
-    async def store(self, obj: Model):
+    async def store(self, obj: Model, rewrite=False):
         collection = self.get_collection(obj)
 
         id_ = obj._id
         assert id_ is not None
 
-        await collection.update_one(
-            {'_id': id_},
-            {"$set": obj.serialize()},
-            upsert=True
-        )
+        # TODO: Use args and kwargs for this!
+        if not rewrite:
+            await collection.update_one(
+                {'_id': id_},
+                {"$set": obj.serialize()},
+                upsert=True,
+            )
+        else:
+            await collection.replace_one(
+                {'_id': id_},
+                obj.serialize(),
+                upsert=True,
+            )
 
     async def find_one(self, klass: Type[Model], query_: Optional[Dict] = None, **kwargs):
         query_ = query_ or {}
