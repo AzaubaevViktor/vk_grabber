@@ -116,7 +116,8 @@ async def test_choose_limit(db, limit_dividor, limit):
 @pytest.mark.parametrize('sleep_time', (0.05, ))
 @pytest.mark.parametrize('retries_', (2, ))
 @pytest.mark.parametrize('sleep_coef', (10, ))
-async def test_parallel(db, limit, sleep_coef, sleep_time, retries_):
+@pytest.mark.parametrize('workers_coef', (0.5, 1, 1.5, 3, 3.5))
+async def test_parallel(db, limit, sleep_coef, sleep_time, retries_, workers_coef):
     processed = defaultdict(int)
 
     def gen_func(from_, to_, ):
@@ -124,38 +125,57 @@ async def test_parallel(db, limit, sleep_coef, sleep_time, retries_):
             log = Log(f"{from_}=>{to_}#{index}")
 
             retries = retries_
+
             while True:
+                found = False
+
                 async for item in db.choose(M, {FIELD_NAME: from_}, {FIELD_NAME: to_}, limit_=limit):
                     log.info(item=item)
                     processed[(from_, to_)] += 1
                     await asyncio.sleep(sleep_time)
-                else:
-                    if retries == 0:
-                        return
-                    retries -= 1
+                    found = True
 
-                    log.warning(retry=retries_ - retries)
+                if found:
+                    break
 
-                    await asyncio.sleep(sleep_time * sleep_coef)
+                if retries == 0:
+                    return
+
+                retries -= 1
+
+                log.warning(retry=retries_ - retries)
+
+                await asyncio.sleep(sleep_time * sleep_coef)
+            log.important("STOP")
 
         return x
 
     none_false = gen_func(None, False)
     false_true = gen_func(False, True)
 
+    workers_count = int(ONE_TYPE_COUNT * workers_coef)
+
+    if workers_count == 0:
+        pytest.skip()
+
     funcs = []
-    funcs += [none_false(_) for _ in range(ONE_TYPE_COUNT)]
-    funcs += [false_true(_) for _ in range(ONE_TYPE_COUNT)]
+    funcs += [none_false(_) for _ in range(workers_count)]
+    funcs += [false_true(_) for _ in range(workers_count)]
 
     await asyncio.gather(*funcs)
 
-    assert await db.count(M, {FIELD_NAME: None}) == 0
-    assert await db.count(M, {FIELD_NAME: False}) == 0
-    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT * 3
-
     assert len(processed) == 2
-    assert processed[(None, False)] == min(ONE_TYPE_COUNT, ONE_TYPE_COUNT * limit)
-    assert processed[(False, True)] == min(ONE_TYPE_COUNT * 2, ONE_TYPE_COUNT * limit * 2)
+    assert processed[(None, False)] == min(ONE_TYPE_COUNT, workers_count * limit)
+    assert processed[(False, True)] == min(ONE_TYPE_COUNT * 2, workers_count * limit)
+
+    assert await db.count(M, {FIELD_NAME: None}) == max(0, ONE_TYPE_COUNT - workers_count * limit)
+    mid_count = ONE_TYPE_COUNT
+    if ONE_TYPE_COUNT <= workers_count * limit <= ONE_TYPE_COUNT  * 2:
+        mid_count = ONE_TYPE_COUNT * 2 - workers_count * limit
+    if ONE_TYPE_COUNT * 2 < workers_count * limit:
+        mid_count = 0
+    assert await db.count(M, {FIELD_NAME: False}) == mid_count
+    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT + min(ONE_TYPE_COUNT * 2, workers_count * limit)
 
 
 async def test_sort(db):

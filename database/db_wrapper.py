@@ -139,7 +139,7 @@ class DBWrapper:
             yield raw_item
 
             count += 1
-            if limit_ and count >= limit_:
+            if (limit_ is not None) and count >= limit_:
                 return
 
     async def choose(self, ModelClass: Type[ModelT],
