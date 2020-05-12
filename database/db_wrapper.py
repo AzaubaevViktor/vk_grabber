@@ -35,36 +35,66 @@ class DBWrapper:
 
         return self._collections[klass]
 
-    async def store(self, obj: Model, rewrite=False):
+    async def store(self, obj: Model, fields: Optional[Dict] = None, rewrite=False):
         collection = self.get_collection(obj)
 
         id_ = obj._id
         assert id_ is not None
 
+        fields = fields or {}
+        fields.update(obj.serialize())
+
         # TODO: Use args and kwargs for this!
         if not rewrite:
             await collection.update_one(
                 {'_id': id_},
-                {"$set": obj.serialize()},
+                {"$set": fields},
                 upsert=True,
             )
         else:
             await collection.replace_one(
                 {'_id': id_},
-                obj.serialize(),
+                fields,
                 upsert=True,
             )
 
-    async def find_one(self, klass: Type[Model], query_: Optional[Dict] = None, **kwargs):
+    async def find_one_raw(self, klass: Type[ModelT], query_: Optional[Dict] = None, **kwargs) -> Optional[ModelT]:
+        collection = self.get_collection(klass)
+
         query_ = query_ or {}
         query = {**query_, **kwargs}
 
+        return await collection.find_one(query)
+
+    async def find_one(self, klass: Type[ModelT], query_: Optional[Dict] = None, **kwargs) -> Optional[ModelT]:
+        if item_raw := await self.find_one_raw(klass, query_, **kwargs):
+            return self._transform(klass, item_raw)
+
+        return None
+
+    async def find_raw(self, klass: Type[ModelT],
+                           query_: Optional[dict] = None,
+                           limit_ : Optional[int] = None,
+                           sort_: Optional[Dict] = None,
+                           **kwargs) -> AsyncIterable[ModelT]:
+        # TODO: check attributes from kwargs in Model
+        assert not kwargs, NotImplementedError()
+
         collection = self.get_collection(klass)
 
-        item_raw = await collection.find_one(query)
-        if item_raw:
-            return self._transform(klass, item_raw)
-        return None
+        query_ = query_ or {}
+        query = {**query_, **kwargs}
+
+        async for raw_item in collection.find(query):
+            yield raw_item
+
+    async def find(self, klass: Type[ModelT],
+                   query_: Optional[dict] = None,
+                   limit_ : Optional[int] = None,
+                   sort_: Optional[Dict] = None,
+                   **kwargs) -> AsyncIterable[ModelT]:
+        async for raw_item in self.find_raw(klass=klass, query_=query_, limit_=limit_, sort_=sort_, **kwargs):
+            yield self._transform(klass, raw_item)
 
     # DEPRECATED
 
@@ -126,7 +156,7 @@ class DBWrapper:
         item.drop_updates()
         return item
 
-    async def find(self, obj: ModelT, limit=None, **kwargs) -> AsyncIterable[ModelT]:
+    async def _find(self, obj: ModelT, limit=None, **kwargs) -> AsyncIterable[ModelT]:
         collection = self._get_collection(obj)
         query = obj.query()
         query.update(kwargs)

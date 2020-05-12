@@ -19,6 +19,7 @@ class M(Model):
     b = ModelAttribute()
 
 
+@pytest.fixture(autouse=True, scope='function')
 async def create_items(db):
     d = {
         0: None,
@@ -32,13 +33,13 @@ async def create_items(db):
             if i % 2 == 0:
                 del additional[FIELD_NAME]
 
-        await db.store(M(a=i * ONE_TYPE_COUNT, b=i + 1), additional)
+        await db.store(M(a=i, b=i * ONE_TYPE_COUNT), additional)
 
     for i in range(ONE_TYPE_COUNT * 3):
         assert (await db.find_one_raw(M, a=i)).get(FIELD_NAME, None) == d[i % 3]
 
 
-async def test_get_find(db, limit):
+async def test_get_find(db):
     async for item in db.find(M, {FIELD_NAME: None}):
         assert item.a % 3 == 0
 
@@ -110,5 +111,5 @@ async def test_sort(db):
         assert item.value < value
         value = item.value
 
-
+# TODO: Tests for check attributes from kwargs in Model
 
