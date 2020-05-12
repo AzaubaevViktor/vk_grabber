@@ -71,18 +71,7 @@ class _UidAttribute(ModelAttribute):
         if instance is None:
             return self
 
-        aliases = []
-
-        for attr_name, attr in instance.__attributes__.items():
-            if isinstance(attr, _UidAttribute):
-                continue
-
-            if not attr.is_id_alias:
-                continue
-
-            aliases.append(attr_name)
-
-        aliases.sort()
+        aliases = sorted(instance.__uids__.keys())
 
         if len(aliases) == 0:
             raise ValueError("You need to set one or more ModelAttribute(uid=True)")
@@ -127,6 +116,11 @@ class Model(AttributeStorage):
                 raise TypeError(f"In class {self.__class__.__name__}, "
                                 f"extra arguments: {','.join(kwargs.keys())}. "
                                 f"Try one of: {self.__attributes__.keys()}")
+
+        if '_id' in self._storage:
+            _id = self._storage['_id']
+            del self._storage["_id"]
+            assert _id == self._id
 
     def verificate(self):
         for k, attr in self.__attributes__.items():

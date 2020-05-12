@@ -48,6 +48,7 @@ class DBWrapper:
         )
 
     async def find_one(self, klass: Type[Model], query_: Optional[Dict] = None, **kwargs):
+        query_ = query_ or {}
         query = {**query_, **kwargs}
 
         collection = self.get_collection(klass)

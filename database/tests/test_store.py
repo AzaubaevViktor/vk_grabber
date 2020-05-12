@@ -30,7 +30,7 @@ async def test_store_new(db):
     await db.store(m)
     result_dict = await db.find_one(OneID, {'a': 1})
     assert isinstance(result_dict, OneID)
-    assert m == result_dict
+    assert m == result_dict, (m._storage, result_dict._storage)
 
     result_kwarg = await db.find_one(OneID, a=1)
     assert isinstance(result_kwarg, OneID)
