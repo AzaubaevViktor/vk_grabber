@@ -112,6 +112,44 @@ class DBWrapper:
 
         return await collection.count_documents(query)
 
+    async def choose_raw(self, ModelClass: Type[ModelT],
+                         query_: Dict,
+                         updates_: Dict,
+                         limit_: Optional[int] = None,
+                         sort_: Optional[int] = None):
+        collection = self._get_collection(ModelClass)
+
+        kwargs = {}
+        if sort_:
+            kwargs['sort'] = list(sort_.items())
+
+        count = 0
+        while True:
+            raw_item = await collection.find_one_and_update(
+                query_,
+                {"$set": updates_},
+                new=True,
+                return_document=True,
+                **kwargs
+            )
+
+            if raw_item is None:
+                return
+
+            yield raw_item
+
+            count += 1
+            if limit_ and count >= limit_:
+                return
+
+    async def choose(self, ModelClass: Type[ModelT],
+                     query_: Dict,
+                     updates_: Dict,
+                     limit_: Optional[int] = None,
+                     sort_: Optional[int] = None):
+        async for raw_item in self.choose_raw(ModelClass=ModelClass, query_=query_, updates_=updates_, limit_=limit_, sort_=sort_):
+            yield self._transform(ModelClass, raw_item)
+
     # DEPRECATED
 
     def _get_collection(self, obj: ModelCollectionT):

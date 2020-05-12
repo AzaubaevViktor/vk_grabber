@@ -81,7 +81,7 @@ class _UidAttribute(ModelAttribute):
 
         s = "/".join(str(value := getattr(instance, key)) + ":" + type(value).__name__ for key in aliases)
 
-        self.logger.debug(uid=s)
+        self.logger.deep(uid=s)
 
         return s
 

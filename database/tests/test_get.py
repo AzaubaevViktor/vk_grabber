@@ -3,6 +3,7 @@ from collections import defaultdict
 
 import pytest
 
+from core import Log
 from database import Model, ModelAttribute
 
 pytestmark = pytest.mark.asyncio
@@ -75,17 +76,40 @@ async def test_set(db):
 
 
 async def test_choose(db):
-    async for item in db.choose(M, {FIELD_NAME: False}, {FIELD_NAME: True}):
-        pass
+    async for item_raw in db.choose_raw(M, {FIELD_NAME: False}, {FIELD_NAME: True}):
+        assert item_raw[FIELD_NAME] is True
 
     assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT * 2
 
-    async for item in db.choose(M, {FIELD_NAME: None}, {FIELD_NAME: False}):
-        pass
+    async for item_raw in db.choose_raw(M, {FIELD_NAME: None}, {FIELD_NAME: False}):
+        assert item_raw[FIELD_NAME] is False
 
     assert await db.count(M, {FIELD_NAME: False}) == ONE_TYPE_COUNT
 
     assert await db.count(M, {FIELD_NAME: None}) == 0
+
+
+@pytest.mark.parametrize('limit_dividor', (1, 2, 5, 3, None))
+@pytest.mark.parametrize('limit', (1, 2, 5, 3, None))
+async def test_choose_limit(db, limit_dividor, limit):
+
+    if limit is not None and limit_dividor is not None:
+        pytest.skip()
+
+    if limit is None and limit_dividor is None:
+        pytest.skip()
+
+    limit = limit or ONE_TYPE_COUNT // limit_dividor
+
+    count = 0
+
+    async for item_raw in db.choose_raw(M, {FIELD_NAME: False}, {FIELD_NAME: True}, limit_=limit):
+        count += 1
+        assert item_raw[FIELD_NAME] is True
+
+    assert limit == count
+
+    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT + limit
 
 
 @pytest.mark.parametrize('limit', (1, 2, 5))
@@ -95,18 +119,23 @@ async def test_choose(db):
 async def test_parallel(db, limit, sleep_coef, sleep_time, retries_):
     processed = defaultdict(int)
 
-    def gen_func(from_, to_):
-        async def x():
+    def gen_func(from_, to_, ):
+        async def x(index):
+            log = Log(f"{from_}=>{to_}#{index}")
+
             retries = retries_
             while True:
-                async for item in db.choose(M, {FIELD_NAME: from_}, limit_=limit):
+                async for item in db.choose(M, {FIELD_NAME: from_}, {FIELD_NAME: to_}, limit_=limit):
+                    log.info(item=item)
                     processed[(from_, to_)] += 1
                     await asyncio.sleep(sleep_time)
-                    return
                 else:
                     if retries == 0:
                         return
                     retries -= 1
+
+                    log.warning(retry=retries_ - retries)
+
                     await asyncio.sleep(sleep_time * sleep_coef)
 
         return x
@@ -115,18 +144,18 @@ async def test_parallel(db, limit, sleep_coef, sleep_time, retries_):
     false_true = gen_func(False, True)
 
     funcs = []
-    funcs += [none_false() for _ in range(ONE_TYPE_COUNT)]
-    funcs += [false_true() for _ in range(ONE_TYPE_COUNT)]
+    funcs += [none_false(_) for _ in range(ONE_TYPE_COUNT)]
+    funcs += [false_true(_) for _ in range(ONE_TYPE_COUNT)]
 
     await asyncio.gather(*funcs)
 
-    assert await db.count(M,{FIELD_NAME: None}) == 0
-    assert await db.count(M,{FIELD_NAME: False}) == 0
-    assert await db.count(M,{FIELD_NAME: True}) == ONE_TYPE_COUNT * 3
+    assert await db.count(M, {FIELD_NAME: None}) == 0
+    assert await db.count(M, {FIELD_NAME: False}) == 0
+    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT * 3
 
     assert len(processed) == 2
-    assert processed[(None, False)] == ONE_TYPE_COUNT
-    assert processed[(False, True)] == ONE_TYPE_COUNT
+    assert processed[(None, False)] == min(ONE_TYPE_COUNT, ONE_TYPE_COUNT * limit)
+    assert processed[(False, True)] == min(ONE_TYPE_COUNT * 2, ONE_TYPE_COUNT * limit * 2)
 
 
 async def test_sort(db):
@@ -135,7 +164,7 @@ async def test_sort(db):
         assert item.b > value
         value = item.b
 
-    value = ONE_TYPE_COUNT * 4
+    value = ONE_TYPE_COUNT * ONE_TYPE_COUNT * 4
     async for item in db.find(M, sort_={'b': -1}):
         assert item.b < value
         value = item.b
