@@ -65,9 +65,9 @@ class _UidAttribute(ModelAttribute):
     @staticmethod
     def _hash_method(w):
         import hashlib
-        h = hashlib.md5(bytes(w, 'UTF-8'))
+        h = hashlib.sha3_512(bytes(w, 'UTF-8'))
         import base64
-        return base64.encodebytes(h.digest()).strip()
+        return base64.encodebytes(h.digest()).decode("UTF-8").replace("\n", "")
 
     def __get__(self, instance: "Model", owner: Type["Model"]):
         if instance is None:

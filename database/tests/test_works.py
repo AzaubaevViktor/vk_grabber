@@ -11,12 +11,13 @@ pytestmark = pytest.mark.asyncio
 
 
 class A(Model):
+    uid = ModelAttribute(uid=True)
     number = ModelAttribute()
     processed = ModelAttribute(default=None)
 
 
 class B(Model):
-    id = ModelAttribute(uid=True)
+    uid = ModelAttribute(uid=True)
     number10 = ModelAttribute()
     processed = ModelAttribute(default=None)
 
@@ -43,9 +44,9 @@ class BaseTestWork(BaseWork):
 
     async def _check_models(self, Class: Type[Model]):
         found = False
-        async for item in self.db.find(Class()):
+        async for item_raw in self.db.find_raw(Class):
             found = True
-            assert item.processed is True
+            assert item_raw.get('processed', None) is True
         assert found
 
 
@@ -62,10 +63,10 @@ class AGenerator(BaseTestWork):
             yield i
 
     async def process(self, item: int):
-        yield A(number=item)
+        yield A(uid=item, number=item)
 
     async def update(self, result):
-        await self.db.insert_many(result)
+        await self.db.store(result)
 
     async def test(self):
         await self()
@@ -81,17 +82,18 @@ class ABWorker(BaseTestWork):
     MUTE_EXCEPTION = False
 
     async def input(self):
-        async for a in self.db.update({'@model': A, 'processed': None},
+        async for a in self.db.choose(A, {'processed': None},
                                       {'processed': False},
-                                      limit=3):
-            yield a, self.db.update_model(a, **{'processed': True})
+                                      limit_=3):
+            yield a, self.db.store(a, processed=True)
 
     async def process(self, a: A):
         for i in range(10):
-            yield B(number10=a.number * self.MULTIPLIER + i)
+            num = a.number * self.MULTIPLIER + i
+            yield B(uid=num, number10=num)
 
     async def update(self, result: B):
-        await self.db.insert_many(result)
+        await self.db.store(result)
 
     async def test(self):
         await self()
@@ -108,17 +110,17 @@ class BCWorker(BaseTestWork):
     MUTE_EXCEPTION = False
 
     async def input(self):
-        async for b in self.db.update({'@model': B, 'processed': None},
+        async for b in self.db.choose(B, {'processed': None},
                                       {'processed': False},
-                                      limit=6):
-            yield b, self.db.update_model(b, **{'processed': True})
+                                      limit_=6):
+            yield b, self.db.store(b, **{'processed': True})
 
     async def process(self, b: B):
         for i in range(10):
             yield C(number100=b.number10 * 10 + i)
 
     async def update(self, result: C):
-        await self.db.insert_many(result)
+        await self.db.store(result)
 
     async def test(self):
         await self()

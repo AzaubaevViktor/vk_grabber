@@ -34,11 +34,13 @@ class DBWrapper:
 
         return self._collections[klass]
 
-    async def store(self, obj: Model, fields: Optional[Dict] = None, rewrite=False):
+    async def store(self, obj: Model, fields_: Optional[Dict] = None, rewrite=False, **kwargs):
         collection = self.get_collection(obj)
 
-        fields = fields or {}
-        fields.update(obj.serialize())
+        fields = dict(obj.serialize())
+        if fields_:
+            fields.update(fields_)
+        fields.update(kwargs)
 
         # TODO: Use args and kwargs for this!
         if (id_ := obj._id) is None:

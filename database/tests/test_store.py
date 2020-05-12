@@ -126,3 +126,15 @@ async def test_store_exist_rewrite_2(db):
     assert result.b == 2
     assert result.c is None, (n._storage, result._storage)
     assert result.d == 4
+
+
+async def test_store_update(db):
+    await db.store(OneID(a=10, b=20))
+
+    item = await db.find_one(OneID, a=10)
+
+    assert item
+
+    await db.store(item, c=30)
+
+    assert (await db.find_one(OneID, a=10)).c == 30

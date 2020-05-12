@@ -26,3 +26,6 @@ def test_uid():
 
     assert A.not_uid.name not in A.__uids__
     assert A.uid.name in A.__uids__
+
+
+# TODO: Test uid's output
