@@ -85,7 +85,15 @@ class DBWrapper:
         query_ = query_ or {}
         query = {**query_, **kwargs}
 
-        async for raw_item in collection.find(query):
+        cursor = collection.find(query)
+
+        if limit_:
+            cursor = cursor.limit(limit_)
+
+        if sort_:
+            cursor = cursor.sort(list(sort_.items()))
+
+        async for raw_item in cursor:
             yield raw_item
 
     async def find(self, klass: Type[ModelT],

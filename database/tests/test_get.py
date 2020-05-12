@@ -74,16 +74,41 @@ async def test_set(db):
     assert await db.count(M, {FIELD_NAME: None}) == 0
 
 
+async def test_choose(db):
+    async for item in db.choose(M, {FIELD_NAME: False}, {FIELD_NAME: True}):
+        pass
+
+    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT * 2
+
+    async for item in db.choose(M, {FIELD_NAME: None}, {FIELD_NAME: False}):
+        pass
+
+    assert await db.count(M, {FIELD_NAME: False}) == ONE_TYPE_COUNT
+
+    assert await db.count(M, {FIELD_NAME: None}) == 0
+
+
 @pytest.mark.parametrize('limit', (1, 2, 5))
-async def test_parallel(db, limit):
+@pytest.mark.parametrize('sleep_time', (0.05, ))
+@pytest.mark.parametrize('retries_', (2, ))
+@pytest.mark.parametrize('sleep_coef', (10, ))
+async def test_parallel(db, limit, sleep_coef, sleep_time, retries_):
     processed = defaultdict(int)
 
     def gen_func(from_, to_):
         async def x():
-            async for item in db.find(M, {FIELD_NAME: from_}, limit_=limit):
-                await db.store(item, {FIELD_NAME: to_})
-                processed[(from_, to_)] += 1
-                await asyncio.sleep(0.05)
+            retries = retries_
+            while True:
+                async for item in db.choose(M, {FIELD_NAME: from_}, limit_=limit):
+                    processed[(from_, to_)] += 1
+                    await asyncio.sleep(sleep_time)
+                    return
+                else:
+                    if retries == 0:
+                        return
+                    retries -= 1
+                    await asyncio.sleep(sleep_time * sleep_coef)
+
         return x
 
     none_false = gen_func(None, False)
@@ -95,6 +120,10 @@ async def test_parallel(db, limit):
 
     await asyncio.gather(*funcs)
 
+    assert await db.count(M,{FIELD_NAME: None}) == 0
+    assert await db.count(M,{FIELD_NAME: False}) == 0
+    assert await db.count(M,{FIELD_NAME: True}) == ONE_TYPE_COUNT * 3
+
     assert len(processed) == 2
     assert processed[(None, False)] == ONE_TYPE_COUNT
     assert processed[(False, True)] == ONE_TYPE_COUNT
@@ -103,13 +132,13 @@ async def test_parallel(db, limit):
 async def test_sort(db):
     value = -1
     async for item in db.find(M, sort_={'b': 1}):
-        assert item.value > value
-        value = item.value
+        assert item.b > value
+        value = item.b
 
     value = ONE_TYPE_COUNT * 4
     async for item in db.find(M, sort_={'b': -1}):
-        assert item.value < value
-        value = item.value
+        assert item.b < value
+        value = item.b
 
 # TODO: Tests for check attributes from kwargs in Model
 
