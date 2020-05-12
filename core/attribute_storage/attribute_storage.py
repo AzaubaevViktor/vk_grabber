@@ -18,6 +18,10 @@ class Attribute:
         self.description = description
         self.default = default
 
+    @property
+    def is_uid_attribute(self):
+        return False
+
     def __get__(self, instance: "AttributeStorage", owner: Type["AttributeStorage"]):
         if instance is None:
             return self
@@ -88,7 +92,7 @@ class MetaAttributeStorage(type):
 
             attr_value.name = attr_name
 
-            if attr_value.uid:
+            if attr_value.uid and not attr_value.is_uid_attribute:
                 if isinstance(attr_value, KwargsAttribute):
                     raise AttributeError(f"{KwargsAttribute.__name__} cannot be uid")
 

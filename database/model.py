@@ -1,6 +1,6 @@
 from typing import Type, Optional, Dict, Any
 
-from core import Attribute, AttributeStorage
+from core import Attribute, AttributeStorage, Log
 
 
 class ModelAttribute(Attribute):
@@ -12,9 +12,7 @@ class ModelAttribute(Attribute):
 
     @property
     def name(self):
-        if not self.uid:
-            return self._name
-        return "_id"
+        return self._name
 
     @name.setter
     def name(self, value):
@@ -38,6 +36,67 @@ class ModelAttribute(Attribute):
         instance._updates[self.name] = value
 
 
+class _UidAttribute(ModelAttribute):
+    logger = Log("_UidAttribute")
+
+    def __init__(self):
+        super().__init__(description="UID calculated attribute for MongoDB",
+                         default=None,
+                         uid=True)
+
+    @property
+    def is_uid_attribute(self):
+        return True
+
+    @property
+    def is_id_alias(self):
+        return False
+
+    @property
+    def name(self):
+        return "_id"
+
+    @name.setter
+    def name(self, value):
+        if value is not None:
+            if value != '_id':
+                raise ValueError("Use `ModelAttribute(uid=True)`")
+
+    def _hash_method(self, w):
+        import hashlib
+        h = hashlib.md5(w)
+        return h.digest().decode("base64")
+
+    def __get__(self, instance: "Model", owner: Type["Model"]):
+        if instance is None:
+            return self
+
+        aliases = []
+
+        for attr_name, attr in instance.__attributes__.items():
+            if isinstance(attr, _UidAttribute):
+                continue
+
+            if not attr.is_id_alias:
+                continue
+
+            aliases.append(attr_name)
+
+        aliases.sort()
+
+        if len(aliases) == 0:
+            raise ValueError("You need to set one or more ModelAttribute(uid=True)")
+
+        if super(_UidAttribute, self).__get__(instance, owner) is not None:
+            raise ValueError("Not alowed to directly change _id field")
+
+        s = "/".join(str(value := getattr(instance, key)) + ":" + type(value).__name__ for key in aliases)
+
+        self.logger.debug(uid=s)
+
+        return s
+
+
 class Model(AttributeStorage):
     COLLECTION: str = None
 
@@ -45,8 +104,9 @@ class Model(AttributeStorage):
     __kwargs_attribute__: Optional[ModelAttribute] = None
     __uids__: Dict[str, ModelAttribute]
 
-    _id = ModelAttribute(uid=True, default=None)
+    _id = _UidAttribute()
 
+    # noinspection PyMissingConstructor
     def __init__(self, **kwargs):
         self._storage = {}
         self._updates = {}
@@ -54,11 +114,6 @@ class Model(AttributeStorage):
         for k, attr in self.__attributes__.items():
             if not isinstance(attr, Attribute):
                 raise TypeError(f"Use {Attribute.__name__} instance instead {attr}")
-
-        # for k, attr in self.__attributes__.items():
-        #     if not isinstance(attr, KwargsAttribute) \
-        #             and (k not in kwargs):
-        #         setattr(self, k, attr.default)
 
         for k, v in {**kwargs}.items():
             if k in self.__attributes__:
@@ -93,17 +148,27 @@ class Model(AttributeStorage):
             if not isinstance(attr, ModelAttribute):
                 continue
 
-            if attr.is_id_alias:
-                continue
-
             value = getattr(self, k, None)
             if not isinstance(value, Attribute._DefaultNone) and value is not None:
                 result[k] = value
 
         return result
 
-    def query(self) -> dict:
-        return self._storage
+    @classmethod
+    def query(cls, query: Dict) -> Dict:
+        result_query = {}
+
+        for key, v in query.items():
+            attr = getattr(cls, key, None)
+
+            assert isinstance(attr, ModelAttribute)
+
+            if attr is not None:
+                result_query[key] = v
+            else:
+                result_query[attr.name] = v
+
+        return result_query
 
     def updates(self) -> dict:
         return self._updates

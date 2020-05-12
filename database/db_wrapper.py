@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Union, Type, Dict, List, TypeVar, AsyncIterable
+from typing import Union, Type, Dict, List, TypeVar, AsyncIterable, Optional
 
 import motor.motor_asyncio
 
@@ -21,7 +21,12 @@ class DBWrapper:
         self.db = self.client[self.db_name]
         self._collections = {}
 
-    def get_collection(self, klass: Model):
+    def get_collection(self, obj: ModelCollectionT):
+        if isinstance(obj, Model):
+            klass = obj.__class__
+        else:
+            klass = obj
+
         if klass not in self._collections:
             if klass.COLLECTION is not None:
                 self._collections[klass] = self.db[klass.COLLECTION]
@@ -29,6 +34,28 @@ class DBWrapper:
                 self._collections[klass] = self.db[klass.__name__]
 
         return self._collections[klass]
+
+    async def store(self, obj: Model):
+        collection = self.get_collection(obj)
+
+        id_ = obj._id
+        assert id_ is not None
+
+        await collection.update_one(
+            {'_id': id_},
+            {"$set": obj.serialize()},
+            upsert=True
+        )
+
+    async def find_one(self, klass: Type[Model], query_: Optional[Dict] = None, **kwargs):
+        query = {**query_, **kwargs}
+
+        collection = self.get_collection(klass)
+
+        item_raw = await collection.find_one(query)
+        if item_raw:
+            return self._transform(klass, item_raw)
+        return None
 
     # DEPRECATED
 
@@ -101,7 +128,7 @@ class DBWrapper:
         async for item_raw in cursor:
             yield self._transform(obj, item_raw)
 
-    async def find_one(self, obj: Model):
+    async def _find_one(self, obj: Model):
         collection = self._get_collection(obj)
         item_raw = await collection.find_one(obj.query())
         return self._transform(obj, item_raw)
