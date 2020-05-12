@@ -75,11 +75,12 @@ class _UidAttribute(ModelAttribute):
 
         aliases = sorted(instance.__uids__.keys())
 
-        if len(aliases) == 0:
-            raise ValueError("You need to set one or more ModelAttribute(uid=True)")
-
-        if super(_UidAttribute, self).__get__(instance, owner) is not None:
+        storage_value = super(_UidAttribute, self).__get__(instance, owner)
+        if len(aliases) != 0 and storage_value is not None:
             raise ValueError("Not alowed to directly change _id field")
+
+        if len(aliases) == 0:
+            return storage_value
 
         s = "/".join(str(value := getattr(instance, key)) + ":" + type(value).__name__ for key in aliases)
 
@@ -120,9 +121,10 @@ class Model(AttributeStorage):
                                 f"Try one of: {self.__attributes__.keys()}")
 
         if '_id' in self._storage:
-            _id = self._storage['_id']
-            del self._storage["_id"]
-            assert _id == self._id
+            if self.__uids__:
+                _id = self._storage['_id']
+                del self._storage["_id"]
+                assert _id == self._id
 
     def verificate(self):
         for k, attr in self.__attributes__.items():
