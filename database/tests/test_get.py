@@ -89,10 +89,16 @@ async def test_choose(db):
     assert await db.count(M, {FIELD_NAME: None}) == 0
 
 
-@pytest.mark.parametrize('limit_dividor', (1, 2, 5, 3, None))
-@pytest.mark.parametrize('limit', (1, 2, 5, 3, None))
+@pytest.mark.parametrize('limit_dividor, limit', (
+        (1, None),
+        (2, None),
+        (3, None),
+        (5, None),
+        (None, 1),
+        (None, 2),
+        (None, 3),
+))
 async def test_choose_limit(db, limit_dividor, limit):
-
     if limit is not None and limit_dividor is not None:
         pytest.skip()
 
