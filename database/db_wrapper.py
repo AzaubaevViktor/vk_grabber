@@ -96,6 +96,14 @@ class DBWrapper:
         async for raw_item in self.find_raw(klass=klass, query_=query_, limit_=limit_, sort_=sort_, **kwargs):
             yield self._transform(klass, raw_item)
 
+    async def count(self, ModelClass: Type[Model], query_: Optional[Dict] = None) -> int:
+        assert issubclass(ModelClass, Model)
+        collection = self._get_collection(ModelClass)
+
+        query = query_ or {}
+
+        return await collection.count_documents(query)
+
     # DEPRECATED
 
     def _get_collection(self, obj: ModelCollectionT):
@@ -219,11 +227,6 @@ class DBWrapper:
         assert i_understand_delete_all
         self.log.important("Delete database", db=self.db)
         await self.client.drop_database(self.db)
-
-    async def count(self, ModelClass: Type[Model]) -> int:
-        assert issubclass(ModelClass, Model)
-        collection = self._get_collection(ModelClass)
-        return await collection.count_documents({})
 
     def __str__(self):
         return f"<DBWrapper (mongo): {self.db.name} {self.db}>"
