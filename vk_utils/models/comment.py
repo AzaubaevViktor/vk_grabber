@@ -15,7 +15,7 @@ class VKComment(Model):
     reply_to_comment = ModelAttribute(default=None)
     deleted = ModelAttribute(default=False)
 
-    thread = Attribute(default=None)  # Не записывается в mongo
+    thread = Attribute(default=None)  # Не записывается в mongo потому что Attribute
 
     # Добавляются сами
     post_id = ModelAttribute(default=None, uid=True)
