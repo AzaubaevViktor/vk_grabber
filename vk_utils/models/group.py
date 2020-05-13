@@ -3,6 +3,7 @@ from database import Model, ModelAttribute
 
 class VKGroup(Model):
     id = ModelAttribute(uid=True)
+
     name = ModelAttribute()
     screen_name = ModelAttribute()
     description = ModelAttribute()

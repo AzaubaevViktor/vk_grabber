@@ -3,7 +3,7 @@ from database import ModelAttribute, Model
 
 
 class VKComment(Model):
-    id = ModelAttribute()
+    id = ModelAttribute(uid=True)
 
     text = ModelAttribute()
     date = ModelAttribute()
@@ -18,7 +18,7 @@ class VKComment(Model):
     thread = Attribute(default=None)  # Не записывается в mongo
 
     # Добавляются сами
-    post_id = ModelAttribute(default=None)
+    post_id = ModelAttribute(default=None, uid=True)
     owner_id = ModelAttribute(default=None)
 
     def get_thread(self):

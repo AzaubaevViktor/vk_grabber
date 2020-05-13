@@ -2,9 +2,10 @@ from database import Model, ModelAttribute
 
 
 class VKPost(Model):
-    id = ModelAttribute()
+    owner_id = ModelAttribute(uid=True)
+    id = ModelAttribute(uid=True)
+
     from_id = ModelAttribute()
-    owner_id = ModelAttribute()
     date = ModelAttribute()
     marked_as_ads = ModelAttribute(default=None)
     post_type = ModelAttribute()
