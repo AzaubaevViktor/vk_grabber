@@ -47,6 +47,8 @@ async def test_group_comments(vk, owner_id):
     async for post in posts_iter:
         is_found = False
         async for comment in vk.comments_iter(owner_id=owner_id, post_id=post.id):
+            if comment.deleted:
+                continue
             assert isinstance(comment, VKComment)
             assert comment.from_id
             assert comment.date
