@@ -26,12 +26,27 @@ analyze_exclude = ['нгу']
 
 
 def check_word(analyze_result):
-    orig_word = analyze_result['text'].strip()
+    orig_word: str = analyze_result['text'].strip()
 
     try:
         word: str = analyze_result['analysis'][0]['lex'].strip()
     except (KeyError, IndexError):
         word: str = orig_word
+
+    while True:
+        if not word:  # TODO: Without this here strange cycle
+            return
+
+        if word.startswith('-'):
+            word = word[1:]
+        elif orig_word.endswith('-'):
+            word = word[:-1]
+        else:
+            stripped = word.strip()
+            if stripped == word:
+                break
+
+            word = stripped
 
     if word in stop_words:
         return
