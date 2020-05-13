@@ -2,7 +2,8 @@ import asyncio
 
 import pytest
 
-from core.monitor import Monitoring, DictPage, PageAttribute, ListPage
+from core.monitor import Monitoring
+from core.monitor.page import PageAttribute, DictPage, ListPage
 from core.monitor.tests.conftest import MonitoringTestApi
 
 pytestmark = pytest.mark.asyncio

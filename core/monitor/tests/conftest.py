@@ -42,6 +42,22 @@ class MonitoringTestApi:
 
         return finish_ - start_
 
+    async def pages(self):
+        self.log.info("Get pages")
+
+        start_ = time()
+        url = self._url('pages')
+        self.log.debug(url=url)
+        async with self.session.get(url) as resp:
+            assert resp.status == 200, await resp.text()
+            data = await resp.json()
+            self.log.info(data)
+            finish_ = time()
+
+        self.log.info("Recv answer", time_=finish_ - start_)
+
+        return data
+
 
 @pytest.fixture(scope='function')
 async def mon() -> Monitoring:
