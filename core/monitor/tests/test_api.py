@@ -108,7 +108,7 @@ async def test_list_page(conn: MonitoringTestApi, mon: Monitoring):
     page_data = await conn.page(page_id)
     assert page_data['name'] == page_name
     assert page_data['id'] == page_id
-    assert page_data['template'] == 'dict'
+    assert page_data['template'] == 'list'
     assert page_data['data'] == []
 
     # SUB PAGE
@@ -126,10 +126,8 @@ async def test_list_page(conn: MonitoringTestApi, mon: Monitoring):
     assert sub_page_data['name'] == sub_page_name
     assert sub_page_data['id'] == sub_page_id
     assert sub_page_data['template'] == 'dict'
-    assert sub_page_data['data'] == {
-        'a': None,
-        'b': None
-    }
+    assert sub_page_data['a'] is None
+    assert sub_page_data['b'] is None
 
     # sub page with attr a
     sub_page.a = 'Check'
@@ -138,10 +136,8 @@ async def test_list_page(conn: MonitoringTestApi, mon: Monitoring):
     assert isinstance(page_data['data'], list)
     assert len(page_data['data']) == 1
     sub_page_data = page_data['data'][0]
-    assert sub_page_data['data'] == {
-        'a': 'Check',
-        'b': None
-    }
+    assert sub_page_data['a'] == "Check"
+    assert sub_page_data['b'] is None
 
     # sub page with attr a and b
     sub_page.b = 1.2
@@ -150,7 +146,5 @@ async def test_list_page(conn: MonitoringTestApi, mon: Monitoring):
     assert isinstance(page_data['data'], list)
     assert len(page_data['data']) == 1
     sub_page_data = page_data['data'][0]
-    assert sub_page_data['data'] == {
-        'a': 'Check',
-        'b': 1.2
-    }
+    assert sub_page_data['a'] == 'Check'
+    assert sub_page_data['b'] == 1.2
