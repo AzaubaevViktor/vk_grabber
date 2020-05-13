@@ -1,8 +1,7 @@
 import pytest
 
-from app import Application, LoadParticipants
-from vk_utils import VKGroup
-
+from app import Application, LoadParticipants, LoadPersonsPosts
+from vk_utils import VKGroup, VKUser
 
 pytestmark = pytest.mark.asyncio
 
@@ -37,3 +36,16 @@ async def test_groups(app_ctx):
         groups.append(group_raw)
 
     assert len(groups) == 3
+
+
+async def test_users(app_ctx):
+    users = []
+
+    downloaded = 0
+
+    async for user_raw in app_ctx.db.find_raw(VKUser):
+        downloaded += user_raw.get(LoadPersonsPosts.FIELD_NAME) is True
+        users.append(user_raw)
+
+    assert len(users)
+    assert downloaded
