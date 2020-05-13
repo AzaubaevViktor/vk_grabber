@@ -1,6 +1,7 @@
 from database import Model, ModelAttribute
 
 
+# TODO: Is Deleted?
 class VKPost(Model):
     owner_id = ModelAttribute(uid=True)
     id = ModelAttribute(uid=True)

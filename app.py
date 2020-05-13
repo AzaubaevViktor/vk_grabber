@@ -59,14 +59,10 @@ class LoadGroups(BaseWorkApp):
 
     async def process(self, item: int):
         item = int(item)
-        yield VKGroup(_id=item)
+        yield VKGroup(id=item)
 
     async def update(self, result):
-        # TODO: Cache
-        try:
-            await self.db.insert_many(result, force=True)
-        except pymongo.errors.BulkWriteError:
-            self.log.info("Exist", result=result)
+        await self.db.store(result, rewrite=False)
 
 
 class _LoadModelField(BaseWorkApp):
@@ -80,17 +76,17 @@ class _LoadModelField(BaseWorkApp):
         assert self.FIELD_NAME
 
         count = 0
-        async for _ in self.db.update({'@model': self.MODEL_CLASS, self.FIELD_NAME: False},
+        async for _ in self.db.choose(self.MODEL_CLASS, {self.FIELD_NAME: False},
                                       {self.FIELD_NAME: None}):
             count += 1
 
         self.log.info("Cleanup old tasks", count=count)
 
     async def input(self):
-        async for item in self.db.update({'@model': self.MODEL_CLASS, self.FIELD_NAME: None},
+        async for item in self.db.choose(self.MODEL_CLASS, {self.FIELD_NAME: None},
                                          {self.FIELD_NAME: False},
-                                         limit=self.INPUT_QUERY_LIMIT):
-            yield item, self.db.update_model(item, **{self.FIELD_NAME: True})
+                                         limit_=self.INPUT_QUERY_LIMIT):
+            yield item, self.db.store(item, **{self.FIELD_NAME: True})
 
 
 class LoadParticipants(_LoadModelField):
@@ -111,15 +107,11 @@ class LoadParticipants(_LoadModelField):
             yield person_id
 
     async def update(self, person_id):
-        user = VKUser(_id=person_id)
-        try:
-            await self.db.insert_many(
-                user,
-                force=True
-            )
-        except pymongo.errors.BulkWriteError:
-            # Model already exist
-            self.log.info("Exist", user=user)
+        user = VKUser(id=person_id)
+        await self.db.store(
+            user,
+            rewrite=False
+        )
 
 
 class LoadPosts(_LoadModelField):
@@ -129,17 +121,14 @@ class LoadPosts(_LoadModelField):
         super().__init__(ctx)
         self.posts_count = self.ctx.posts_count
 
-    async def update(self, post):
+    async def update(self, post: VKPost):
         if not post.text:
             return
 
-        try:
-            await self.db.insert_many(
-                post,
-                force=True
-            )
-        except pymongo.errors.BulkWriteError:
-            self.log.info("Exist", result=post)
+        await self.db.store(
+            post,
+            rewrite=False
+        )
 
 
 class LoadGroupPosts(LoadPosts):
@@ -163,7 +152,7 @@ class LoadPersonsPosts(LoadPosts):
 
 
 class LoadPostComments(_LoadModelField):
-    INPUT_RETRIES = 20
+    INPUT_RETRIES = 5
 
     MODEL_CLASS = VKPost
     FIELD_NAME = "load_comments"
@@ -178,12 +167,12 @@ class LoadPostComments(_LoadModelField):
         if not comment.text:
             return
 
-        try:
-            await self.db.insert_many(
-                comment
-            )
-        except pymongo.errors.BulkWriteError:
-            self.log.info("Exist", comment=comment)
+        if comment.deleted:
+            return
+
+        await self.db.store(
+            comment
+        )
 
 
 class Word(Model):
@@ -193,13 +182,10 @@ class Word(Model):
     post_id: int = ModelAttribute()
 
 
-class BaseWordKnife(BaseWorkApp):
+class BaseWordKnife(_LoadModelField):
     INPUT_RETRIES = 5
-    MODEL = None
-
-    async def input(self):
-        async for post in self.db.find(self.MODEL(), word_processed=None, limit=20):
-            yield post, self.db.update_model(post, word_processed=True)
+    MODEL_CLASS = None
+    FIELD_NAME = 'word_processed'
 
     async def process(self, post: VKPost):
         for word in tokenize(post.text):
@@ -209,17 +195,17 @@ class BaseWordKnife(BaseWorkApp):
                        date=post.date,)
 
     async def update(self, word: Word):
-        await self.db.insert_many(
+        await self.db.store(
             word
         )
 
 
 class WordKnifePost(BaseWordKnife):
-    MODEL = VKPost
+    MODEL_CLASS = VKPost
 
 
 class WordKnifeComment(BaseWordKnife):
-    MODEL = VKComment
+    MODEL_CLASS = VKComment
 
 
 class Application(BaseApplication):

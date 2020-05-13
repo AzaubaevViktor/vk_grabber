@@ -124,7 +124,7 @@ class Model(AttributeStorage):
             if self.__uids__:
                 _id = self._storage['_id']
                 del self._storage["_id"]
-                assert _id == self._id
+                assert _id == self._id, (_id, self._id, self)
 
     def verificate(self):
         for k, attr in self.__attributes__.items():

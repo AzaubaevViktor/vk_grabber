@@ -1,6 +1,6 @@
 import pytest
 
-from app import Application
+from app import Application, LoadParticipants
 from vk_utils import VKGroup
 
 
@@ -24,10 +24,16 @@ async def app_ctx(config):
     return app.ctx
 
 
+async def test_app(app_ctx):
+    assert app_ctx
+    print("Now we can start tests")
+
+
 async def test_groups(app_ctx):
     groups = []
 
-    async for group in app_ctx.db.find(VKGroup):
-        groups.append(group)
+    async for group_raw in app_ctx.db.find_raw(VKGroup):
+        assert group_raw.get(LoadParticipants.FIELD_NAME) is True
+        groups.append(group_raw)
 
     assert len(groups) == 3
