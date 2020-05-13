@@ -7,7 +7,7 @@ from app import BaseApplication
 from core import LoadConfig, Time
 from time_series.ts import TSManager, TimeSeries, Funcs
 from vk_utils import VKGroup, VKUser
-from word_woker import tokenize
+from word_worker import tokenize
 
 
 def simple_bunches(datas: Sequence, count: int):

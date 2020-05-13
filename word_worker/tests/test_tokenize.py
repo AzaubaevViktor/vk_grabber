@@ -1,6 +1,6 @@
 import random
 
-from word_woker import tokenize
+from word_worker import tokenize
 
 
 def test_simple():

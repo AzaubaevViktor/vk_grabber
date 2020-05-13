@@ -6,7 +6,7 @@ import pymongo.errors
 from core import LoadConfig, Log, BaseWork
 from database import DBWrapper, Model, ModelAttribute
 from vk_utils import VK, VKGroup, VKUser, VKPost, VKComment
-from word_woker import tokenize
+from word_worker import tokenize
 
 
 class BaseApplication:
