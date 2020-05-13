@@ -11,13 +11,13 @@
     #wrapper {
         width: 1000px;
         border: 1px dotted #AAA;
-        background: #EEE;
+        background: #F8F8F8;
         margin: auto;
-        padding: 0em 1em 1em 1em;
+        padding: 0.1em 1em 1em 1em;
     }
 
     #nav {
-        padding: 0em 1em;
+        border-bottom: 1px dotted #AAA;
         font-size: 2em;
         width: 100%;
 
@@ -25,6 +25,10 @@
         flex-direction: row;
         justify-content: space-around;
         flex-wrap: nowrap;
+    }
+
+    #nav > div > .page {
+        color: blue;
     }
 
 </style>
@@ -36,6 +40,7 @@
         <div id="nav_name">Monitoring</div>
         <div id="nav_pages"></div>
         <div id="app_status">Loading js...</div>
+        <div id="app_ping"></div>
     </div>
     <div id="content">
         <h1>Wait for loading...</h1>
@@ -50,6 +55,112 @@ function app_status(text) {
     document.getElementById("app_status").innerHTML = text;
 }
 
+function set_ping(text) {
+    document.getElementById("app_ping").innerHTML = text;
+}
+
+async function getData(url) {
+  // Default options are marked with *
+  app_status("💨");
+  const response = await fetch(url, {
+    method: 'GET', // *GET, POST, PUT, DELETE, etc.
+    mode: 'cors', // no-cors, *cors, same-origin
+    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+    credentials: 'same-origin', // include, *same-origin, omit
+    //headers: {
+      //'Content-Type': 'application/json'
+      // 'Content-Type': 'application/x-www-form-urlencoded',
+    //},
+    redirect: 'follow', // manual, *follow, error
+    referrerPolicy: 'no-referrer', // no-referrer, *client
+    // body: JSON.stringify(data) // body data type must match "Content-Type" header
+  });
+  return await response.json(); // parses JSON response into native JavaScript objects
+}
+
+function run_ping() {
+    let start = + new Date();
+
+    getData("/api/ping")
+        .then((data) => {
+            // TODO: Check status field
+
+            app_status("✅");
+
+            let ping_time = (+ new Date()) - start;
+            set_ping(`${(ping_time).toFixed(1)} ms`);
+
+            console.log(data);
+
+            setTimeout(run_ping, 1000);
+        })
+        .catch((error) => {
+            app_status("❌");
+            console.error(error);
+
+            setTimeout(run_ping, 5000);
+        });
+}
+
+run_ping();
+
+let active_page = null;
+
+
+function load_page(page_id) {
+    console.log(page_id);
+    active_page = page_id;
+    page_loader(daemon=false);
+}
+
+function page_loader(daemon=true) {
+    if (active_page !== null) {
+        getData(`/api/page/${active_page}`)
+        .then((data) => {
+            console.log(data);
+            let content = document.getElementById("content");
+            content.innerHTML = "<ul>";
+
+            for (const [key, value] of Object.entries(data)) {
+                console.log(key, value);
+                content.innerHTML += `<li>${key}: ${value}</li>`
+            }
+
+            content.innerHTML += "</ul>";
+        })
+        .catch((error) => {
+            app_status("❌");
+            console.error(error);
+        })
+    }
+    if (daemon) {
+        setTimeout(page_loader, 1000)
+    }
+}
+
+page_loader();
+
+function get_pages() {
+    getData("/api/pages")
+        .then((data) => {
+            console.log(data);
+            let content = document.getElementById("nav_pages");
+            content.innerHTML = "";
+
+            data.forEach(function (item, index) {
+                console.log(item);
+                content.innerHTML += `<div class=page id="page_${item.id}" onclick="load_page('${item.id}')">${item.name}</div>`
+            })
+
+        })
+        .catch((error) => {
+            app_status("❌");
+            console.error(error);
+            setTimeout(get_pages, 5000);
+        })
+}
+
+get_pages();
 
 app_status("Js loaded");
 </script>

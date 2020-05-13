@@ -11,6 +11,8 @@ from .page import DictPage, PageAttribute, BasePage
 
 class MainPage(DictPage):
     info = PageAttribute()
+    start_time = PageAttribute()
+    queries = PageAttribute(default=0)
 
 
 class Monitoring:
@@ -21,7 +23,9 @@ class Monitoring:
         self.port = port
         self.log = Log(f"Monitoring")
         self._pages: Dict[str, BasePage] = {}
-        self.add_page(MainPage("_main", "Info"))
+
+        self.main_page = MainPage("_main", "Info")
+        self.add_page(self.main_page)
 
     def add_page(self, page: BasePage):
         assert page.id not in self._pages
@@ -45,6 +49,7 @@ class Monitoring:
 
         await site.start()
         self.log.info("Server started")
+        self.main_page.start_time = time()
 
     async def shutdown(self):
         self.log.info("Server shutdown")
@@ -81,6 +86,8 @@ class Monitoring:
 
     @web.middleware
     async def error_middleware(self, request: Request, handler):
+        self.main_page.queries += 1
+
         try:
             response = await handler(request)
 
