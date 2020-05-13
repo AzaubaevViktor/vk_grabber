@@ -223,27 +223,32 @@ class WordKnifeComment(BaseWordKnife):
 
 
 class Application(BaseApplication):
-    def __init__(self, config: LoadConfig):
+    def __init__(self, config: LoadConfig, force_clean=False):
         super().__init__(config)
         self.clean = config.app.clean
+        self._force_clean = force_clean
 
     async def warm_up(self):
         if self.clean:
-            self.log.important("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
-            self.log.important("⚠️⚠️⚠️                           ⚠️⚠️⚠️")
-            self.log.important("⚠️⚠️⚠️ NOW I DELETE ALL DATABASE ⚠️⚠️⚠️")
-            self.log.important(f"⚠️⚠️⚠️{self.ctx.db.db_name:^27}⚠️⚠️⚠️")
-            self.log.important("⚠️⚠️⚠️                           ⚠️⚠️⚠️")
-            self.log.important("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
-            self.log.important("This", name=self.ctx.db.db_name, db=self.ctx.db)
+            if not self._force_clean:
+                self.log.important("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
+                self.log.important("⚠️⚠️⚠️                           ⚠️⚠️⚠️")
+                self.log.important("⚠️⚠️⚠️ NOW I DELETE ALL DATABASE ⚠️⚠️⚠️")
+                self.log.important(f"⚠️⚠️⚠️{self.ctx.db.db_name:^27}⚠️⚠️⚠️")
+                self.log.important("⚠️⚠️⚠️                           ⚠️⚠️⚠️")
+                self.log.important("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
+                self.log.important("This", name=self.ctx.db.db_name, db=self.ctx.db)
 
-            countdown = 10
-            for i in range(countdown):
-                await asyncio.sleep(1)
-                self.log.warning(countdown - i)
+                countdown = 10
+                for i in range(countdown):
+                    await asyncio.sleep(1)
+                    self.log.warning(countdown - i)
+
+            self.log.important("⚠️ ⚠️ ⚠️ HERE WE DROP DATABASE")
             await self.ctx.db.delete_all(i_understand_delete_all=True)
+            self.log.important("⚠️ ⚠️ ⚠️ HERE WE END DROP DATABASE...")
 
-        await self.ctx.warm_up()
+        await super(Application, self).warm_up()
 
         BaseWork.for_monitoring['vk'] = self.ctx.vk.stats
         await BaseWork.run_monitoring_server(self.config.app)
