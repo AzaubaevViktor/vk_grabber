@@ -66,3 +66,7 @@ def test_none():
 
 def test_empty():
     assert [] == tokenize("")
+
+
+def test_minus_space():
+    assert [] == tokenize("-  - -- -   - - ")
