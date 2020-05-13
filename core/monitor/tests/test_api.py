@@ -47,7 +47,7 @@ async def test_add_page(conn: MonitoringTestApi, mon: Monitoring):
     page_id = "test_empty"
 
     page = EmptyPage(page_id, page_name)
-    await mon.add_page(page)
+    mon.add_page(page)
 
     pages = await conn.pages()
     assert len(pages) == 2
@@ -68,7 +68,7 @@ async def test_attr_page(conn: MonitoringTestApi, mon: Monitoring):
     page_id = "test_attrs"
 
     page = PageWithAttrs(page_id, page_name)
-    await mon.add_page(page)
+    mon.add_page(page)
 
     pages = await conn.pages()
     assert len(pages) == 2
@@ -77,24 +77,18 @@ async def test_attr_page(conn: MonitoringTestApi, mon: Monitoring):
     assert page_data['name'] == page_name
     assert page_data['id'] == page_id
     assert page_data['template'] == 'dict'
-    assert page_data['data'] == {
-        'a': None,
-        'b': None
-    }
+    assert page_data['a'] is None
+    assert page_data['b'] is None
 
     page.a = 10
     page_data = await conn.page(page_id)
-    assert page_data['data'] == {
-        'a': 10,
-        'b': None
-    }
+    assert page_data['a'] == 10
+    assert page_data['b'] is None
 
     page.b = "Hello, world!"
     page_data = await conn.page(page_id)
-    assert page_data['data'] == {
-        'a': 10,
-        'b': "Hello, world!"
-    }
+    assert page_data['a'] == 10
+    assert page_data['b'] == "Hello, world!"
 
 
 class ListPageTest(ListPage):
@@ -106,7 +100,7 @@ async def test_list_page(conn: MonitoringTestApi, mon: Monitoring):
     page_id = "test_list"
 
     page = ListPageTest(page_id, page_name)
-    await mon.add_page(page)
+    mon.add_page(page)
 
     pages = await conn.pages()
     assert len(pages) == 2

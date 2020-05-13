@@ -1,10 +1,11 @@
 from time import time
+from typing import Dict
 
 from aiohttp import web
 from aiohttp.web_request import Request
 
 from core import Log
-from .page import DictPage, PageAttribute
+from .page import DictPage, PageAttribute, BasePage
 
 
 class MainPage(DictPage):
@@ -18,9 +19,12 @@ class Monitoring:
         self.addr = addr
         self.port = port
         self.log = Log(f"Monitoring")
-        self._pages = [
-            MainPage("_main", "Info")
-        ]
+        self._pages: Dict[str, BasePage] = {}
+        self.add_page(MainPage("_main", "Info"))
+
+    def add_page(self, page: BasePage):
+        assert page.id not in self._pages
+        self._pages[page.id] = page
 
     async def warm_up(self):
         self.log.important("Running", addr=self.addr, port=self.port)
@@ -54,15 +58,18 @@ class Monitoring:
     async def _get_pages(self, request):
         answer_ = []
 
-        for page in self._pages:
+        for page in self._pages.values():
             answer_.append(page.to_dict())
 
         return web.json_response(answer_)
 
     async def _get_page(self, request):
-        page_id = request.match_info['name']
+        page_id = request.match_info['id']
 
-        raise NotImplementedError()
+        # TODO: NotFoundPage
+        page = self._pages[page_id]
+
+        return web.json_response(page.to_dict())
 
     @web.middleware
     async def error_middleware(self, request: Request, handler):
