@@ -3,19 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <title>VK Grabber monitoring</title>
-<style>
+    <style>
+    body {
+        font-family: "Fira code", monospace;
+    }
+
+    #wrapper {
+        width: 1000px;
+        border: 1px dotted #AAA;
+        background: #EEE;
+        margin: auto;
+        padding: 0em 1em 1em 1em;
+    }
+
+    #nav {
+        padding: 0em 1em;
+        font-size: 2em;
+        width: 100%;
+
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        flex-wrap: nowrap;
+    }
+
 </style>
 </head>
 <body>
 
-<div class="nav">
-    <div class="name"></div>
-    <div class="pages"></div>
-    <div class="status"></div>
+<div id="wrapper">
+    <div id="nav">
+        <div id="nav_name">Monitoring</div>
+        <div id="nav_pages"></div>
+        <div id="app_status">Loading js...</div>
+    </div>
+    <div id="content">
+        <h1>Wait for loading...</h1>
+    </div>
+    <div id="footer">
+
+    </div>
 </div>
 
 <script lang="javascript">
+function app_status(text) {
+    document.getElementById("app_status").innerHTML = text;
+}
 
+
+app_status("Js loaded");
 </script>
 
 </body>
