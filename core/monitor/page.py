@@ -30,3 +30,27 @@ class DictPage(BasePage):
 
 class ListPage(BasePage):
     TEMPLATE = 'list'
+
+    data = PageAttribute()
+
+    def __init__(self, id: str, name: str, **kwargs):
+        super().__init__(id, name, **kwargs)
+        if self.data is None:
+            self.data = []
+
+    def append(self, sub_page: BasePage):
+        self.data.append(sub_page)
+
+    def to_dict(self) -> dict:
+        info = super(ListPage, self).to_dict()
+        old_data = info.pop('data')
+        new_data = []
+        info['data'] = new_data
+
+        for item in old_data:
+            if isinstance(item, BasePage):
+                new_data.append(item.to_dict())
+            else:
+                new_data.append(item)
+
+        return info
