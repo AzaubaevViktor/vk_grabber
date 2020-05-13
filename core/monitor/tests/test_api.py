@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 
 from core.monitor import Monitoring, DictPage, PageAttribute, ListPage
@@ -7,7 +9,22 @@ pytestmark = pytest.mark.asyncio
 
 
 async def test_run(conn: MonitoringTestApi):
-    assert await conn.ping()
+    try_count = 10
+
+    while try_count:
+        try:
+            try_count -= 1
+            ping_value = await conn.ping()
+
+            assert ping_value
+            print(f"{ping_value * 1000:.3}ms")
+            return
+
+        except (Exception, AssertionError) as e:
+            if not try_count:
+                raise e
+            print(try_count)
+            await asyncio.sleep(1)
 
 
 async def test_default_page(conn: MonitoringTestApi):
