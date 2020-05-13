@@ -184,7 +184,7 @@ class Model(AttributeStorage):
 
     def __repr__(self):
         attrs = "; ".join(
-            f"{k}={getattr(self, k, None)}" for k, attr in self.__uids__.items() if not attr.is_id_alias
+            f"{k}={getattr(self, k, None)}" for k, attr in self.__uids__.items() if attr.is_id_alias
         )
 
         return f"<{self.__class__.__name__}: {attrs}>"
