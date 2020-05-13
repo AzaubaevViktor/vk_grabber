@@ -1,6 +1,7 @@
 from time import time
 from typing import Dict
 
+import aiofiles
 from aiohttp import web
 from aiohttp.web_request import Request
 
@@ -32,6 +33,7 @@ class Monitoring:
         app = web.Application(middlewares=[self.error_middleware])
 
         app.add_routes([
+            web.get(f"/", self._get_index),
             web.get(f"{self.API_PATH}/ping", self._get_ping),
             web.get(f"{self.API_PATH}/pages", self._get_pages),
             web.get(f"{self.API_PATH}/page/{{id}}", self._get_page),
@@ -50,6 +52,12 @@ class Monitoring:
         self.log.info("Server cleanup")
         await self.runner.cleanup()
         self.log.info("Server gracefully stopped")
+
+    async def _get_index(self, request):
+        async with aiofiles.open("core/monitor/app.html", mode='rt') as f:
+            template = await f.read()
+
+        return web.Response(body=template, content_type="text/html")
 
     async def _get_ping(self, request):
         return web.json_response({'status': 'ok',
