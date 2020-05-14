@@ -8,7 +8,7 @@ from core.monitor import Monitoring, ListPage, DictPage, PageAttribute
 pytestmark = pytest.mark.asyncio
 
 
-class MainListPage(ListPage):
+class ListRequestPage(ListPage):
     MAX_SIZE = 10
     pass
 
@@ -22,7 +22,7 @@ class RequestPage(DictPage):
 @pytest.mark.skip
 @pytest.mark.monitor_server
 async def test_index(config, mon: Monitoring):
-    mon.list_page = MainListPage("_list", "List page")
+    mon.list_page = ListRequestPage("_list", "List page")
 
     def md(request, handler):
         mon.list_page.append(RequestPage(
