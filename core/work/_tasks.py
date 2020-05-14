@@ -20,7 +20,7 @@ class _Tasks:
                 try:
                     result = await task
                     if result:
-                        self.log.important("Task say:", task=task, result=result)
+                        self.log.debug("Task say:", task=task, result=result)
                 except RuntimeError:
                     raise
                 except Exception:
@@ -55,7 +55,7 @@ class TasksManager:
 
     async def _executor(self, index: int):
         log = self.log['executor'][index]
-        log.debug("Executor started")
+        log.deep("Executor started")
         while self.is_run:
             try:
                 coro = await asyncio.wait_for(self._tasks.get(), self.TIMEOUT)
