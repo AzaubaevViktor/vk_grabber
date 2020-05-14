@@ -19,6 +19,7 @@ class RequestPage(DictPage):
     url = PageAttribute()
 
 
+@pytest.mark.skip
 @pytest.mark.monitor_server
 async def test_index(config, mon: Monitoring):
     mon.list_page = MainListPage("_list", "List page")

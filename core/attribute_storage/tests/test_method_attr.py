@@ -26,7 +26,7 @@ def test_property(Class):
     obj = Class(a=10)
 
     assert obj.a == 10
-    assert obj.a2 == 10
+    assert obj.a2 == 20
 
     obj.a = 20
     assert obj.a2 == 40

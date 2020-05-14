@@ -1,6 +1,6 @@
 import json
 from json import JSONEncoder
-from typing import Optional, Tuple, Type, Any, Dict, Iterable, TypeVar, Sequence, Union
+from typing import Optional, Tuple, Type, Any, Dict, Iterable, TypeVar, Sequence, Union, Callable
 
 from core.log import Log
 from core.searchable import SearchableSubclasses
@@ -11,12 +11,14 @@ class Attribute:
         pass
 
     def __init__(self, description: Optional[str] = None,
-                 default=_DefaultNone(),
-                 uid: bool = False):
+                 default: Any = _DefaultNone(),
+                 uid: bool = False,
+                 method: Optional[Callable] = None):
         self.uid = uid
         self.name = None
         self.description = description
         self.default = default
+        self.method = method
 
     @property
     def is_uid_attribute(self):
@@ -26,16 +28,23 @@ class Attribute:
         if instance is None:
             return self
 
+        if self.method is not None:
+            return self.method(instance)
+
         value = instance._storage.get(self.name, self.default)
         assert not isinstance(value, self._DefaultNone)
         return value
 
     def __set__(self, instance: "AttributeStorage", value: "Any"):
-        instance._storage[self.name] = value
+        if self.method is not None and not isinstance(value, self._DefaultNone):
+            raise ValueError(f"You cannot set value {value} to property")
 
+        instance._storage[self.name] = value
 
     @property
     def is_required(self):
+        if self.method is not None:
+            return False
         return isinstance(self.default, Attribute._DefaultNone)
 
     def copy(self) -> "Attribute":
@@ -44,6 +53,10 @@ class Attribute:
                          uid=self.uid)
         attr.name = self.name
         return attr
+
+    @classmethod
+    def property(cls, method):
+        return cls(method=method)
 
 
 class KwargsAttribute(Attribute):
