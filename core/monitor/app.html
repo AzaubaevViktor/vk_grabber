@@ -45,6 +45,20 @@
         text-align: right;
     }
 
+    #content > .page {
+        border-bottom: 1px dashed #999;
+    }
+
+    #content > .page > h3 {
+        margin-block-start: 0.3em;
+        margin-block-end: 0.15em;
+        margin-left: 0.5em;
+    }
+
+    #content > .page > ul {
+        margin: 0.3em;
+    }
+
 </style>
 </head>
 <body>
@@ -98,7 +112,6 @@ function run_ping() {
     getData("/api/ping")
         .then((data) => {
             // TODO: Check status field
-
             app_status("✅");
 
             let ping_time = (+ new Date()) - start;
@@ -130,16 +143,26 @@ function load_page(page_id) {
 }
 
 function render_dict(data) {
-    let result = ""
+    let name = data.name;
+    delete data.name;
 
-    result = "<ul>";
+    let id = data.id;
+    delete data.id;
+
+    delete data.template;
+
+    let result = `<div class='page' id='${id}'>`;
+
+    result += `<h3>${name}</h3>`
+
+    result += "<ul>";
 
     for (const [key, value] of Object.entries(data)) {
         console.log(key, value);
         result += `<li>${key}: ${value}</li>`
     }
 
-    result += "</ul>";
+    result += "</ul></div>";
 
     return result;
 }
@@ -178,10 +201,6 @@ function page_loader(daemon=true) {
 
 page_loader();
 
-function insertAfter(newNode, referenceNode) {
-    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
-}
-
 function get_pages() {
     getData("/api/pages")
         .then((data) => {
@@ -194,7 +213,7 @@ function get_pages() {
             data.forEach(function (item, index) {
                 let page_link = document.createElement('div');
                 page_link.className = "page";
-                page_link.id = `page_${item.id}`
+                page_link.id = `page_link_${item.id}`
                 page_link.onclick = () => { load_page(item.id) };
                 page_link.textContent = item.name;
                 nav.insertBefore(page_link, pages_end);
