@@ -98,6 +98,8 @@ function run_ping() {
             app_status("❌");
             console.error(error);
 
+            set_ping(`-- ms`);
+
             setTimeout(run_ping, 5000);
         });
 }
@@ -113,20 +115,42 @@ function load_page(page_id) {
     page_loader(daemon=false);
 }
 
+function render_dict(data) {
+    let result = ""
+
+    result = "<ul>";
+
+    for (const [key, value] of Object.entries(data)) {
+        console.log(key, value);
+        result += `<li>${key}: ${value}</li>`
+    }
+
+    result += "</ul>";
+
+    return result;
+}
+
 function page_loader(daemon=true) {
     if (active_page !== null) {
         getData(`/api/page/${active_page}`)
         .then((data) => {
             console.log(data);
-            let content = document.getElementById("content");
-            content.innerHTML = "<ul>";
 
-            for (const [key, value] of Object.entries(data)) {
-                console.log(key, value);
-                content.innerHTML += `<li>${key}: ${value}</li>`
+            let content = document.getElementById("content");
+
+            if (data.template === "dict") {
+                content.innerHTML = render_dict(data);
             }
 
-            content.innerHTML += "</ul>";
+            if (data.template === "list") {
+                content.innerHTML = ""
+
+                data.data.forEach(function (item, index) {
+                    content.innerHTML += "<div class=list_item>";
+                    content.innerHTML += render_dict(item);
+                    content.innerHTML += "</div>"
+                })
+            }
         })
         .catch((error) => {
             app_status("❌");

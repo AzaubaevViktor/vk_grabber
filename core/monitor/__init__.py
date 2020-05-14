@@ -6,7 +6,7 @@ from aiohttp import web
 from aiohttp.web_request import Request
 
 from core import Log
-from .page import DictPage, PageAttribute, BasePage
+from .page import DictPage, PageAttribute, BasePage, ListPage
 
 
 class MainPage(DictPage):
@@ -27,23 +27,30 @@ class Monitoring:
         self.main_page = MainPage("_main", "Info")
         self.add_page(self.main_page)
 
+        self.app: web.Application = None
+
+        self._middleware = []
+
     def add_page(self, page: BasePage):
         assert page.id not in self._pages
         self._pages[page.id] = page
 
+    def add_middleware(self, func):
+        self._middleware.append(func)
+
     async def warm_up(self):
         self.log.important("Running", addr=self.addr, port=self.port)
 
-        app = web.Application(middlewares=[self.error_middleware])
+        self.app = web.Application(middlewares=[self.error_middleware])
 
-        app.add_routes([
+        self.app.add_routes([
             web.get(f"/", self._get_index),
             web.get(f"{self.API_PATH}/ping", self._get_ping),
             web.get(f"{self.API_PATH}/pages", self._get_pages),
             web.get(f"{self.API_PATH}/page/{{id}}", self._get_page),
         ])
 
-        self.runner = web.AppRunner(app)
+        self.runner = web.AppRunner(self.app)
         await self.runner.setup()
         site = web.TCPSite(self.runner, self.addr, self.port)
 
@@ -72,7 +79,7 @@ class Monitoring:
         answer_ = []
 
         for page in self._pages.values():
-            answer_.append(page.to_dict())
+            answer_.append(page.page_info())
 
         return web.json_response(answer_)
 
@@ -86,9 +93,12 @@ class Monitoring:
 
     @web.middleware
     async def error_middleware(self, request: Request, handler):
-        self.main_page.queries += 1
-
         try:
+            for md in self._middleware:
+                md(request, handler)
+
+            self.main_page.queries += 1
+
             response = await handler(request)
 
             if response.status == 200:

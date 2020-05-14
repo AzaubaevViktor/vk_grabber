@@ -23,6 +23,12 @@ class BasePage(AttributeStorage):
             'template': self.TEMPLATE
         }
 
+    def page_info(self) -> dict:
+        return {
+            'id': self.id,
+            'name': self.name
+        }
+
 
 class DictPage(BasePage):
     TEMPLATE = 'dict'
@@ -30,6 +36,7 @@ class DictPage(BasePage):
 
 class ListPage(BasePage):
     TEMPLATE = 'list'
+    MAX_SIZE = None  # TODO: Tests
 
     data = PageAttribute()
 
@@ -40,6 +47,8 @@ class ListPage(BasePage):
 
     def append(self, sub_page: BasePage):
         self.data.append(sub_page)
+        if self.MAX_SIZE and len(self.data) > self.MAX_SIZE:
+            self.data.pop(0)
 
     def to_dict(self) -> dict:
         info = super(ListPage, self).to_dict()
