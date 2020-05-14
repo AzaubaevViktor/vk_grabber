@@ -19,7 +19,7 @@ class BasePage(AttributeStorage):
 
     def to_dict(self) -> dict:
         return {
-            **self._storage,
+            **dict(self),
             'template': self.TEMPLATE
         }
 

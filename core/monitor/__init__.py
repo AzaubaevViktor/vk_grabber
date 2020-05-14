@@ -14,6 +14,10 @@ class MainPage(DictPage):
     start_time = PageAttribute()
     queries = PageAttribute(default=0)
 
+    @PageAttribute.property
+    def work_time(self):
+        return time() - self.start_time
+
 
 # TODO: Add server class
 class Monitoring:

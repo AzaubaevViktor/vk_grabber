@@ -36,6 +36,7 @@ async def test_default_page(conn: MonitoringTestApi):
     assert page_data['name']
     assert page_data['id'] == '_main'
     assert page_data['template'] == 'dict'
+    assert page_data['work_time'] > 0
 
 
 class EmptyPage(DictPage):
