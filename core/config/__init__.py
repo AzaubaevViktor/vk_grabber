@@ -20,15 +20,16 @@ def LoadConfig(file_name: str = None):
         with open(file_name, "wt") as f:
             yaml.safe_dump(data, f)
 
-    return Config(data, do_update, "")
+    return Config(data, do_update, "", source=file_name)
 
 
 class Config:
-    def __init__(self, data: dict, update_func, path):
+    def __init__(self, data: dict, update_func, path, source=None):
         super(Config, self).__setattr__("log", Log("Config"))
         super(Config, self).__setattr__("path", path)
         super(Config, self).__setattr__("_data", data)
         super(Config, self).__setattr__("update", update_func)
+        super(Config, self).__setattr__("source", source)
 
     def __getattr__(self, item: str) -> Union["Config", Any]:
         self.log.deep('Access to', path=self.path, item=item)
@@ -67,6 +68,9 @@ class Config:
             return self._data == other
 
         raise NotImplementedError()
+
+    def __repr__(self):
+        return f"<Config: {self.source} {self.path}>"
 
 
 __all__ = ("LoadConfig", )

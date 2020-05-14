@@ -38,6 +38,7 @@ class TasksManager:
     TIMEOUT = 1
 
     def __init__(self, max_size: int):
+        # TODO: Less logs
         self.log = Log("TasksManager")
         self.size = max_size
 

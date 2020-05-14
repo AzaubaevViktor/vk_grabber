@@ -1,53 +1,10 @@
 import asyncio
 
-import motor.motor_asyncio
-import pymongo.errors
-
-from core import LoadConfig, Log, BaseWork
-from database import DBWrapper, Model, ModelAttribute
-from vk_utils import VK, VKGroup, VKUser, VKPost, VKComment
+from app.base import BaseApplication, AppContext, BaseWorkApp
+from core import LoadConfig, BaseWork
+from database import Model, ModelAttribute
+from vk_utils import VKGroup, VKUser, VKPost, VKComment
 from word_worker import tokenize
-
-
-class BaseApplication:
-    def __init__(self, config: LoadConfig):
-        self.log = Log(self.__class__.__name__)
-
-        self.config = config
-        self.ctx = AppContext(self.config)
-
-    async def warm_up(self):
-        await self.ctx.warm_up()
-
-
-class AppContext:
-    def __init__(self, config: LoadConfig):
-        self.config = config
-        self.stage_name = config.app.stage
-        self.vk = VK(config.vk)
-        self.db = DBWrapper(
-            motor.motor_asyncio.AsyncIOMotorClient(
-                config.mongo.uri
-            ),
-            config.mongo.database
-        )
-
-        self.started_groups = config.vk.groups
-
-        self.posts_count = config.app.posts_count
-        self.participants_count = config.app.participants_count
-
-    async def warm_up(self):
-        await self.vk.warm_up()
-
-
-class BaseWorkApp(BaseWork):
-    def __init__(self, ctx: AppContext):
-        super().__init__()
-        self.ctx = ctx
-        self.db = self.ctx.db
-        self.vk = self.ctx.vk
-        self.state = f"{BaseWorkApp.__name__} initialized"
 
 
 class LoadGroups(BaseWorkApp):
@@ -235,9 +192,6 @@ class Application(BaseApplication):
             self.log.important("⚠️ ⚠️ ⚠️ HERE WE END DROP DATABASE...")
 
         await super(Application, self).warm_up()
-
-        BaseWork.for_monitoring['vk'] = self.ctx.vk.stats
-        await BaseWork.run_monitoring_server(self.config.app)
 
         await self._add_handlers()
 

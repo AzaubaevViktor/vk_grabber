@@ -15,6 +15,7 @@ class MainPage(DictPage):
     queries = PageAttribute(default=0)
 
 
+# TODO: Add server class
 class Monitoring:
     API_PATH = "/api"
 
@@ -30,6 +31,15 @@ class Monitoring:
         self.app: web.Application = None
 
         self._middleware = []
+
+    def __getitem__(self, item: str) -> BasePage:
+        return self._pages[item]
+
+    def __getattr__(self, item):
+        try:
+            return super().__getattr__(item)
+        except AttributeError:
+            return self._pages[item]
 
     def add_page(self, page: BasePage):
         assert page.id not in self._pages

@@ -6,6 +6,7 @@ from typing import List, Sequence
 import aiohttp
 
 from core import Log
+from core.monitor import DictPage, PageAttribute
 from vk_utils import VKGroup, VKPost, VKUser, VKComment
 from vk_utils.get_token import UpdateToken
 
@@ -30,27 +31,16 @@ class VKError(Exception):
         return f"VK Error#{self.error_code}: {self.error_msg}"
 
 
-class VKStats:
-    def __init__(self):
-        self.threshold = 0
-        self.call_methods_count = 0
-        self.success = 0
-        self.errors = 0
-        self.errors_too_many = 0
-        self.queries = 0
-        self.by_type = defaultdict(int)
+class VKStats(DictPage):
+    threshold = PageAttribute(default=0)
+    call_methods_count = PageAttribute(default=0)
+    success = PageAttribute(default=0)
+    errors = PageAttribute(default=0)
+    errors_too_many = PageAttribute(default=0)
+    queries = PageAttribute(default=0)
+    by_type = PageAttribute(default=lambda: defaultdict(int))
 
-    def __iter__(self):
-        yield "Threshold", f"{self.threshold:.5f}s"
-        yield "Parallel", self.call_methods_count
-        q = self.queries or 1
-        yield "Success", f"{self.success} ({self.success * 100 / q:.2f}%)"
-        yield "Errors", f"{self.errors} ({self.errors * 100 / q:.2f}%)"
-        yield "Errors (TMR)", f"{self.errors_too_many} ({self.errors_too_many * 100 / q:.2f}%)"
-        yield "Queries", self.queries
-
-        for name, value in self.by_type.items():
-            yield f"{name}", f"{value} ({value * 100 / q:.2f}%)"
+    # TODO: Add %
 
 
 class VK:
@@ -100,7 +90,7 @@ class VK:
 
         self.query_lock = asyncio.Lock()
 
-        self.stats = VKStats()
+        self.stats = VKStats('vk', "VK API")
 
     async def warm_up(self):
         self.session = aiohttp.ClientSession()

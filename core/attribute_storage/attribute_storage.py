@@ -40,7 +40,7 @@ class Attribute:
         return value
 
     def __set__(self, instance: "AttributeStorage", value: "Any"):
-        if self.method is not None and not isinstance(value, self._DefaultNone):
+        if self.method is not None and not isinstance(value, self._DefaultNone) and value is not None:
             raise ValueError(f"You cannot set value {value} to property")
 
         instance._storage[self.name] = value

@@ -1,13 +1,13 @@
 import asyncio
 from time import time
-from typing import List, Dict, Type, Any
+from typing import List, Dict, Any, Optional
 
-from ._tasks import _Tasks, TasksManager
-from .server import MonitoringServer
+from ._tasks import TasksManager
 
 from html import escape as html_escape
 
-from .. import Log
+from core import Log
+from ..monitor import DictPage, PageAttribute
 
 
 class Task:
@@ -27,18 +27,20 @@ class Task:
         return self.state
 
 
-class Stats:
-    def __init__(self, start_time):
-        self._start_time = start_time
+class Stats(DictPage):
+    _start_time: int = PageAttribute(default=0)
 
-        self.input_items = 0
-        self.processed_items = 0
-        self.returned_items = 0
-        self.updated_items = 0
+    state: str = PageAttribute()
 
-        self.finished_time = None
+    input_items: int = PageAttribute(default=0)
+    processed_items: int = PageAttribute(default=0)
+    returned_items: int = PageAttribute(default=0)
+    updated_items: int = PageAttribute(default=0)
+    finished_items: int = PageAttribute(default=0)
 
-    @property
+    finished_time: Optional[int] = PageAttribute(default=None)
+
+    @PageAttribute.property
     def speed(self):
         dt = (self.finished_time or time()) - self._start_time
 
@@ -47,7 +49,7 @@ class Stats:
 
         return self.processed_items / dt
 
-    @property
+    @PageAttribute.property
     def reverse_speed(self):
         speed = self.speed
 
@@ -68,96 +70,34 @@ class BaseWork:
 
     need_stop = False
 
-    works: List['BaseWork'] = []
-
-    for_monitoring: Dict[str, Any] = {}
-
-    @classmethod
-    async def _web_server_gracefull_shutdown(cls, server):
-        while True:
-            if cls.need_stop:
-                break
-
-            # if task.done():
-            #     break
-
-            await asyncio.sleep(1)
-        await server.shutdown()
-
-    @classmethod
-    async def run_monitoring_server(cls, app_info):
-        server = MonitoringServer(cls.collect_data, app_info)
-        await server()
-
-        asyncio.create_task(cls._web_server_gracefull_shutdown(server))
-
-        # await task
+    work_ids: Dict[str, int] = {}
 
     def __init__(self):
-        self.log = Log(self.__class__.__name__)
+        work_name = self.__class__.__name__
+        self.log = Log(work_name)
 
-        self._state = None
-        self.state = "Base class initialized"
+        self.log.debug("Register work")
+        self.work_ids.setdefault(work_name, -1)
+        self.work_ids[work_name] += 1
+        work_id = f"{work_name}_{self.work_ids[work_name]}"
+        self.log.debug("Work registered", work_id=work_id)
+
+        self.stat = Stats(work_id, work_name)
+
+        self.log.debug("Run task manager")
         self.task_manager = TasksManager(self.PARALLEL)
         self.tasks: List[Task] = []
-        self.stat = Stats(self.start_time)
 
-        self.works.append(self)
-
-    @classmethod
-    def collect_data(cls):
-        result = ""
-        result += f"<h3>Workers</h3>"
-
-        for work in cls.works:
-            result += f"{work.__class__.__name__}: <br>"
-            result += "<ul>"
-
-            result += f"<li>State     : {work.state}</li>"
-            result += f"<li>Input     : {work.stat.input_items}</li>"
-            result += f"<li>Processed : {work.stat.processed_items}</li>"
-            result += f"<li>Speed     : {work.stat.speed:.2f} items&sol;s </li>"
-            result += f"<li>1/Speed   : {work.stat.reverse_speed:.2f} s&sol;items </li>"
-            result += f"<li>Updated   : {work.stat.updated_items}</li>"
-            result += f"<li>Returned  : {work.stat.returned_items}</li>"
-
-            result += "</ul>"
-
-        for name, stat in cls.for_monitoring.items():
-            result += f"<h3>{name}</h3>"
-            result += "<ul>"
-
-            data = dict(stat)
-            key_len = max(len(k) for k in data.keys())
-
-            for k, v in data.items():
-                result += f"<li>{k:{key_len}} : {v}</li>"
-
-            result += "</ul>"
-
-        result += "<h3>Tasks:</h3>"
-        for work in cls.works:
-            result += f"{work.__class__.__name__}: <br>"
-            result += "<ul>"
-
-            if not work.tasks:
-                result += f"<li>No tasks yet</li>"
-            else:
-                for task in work.tasks:
-                    result += f"<li>{html_escape(str(task))} // {html_escape(repr(task.item))}</li>"
-
-            result += "</ul>"
-
-        return result
+        self.state = "Base class initialized"
 
     @property
     def state(self):
-        return self._state
+        return self.stat.state
 
     @state.setter
     def state(self, value):
-        self._state = value
-        self.log.debug(self._state)
+        self.stat.state = value
+        self.log.debug(self.state)
 
     async def warm_up(self):
         pass
@@ -179,6 +119,7 @@ class BaseWork:
     async def __call__(self):
         self.state = "🔥 Warming up"
         await self.warm_up()
+        self.stat._start_time = time()
 
         try:
             await self.main_cycle()
@@ -187,13 +128,15 @@ class BaseWork:
             if not self.MUTE_EXCEPTION:
                 raise
 
+        self.stat.finished_time = time()
+
         self.state = "🛑 Shutdown"
         await self.shutdown()
 
-        self.stat.finished_time = time()
         self.state = "🏁 Finished"
 
     async def main_cycle(self):
+        self.state = "⌛️ Ready to start"
         await asyncio.gather(
             self._input_cycle(),
             self._result_cycle()
@@ -209,40 +152,43 @@ class BaseWork:
             if isinstance(result, TasksManager.Finish):
                 break
 
-            self.stat.updated_items += 1
-
             await self.update(result)
 
+            self.stat.updated_items += 1
+
     async def _input_cycle(self):
-        retries = 0
+        self.stat.retries = 0
 
         while not self.need_stop:
             self.state = "🔎 Wait for new item"
 
             async for item in self.input():
+                self.stat.input_items += 1
                 await self.task_manager.put(self._run_task(
                     Task(item)
                 ))
-                self.stat.input_items += 1
-                retries = None
+                self.stat.retries = None
 
             if self.INPUT_RETRIES == 0:
+                # Need to run only one time
                 self.need_stop = True
                 continue
 
-            if retries is None:
-                retries = 0
+            if self.stat.retries is None:
+                # Item found
+                self.stat.retries = 0
                 await asyncio.sleep(0)
                 continue
 
-            if retries >= self.INPUT_RETRIES:
-                self.log.warning("Too many retries, i'm done", retries=retries)
+            if self.stat.retries >= self.INPUT_RETRIES:
+                self.log.warning("Too many retries, i'm done", retries=self.stat.retries)
                 self.need_stop = True
                 continue
 
-            retries += 1
-            self.state = f"🔎 Wait items, repeat №{retries}"
-            await asyncio.sleep(retries * self.WAIT_COEF)
+            # Retry logic
+            self.stat.retries += 1
+            self.state = f"🔎 Wait items, repeat №{self.stat.retries}"
+            await asyncio.sleep(self.stat.retries * self.WAIT_COEF)
 
         await self.task_manager.stop()
 
@@ -267,6 +213,8 @@ class BaseWork:
 
             self.log.info("Run processed callback", processed_callback=info.processed_callback)
             await info.processed_callback
+
+        self.stat.finished_items += 1
 
         info.update("🏁 Task finished")
 

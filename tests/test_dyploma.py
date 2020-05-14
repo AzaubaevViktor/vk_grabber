@@ -1,6 +1,6 @@
 import pytest
 
-from app import Application, LoadParticipants, LoadPersonsPosts
+from dyploma import Application, LoadParticipants, LoadPersonsPosts
 from vk_utils import VKGroup, VKUser
 
 pytestmark = pytest.mark.asyncio
