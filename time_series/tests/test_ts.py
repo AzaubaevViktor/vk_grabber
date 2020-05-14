@@ -94,6 +94,5 @@ def test_dist():
     ts1 = TimeSeries('test', dates_perc)
     ts2 = TimeSeries('tost', dates_cut)
     assert ts1.sum() != ts2.sum()
-    dist = ts1.dist(ts2)
-    print(dist)
-    assert dist > 0
+    with pytest.raises(Exception):
+        dist = ts1.dist(ts2)
