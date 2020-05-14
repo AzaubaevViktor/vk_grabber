@@ -22,3 +22,7 @@ def test_default_callable():
 
     b.x[2] = 2
     assert 2 not in a.x
+
+    assert dict(a) == {
+        'x': {1: 1}
+    }

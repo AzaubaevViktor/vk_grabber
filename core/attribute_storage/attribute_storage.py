@@ -186,14 +186,20 @@ class AttributeStorage(SearchableSubclasses, metaclass=MetaAttributeStorage):
                                 f"Try one of: {self.__attributes__.keys()}")
 
     def __iter__(self) -> Iterable[Tuple[str, Any]]:
-        data = self._storage
+        kwarg_attr_name = None
         if self.__class__.__kwargs_attribute__:
-            data = {**data}
-            kwargs = data[self.__class__.__kwargs_attribute__.name]
-            del data[self.__class__.__kwargs_attribute__.name]
-            data.update(kwargs)
+            kwarg_attr_name = self.__class__.__kwargs_attribute__.name
 
-        yield from data.items()
+        for name in self.__class__.__attributes__:
+            if kwarg_attr_name and name == kwarg_attr_name:
+                continue
+
+            yield name, getattr(self, name, None)
+
+        if kwarg_attr_name:
+            # noinspection PyTypeChecker
+            kwargs: dict = self.__kwargs_attribute__
+            yield from kwargs.items()
 
     def serialize(self) -> str:
         return json.dumps(self, cls=AttributeStorageEncoder)
