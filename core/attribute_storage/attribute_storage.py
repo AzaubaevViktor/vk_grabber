@@ -1,6 +1,6 @@
 import json
 from json import JSONEncoder
-from typing import Optional, Tuple, Type, Any, Dict, Iterable, TypeVar, Sequence, Union, Callable
+from typing import Optional, Tuple, Type, Any, Dict, Iterable, TypeVar, Callable
 
 from core.log import Log
 from core.searchable import SearchableSubclasses
@@ -17,8 +17,12 @@ class Attribute:
         self.uid = uid
         self.name = None
         self.description = description
-        self.default = default
+        self._default = default
         self.method = method
+
+    @property
+    def default(self):
+        return self._default() if callable(self._default) else self._default
 
     @property
     def is_uid_attribute(self):
