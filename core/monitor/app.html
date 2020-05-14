@@ -26,9 +26,23 @@
         justify-content: space-around;
         flex-wrap: nowrap;
     }
+    
+    #nav > div {
+        padding: 0 0.5em 0 0.5em;
+    }
 
-    #nav > div > .page {
+    #nav > .page {
         color: blue;
+        border-left: 1px dotted #AAA;
+    }
+
+    #nav > #nav_name {
+        flex: 0;
+    }
+
+    #nav > #app_status {
+        flex: 1;
+        text-align: right;
     }
 
 </style>
@@ -37,13 +51,13 @@
 
 <div id="wrapper">
     <div id="nav">
-        <div id="nav_name">Monitoring</div>
-        <div id="nav_pages"></div>
+        <div id="nav_name">🖥</div>
+        <div id="nav_pages_end"></div>
         <div id="app_status">Loading js...</div>
         <div id="app_ping"></div>
     </div>
     <div id="content">
-        <h1>Wait for loading...</h1>
+        <h1>Select page</h1>
     </div>
     <div id="footer">
 
@@ -164,17 +178,28 @@ function page_loader(daemon=true) {
 
 page_loader();
 
+function insertAfter(newNode, referenceNode) {
+    referenceNode.parentNode.insertBefore(newNode, referenceNode.nextSibling);
+}
+
 function get_pages() {
     getData("/api/pages")
         .then((data) => {
             console.log(data);
-            let content = document.getElementById("nav_pages");
-            content.innerHTML = "";
+            let nav = document.getElementById("nav");
+            let pages_end = document.getElementById("nav_pages_end");
+
+            document.querySelectorAll("#nav > .page").forEach(e => e.parentNode.removeChild(e));
 
             data.forEach(function (item, index) {
-                console.log(item);
-                content.innerHTML += `<div class=page id="page_${item.id}" onclick="load_page('${item.id}')">${item.name}</div>`
-            })
+                let page_link = document.createElement('div');
+                page_link.className = "page";
+                page_link.id = `page_${item.id}`
+                page_link.onclick = () => { load_page(item.id) };
+                page_link.textContent = item.name;
+                nav.insertBefore(page_link, pages_end);
+            });
+
 
         })
         .catch((error) => {
