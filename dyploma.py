@@ -1,4 +1,5 @@
 import asyncio
+from time import time
 
 from app.base import BaseApplication, AppContext, BaseWorkApp
 from core import LoadConfig, BaseWork
@@ -163,6 +164,20 @@ class WordKnifePost(BaseWordKnife):
 
 class WordKnifeComment(BaseWordKnife):
     MODEL_CLASS = VKComment
+
+
+# Word counting
+
+
+class WordSummarize(Model):
+    word: str = ModelAttribute()
+    count: int = ModelAttribute()
+    update_at: int = ModelAttribute(method=lambda: time())
+
+
+class FoundMaxWords(BaseWork):
+    async def input(self):
+        pass
 
 
 class Application(BaseApplication):

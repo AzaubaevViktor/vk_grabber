@@ -1,7 +1,7 @@
 import asyncio
 from sys import argv
 
-from app import Application
+from dyploma import Application
 from core import LoadConfig
 
 

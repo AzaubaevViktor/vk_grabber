@@ -6,9 +6,10 @@ from core import Attribute, AttributeStorage, Log
 class ModelAttribute(Attribute):
     def __init__(self, description: Optional[str] = None,
                  default: Any = Attribute._DefaultNone(),
-                 uid: bool = False):
+                 uid: bool = False,
+                 method=None):
         self._name = None
-        super().__init__(description, default, uid)
+        super().__init__(description, default, uid, method=method)
 
     @property
     def name(self):
