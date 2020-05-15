@@ -2,7 +2,7 @@ import asyncio
 from time import time
 from typing import List, Dict, Any, Optional
 
-from ._tasks import TasksManager
+from .tasks import TasksManager
 
 from html import escape as html_escape
 

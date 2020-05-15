@@ -1,2 +1,2 @@
 from .work import BaseWork
-from ._tasks import TasksManager
+from .tasks import TasksManager
