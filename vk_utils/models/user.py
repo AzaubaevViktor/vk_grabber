@@ -6,7 +6,6 @@ class VKUser(Model):
 
     first_name = ModelAttribute(default=None)
     last_name = ModelAttribute(default=None)
-    deactivated = ModelAttribute(default=None)
     verified = ModelAttribute(default=None)
     sex = ModelAttribute(default=None)
     bdate = ModelAttribute(default=None)
@@ -16,6 +15,11 @@ class VKUser(Model):
     photo_400_orig = ModelAttribute(default=None)
     online = ModelAttribute(default=None)
     has_mobile = ModelAttribute(default=None)
+
+    # Privacy
+    deactivated = ModelAttribute(default=None)
+    hidden = ModelAttribute(default=False)
+
 
     # contacts
     mobile_phone: str = ModelAttribute(default=None)

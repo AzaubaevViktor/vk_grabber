@@ -69,7 +69,8 @@ class VK:
             "universities",
             "schools",
             "last_seen",
-            "occupation"
+            "occupation",
+            "hidden",
         ])
 
         self.group_info_fields = ",".join([
