@@ -48,8 +48,9 @@ class LoadPersonFromGroup(_ChooseModelByField):
 class LoadPersonInfo(_ChooseModelByField):
     MODEL_CLASS = VKPerson
 
-    async def process(self, person: VKPerson):
-        yield await self.vk.persons_info(person.id)
+    async def process(self, person_: VKPerson):
+        for person in await self.vk.persons_info(person_.id):
+            yield person
 
     async def update(self, person: VKPerson):
         await self.db.store(person, rewrite=False)
@@ -85,7 +86,7 @@ class LoadPostFromPerson(_PostLoader):
     ADDITIONAL_FILTER = {
         # TODO: After metaclass, Use .FIELD_NAME
         LoadPersonInfo.__name__: State.FINISHED,
-        VKPerson.deactivated.name: False,
+        VKPerson.deactivated.name: None,
         VKPerson.hidden.name: False,
         VKPerson.is_closed.name: False,
     }

@@ -23,8 +23,10 @@ class DBWrapper:
     def get_collection(self, obj: ModelCollectionT):
         if isinstance(obj, Model):
             klass = obj.__class__
-        else:
+        elif issubclass(obj, Model):
             klass = obj
+        else:
+            raise TypeError(f"Wait subclass or instance of Model, not {obj}")
 
         if klass not in self._collections:
             if klass.COLLECTION is not None:
@@ -101,7 +103,7 @@ class DBWrapper:
 
     async def find(self, klass: Type[ModelT],
                    query_: Optional[dict] = None,
-                   limit_ : Optional[int] = None,
+                   limit_: Optional[int] = None,
                    sort_: Optional[Dict] = None,
                    **kwargs) -> AsyncIterable[ModelT]:
         async for raw_item in self.find_raw(klass=klass, query_=query_, limit_=limit_, sort_=sort_, **kwargs):

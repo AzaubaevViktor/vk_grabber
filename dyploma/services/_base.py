@@ -11,6 +11,7 @@ class _ChooseModelByField(BaseWorkApp):
     ADDITIONAL_FILTER: dict = {}
 
     INPUT_QUERY_LIMIT = 5
+    INPUT_RETRIES = 3
 
     async def warm_up(self):
         # TODO: Move into metaclass

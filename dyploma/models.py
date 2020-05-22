@@ -1,4 +1,3 @@
-from enum import Enum
 from time import time
 
 from database import Model, ModelAttribute

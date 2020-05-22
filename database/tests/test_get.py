@@ -42,7 +42,7 @@ async def create_items(db):
 
 async def test_none_count(db):
     count = 0
-    async for item in db.choose(M, {FIELD_NAME: None}):
+    async for item in db.choose(M, {FIELD_NAME: None}, {FIELD_NAME: True}):
         count += 1
 
     assert count == ONE_TYPE_COUNT
