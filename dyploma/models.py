@@ -4,7 +4,7 @@ from time import time
 from database import Model, ModelAttribute
 
 
-class State(Enum):
+class State:
     NEW = None
     IN_PROGRESS = "IN_PROGRESS"
     FINISHED = "FINISHED"
