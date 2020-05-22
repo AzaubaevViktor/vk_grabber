@@ -42,7 +42,7 @@ async def test_group_comments(vk, owner_id):
     if owner_id < 0:
         posts_iter = vk.group_posts_iter(-owner_id, count=10)
     else:
-        posts_iter = vk.user_posts_iter(owner_id, count=10)
+        posts_iter = vk.person_posts_iter(owner_id, count=10)
 
     async for post in posts_iter:
         is_found = False

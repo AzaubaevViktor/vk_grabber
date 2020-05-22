@@ -2,7 +2,7 @@ import pytest
 
 from dyploma.app import DyplomaApplication
 from dyploma.services.vk_ import LoadParticipants, LoadPersonsPosts
-from vk_utils import VKGroup, VKUser
+from vk_utils import VKGroup, VKPerson
 
 pytestmark = pytest.mark.asyncio
 
@@ -44,7 +44,7 @@ async def test_users(app_ctx):
 
     downloaded = 0
 
-    async for user_raw in app_ctx.db.find_raw(VKUser):
+    async for user_raw in app_ctx.db.find_raw(VKPerson):
         downloaded += user_raw.get(LoadPersonsPosts.FIELD_NAME) is True
         users.append(user_raw)
 

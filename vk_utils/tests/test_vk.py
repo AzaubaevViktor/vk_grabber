@@ -2,7 +2,7 @@ from typing import List
 
 import pytest
 
-from vk_utils import VKUser, VKGroup, VKPost
+from vk_utils import VKPerson, VKGroup, VKPost
 
 pytestmark = pytest.mark.asyncio
 
@@ -10,7 +10,7 @@ pytestmark = pytest.mark.asyncio
 async def test_simple(vk):
     user_info = await vk.me()
 
-    assert isinstance(user_info, VKUser)
+    assert isinstance(user_info, VKPerson)
 
 
 async def test_group(vk, group_id):

@@ -7,7 +7,7 @@ import aiohttp
 
 from core import Log
 from core.monitor import DictPage, PageAttribute
-from vk_utils import VKGroup, VKPost, VKUser, VKComment
+from vk_utils import VKGroup, VKPost, VKPerson, VKComment
 from vk_utils.get_token import UpdateToken
 
 
@@ -55,7 +55,7 @@ class VK:
             'v': "5.103"
         }
 
-        self.user_fields = ",".join([
+        self.person_fields = ",".join([
             "first_name", "last_name", "deactivated", "verified",
             "sex", "bdate",
             "city",  # TODO: https://vk.com/dev/places.getCityById
@@ -149,22 +149,22 @@ class VK:
             self.stats.call_methods_count -= 1
             self.stats.threshold = self.threshold
 
-    async def users_info(self, *user_ids) -> Sequence[VKUser]:
+    async def persons_info(self, *user_ids) -> Sequence[VKPerson]:
         answer = await self.call_method(
             "users.get",
             user_ids=",".join(map(str, user_ids)),
-            fields=self.user_fields
+            fields=self.person_fields
         )
 
         users = []
 
         for user_info in answer:
-            users.append(VKUser(**user_info))
+            users.append(VKPerson(**user_info))
 
         return users
 
-    async def me(self) -> VKUser:
-        return (await self.users_info(self.config.user_id))[0]
+    async def me(self) -> VKPerson:
+        return (await self.persons_info(self.config.user_id))[0]
 
     async def group_info(self, group_id) -> VKGroup:
         answer = await self.call_method(
@@ -176,11 +176,11 @@ class VK:
         group = answer[0]
         return VKGroup(**group)
 
-    async def user_posts(self, user_id, count):
-        return [post async for post in self._posts_count(user_id, count)]
+    async def person_posts(self, person_id, count):
+        return [post async for post in self._posts_count(person_id, count)]
 
-    async def user_posts_iter(self, user_id, count=None):
-        async for post in self._posts_count(user_id, count):
+    async def person_posts_iter(self, person_id, count=None):
+        async for post in self._posts_count(person_id, count):
             yield post
 
     async def group_posts_iter(self, group_id, count=None):

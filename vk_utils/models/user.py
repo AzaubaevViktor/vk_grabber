@@ -1,7 +1,7 @@
 from database import ModelAttribute, Model
 
 
-class VKUser(Model):
+class VKPerson(Model):
     id = ModelAttribute(uid=True)
 
     first_name = ModelAttribute(default=None)
@@ -19,7 +19,6 @@ class VKUser(Model):
     # Privacy
     deactivated = ModelAttribute(default=None)
     hidden = ModelAttribute(default=False)
-
 
     # contacts
     mobile_phone: str = ModelAttribute(default=None)
@@ -45,6 +44,3 @@ class VKUser(Model):
 
     online_app = ModelAttribute(default=None)
     online_mobile = ModelAttribute(default=None)
-
-    # TODO: Move into divided class
-    is_checked: bool = ModelAttribute(default=False)

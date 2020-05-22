@@ -2,8 +2,7 @@ import asyncio
 
 import pytest
 
-from core import LoadConfig
-from vk_utils import VK, VKUser
+from vk_utils import VK
 
 
 @pytest.yield_fixture(scope='session')
