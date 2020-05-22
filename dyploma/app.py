@@ -1,8 +1,10 @@
 import asyncio
+from typing import Type
 
-from app.base import BaseApplication
+from app.base import BaseApplication, BaseWorkApp
 from core import LoadConfig, BaseWork
-from dyploma.services.vk_ import LoadGroups, LoadParticipants, LoadPersonsPosts, LoadGroupPosts, LoadPostComments
+# from dyploma.services.vk_ import LoadGroups, LoadParticipants, LoadPersonsPosts, LoadGroupPosts, LoadPostComments
+from .services.vk_ng import LoadGroups, LoadGroupInfo, LoadPersonFromGroup, LoadPersonInfo, LoadPostFromGroup, LoadPostFromPerson
 from dyploma.services.word_ import WordKnifePost, WordKnifeComment
 
 
@@ -13,7 +15,12 @@ class DyplomaApplication(BaseApplication):
         self._force_clean = force_clean
 
     async def warm_up(self):
+        await super(DyplomaApplication, self).warm_up()
+        self.ctx.mon.main_page.info = "WarmUp"
+
         if self.clean:
+            self.ctx.mon.main_page.info = "🏴‍☠️ Prepare to clean database"
+
             if not self._force_clean:
                 self.log.important("⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️⚠️")
                 self.log.important("⚠️⚠️⚠️                           ⚠️⚠️⚠️")
@@ -28,11 +35,13 @@ class DyplomaApplication(BaseApplication):
                     await asyncio.sleep(1)
                     self.log.warning(countdown - i)
 
+            self.ctx.mon.main_page.info = "💀 Cleaning Database"
+
             self.log.important("⚠️ ⚠️ ⚠️ HERE WE DROP DATABASE")
             await self.ctx.db.delete_all(i_understand_delete_all=True)
             self.log.important("⚠️ ⚠️ ⚠️ HERE WE END DROP DATABASE...")
 
-        await super(DyplomaApplication, self).warm_up()
+            self.ctx.mon.main_page.info = "Database cleaned"
 
         await self._add_handlers()
 
@@ -40,22 +49,30 @@ class DyplomaApplication(BaseApplication):
         first = await self.prepare_services(LoadGroups)
 
         second = await self.prepare_services(
-            LoadParticipants,
-            LoadPersonsPosts,
-            LoadGroupPosts,
-            LoadPostComments,
+            LoadGroupInfo,
+            LoadPersonFromGroup,
+            LoadPersonInfo,
+            LoadPostFromGroup,
+            LoadPostFromPerson,
             WordKnifePost,
             WordKnifeComment,
         )
 
+        self.ctx.mon.main_page.info = "Run LoadGroups"
         await first
+
+        self.ctx.mon.main_page.info = "Work"
         await second
 
-    async def prepare_services(self, *services):
+    async def prepare_services(self, *services: Type[BaseWorkApp]):
         first_step_tasks = []
+
+        self.ctx.mon.main_page.info = f"Prepare {len(services)} services"
+
         for item in services:
             if self.config.app.services[item.__name__]:
                 self.log.info("Service postponed", service=item)
+
                 first_step_tasks.append(item(self.ctx)())
             else:
                 self.log.info("Service disabled by config", service=item)
