@@ -84,6 +84,25 @@ async def test_store_exist_update_2(db):
     assert result.d == 4
 
 
+async def test_store_update_pseudo_parallel(db):
+    start = OneID(a=1)
+
+    await db.store(start)
+
+    one = await db.find_one(OneID, a=1)
+    two = await db.find_one(OneID, a=1)
+
+    one.b = 2
+    one.c = 3
+
+    await db.store(one)
+    await db.store(two)
+
+    result = await db.find_one(OneID, a=1)
+    assert result.b == 2
+    assert result.c == 3
+
+
 async def test_store_exist_rewrite(db):
     m = OneID(a=1, b=2)
     n = OneID(a=1, c=3)
