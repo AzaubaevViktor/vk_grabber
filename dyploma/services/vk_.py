@@ -1,6 +1,6 @@
 from app.base import BaseWorkApp, AppContext
-from dyploma.services.word_ import _LoadModelField
-from vk_utils import VKGroup, VKUser, VKPost
+from dyploma.services._base import _ChooseModelByField
+from vk_utils import VKGroup, VKPerson, VKPost
 
 
 class LoadGroups(BaseWorkApp):
@@ -18,7 +18,7 @@ class LoadGroups(BaseWorkApp):
         await self.db.store(result, rewrite=False)
 
 
-class LoadParticipants(_LoadModelField):
+class LoadParticipants(_ChooseModelByField):
     INPUT_RETRIES = 3
 
     MODEL_CLASS = VKGroup
@@ -36,14 +36,14 @@ class LoadParticipants(_LoadModelField):
             yield person_id
 
     async def update(self, person_id):
-        user = VKUser(id=person_id)
+        user = VKPerson(id=person_id)
         await self.db.store(
             user,
             rewrite=False
         )
 
 
-class LoadPosts(_LoadModelField):
+class LoadPosts(_ChooseModelByField):
     FIELD_NAME = "load_posts"
 
     def __init__(self, ctx: AppContext):
@@ -73,14 +73,14 @@ class LoadGroupPosts(LoadPosts):
 
 class LoadPersonsPosts(LoadPosts):
     INPUT_RETRIES = 3
-    MODEL_CLASS = VKUser
+    MODEL_CLASS = VKPerson
 
-    async def process(self, user: VKUser):
-        async for post in self.vk.user_posts_iter(user_id=user.id, count=self.posts_count):
+    async def process(self, user: VKPerson):
+        async for post in self.vk.person_posts_iter(person_id=user.id, count=self.posts_count):
             yield post
 
 
-class LoadPostComments(_LoadModelField):
+class LoadPostComments(_ChooseModelByField):
     INPUT_RETRIES = 5
 
     MODEL_CLASS = VKPost

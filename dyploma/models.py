@@ -16,10 +16,12 @@ class State(Enum):
 
 
 class Word(Model):
-    word: str = ModelAttribute()
+    word: str = ModelAttribute(uid=True)
+    from_id: int = ModelAttribute(uid=True)
+    post_id: int = ModelAttribute(uid=True)
+    position: int = ModelAttribute(uid=True)
+
     date: int = ModelAttribute()
-    from_id: int = ModelAttribute()
-    post_id: int = ModelAttribute()
 
 
 class WordSummarize(Model):
