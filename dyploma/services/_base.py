@@ -8,6 +8,7 @@ from dyploma.models import State
 class _ChooseModelByField(BaseWorkApp):
     MODEL_CLASS: Type[Model]
     FIELD_NAME: str
+    ADDITIONAL_FILTER: dict = {}
 
     INPUT_QUERY_LIMIT = 5
 
@@ -31,7 +32,7 @@ class _ChooseModelByField(BaseWorkApp):
 
     async def input(self):
         async for item in self.db.choose(self.MODEL_CLASS,
-                                         {self.FIELD_NAME: State.NEW},
+                                         {self.FIELD_NAME: State.NEW, **self.ADDITIONAL_FILTER},
                                          {self.FIELD_NAME: State.IN_PROGRESS},
                                          limit_=self.INPUT_QUERY_LIMIT):
             yield item, self.db.store(item, **{self.FIELD_NAME: State.FINISHED})
