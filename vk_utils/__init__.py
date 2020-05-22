@@ -1,2 +1,2 @@
 from .models import *
-from .worker import VK
+from .api_ import VK
