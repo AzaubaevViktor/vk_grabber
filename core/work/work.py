@@ -1,16 +1,14 @@
 import asyncio
 from time import time
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Optional
 
 from .tasks import TasksManager
-
-from html import escape as html_escape
 
 from core import Log
 from ..monitor import DictPage, PageAttribute
 
 
-class Task:
+class TaskInfo:
     def __init__(self, item):
         self.processed_callback = None
         if isinstance(item, tuple):
@@ -86,7 +84,7 @@ class BaseWork:
 
         self.log.debug("Run task manager")
         self.task_manager = TasksManager(self.PARALLEL)
-        self.tasks: List[Task] = []
+        self.tasks: List[TaskInfo] = []
 
         self.state = "Base class initialized"
 
@@ -165,7 +163,7 @@ class BaseWork:
             async for item in self.input():
                 self.stat.input_items += 1
                 await self.task_manager.put(self._run_task(
-                    Task(item)
+                    TaskInfo(item)
                 ))
                 self.stat.retries = None
 
@@ -192,7 +190,7 @@ class BaseWork:
 
         await self.task_manager.stop()
 
-    async def _run_task(self, info: Task):
+    async def _run_task(self, info: TaskInfo):
         self.tasks.append(info)
 
         info.update("🎬 Task started")
