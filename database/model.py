@@ -8,20 +8,12 @@ class ModelAttribute(Attribute):
                  default: Any = Attribute._DefaultNone(),
                  uid: bool = False,
                  method=None):
-        self._name = None
+        self.name = None
         super().__init__(description, default, uid, method=method)
 
     @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, value):
-        self._name = value
-
-    @property
     def is_id_alias(self):
-        return self.uid and self._name != "_id"
+        return self.uid and self.name != "_id"
 
     def __get__(self, instance: "Model", owner: Type["Model"]):
         if instance is None:
