@@ -40,6 +40,14 @@ async def create_items(db):
         assert (await db.find_one_raw(M, a=i)).get(FIELD_NAME, None) == d[i % 3]
 
 
+async def test_none_count(db):
+    count = 0
+    async for item in db.choose(M, {FIELD_NAME: None}):
+        count += 1
+
+    assert count == ONE_TYPE_COUNT
+
+
 async def test_get_find(db):
     async for item in db.find(M, {FIELD_NAME: None}):
         assert item.a % 3 == 0
