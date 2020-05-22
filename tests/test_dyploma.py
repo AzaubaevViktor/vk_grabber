@@ -1,6 +1,7 @@
 import pytest
 
-from dyploma import Application, LoadParticipants, LoadPersonsPosts
+from dyploma.app import DyplomaApplication
+from dyploma.services.vk_ import LoadParticipants, LoadPersonsPosts
 from vk_utils import VKGroup, VKUser
 
 pytestmark = pytest.mark.asyncio
@@ -16,7 +17,7 @@ def event_loop(request):
 
 @pytest.fixture(scope='session')
 async def app_ctx(config):
-    app = Application(config, force_clean=True)
+    app = DyplomaApplication(config, force_clean=True)
     await app.warm_up()
     await app()
 
