@@ -137,7 +137,6 @@ class VK:
 
                     if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
                         self.log.important("RATE LIMIT")
-                        raise RuntimeError("Rate limit")
 
                     raise vk_error
                 else:
@@ -238,7 +237,7 @@ class VK:
                 )
             except VKError:
                 self.log.exception(params=params)
-                return
+                raise
 
             items_count = min(count, answer['count'])
 

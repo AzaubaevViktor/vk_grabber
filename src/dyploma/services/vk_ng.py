@@ -5,6 +5,8 @@ from vk_utils import VKGroup, VKPerson, VKPost
 
 
 # GROUP
+from vk_utils.api_ import VKError
+
 
 class LoadGroups(BaseWorkApp):
     INPUT_RETRIES = 0
@@ -54,8 +56,13 @@ class LoadPersonInfo(_ChooseModelByField):
     MODEL_CLASS = VKPerson
 
     async def process(self, person_: VKPerson):
-        for person in await self.vk.persons_info(person_.id):
-            yield person
+        try:
+            for person in await self.vk.persons_info(person_.id):
+                yield person
+        except VKError as vk_error:
+            if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
+                self.need_stop = True
+            raise
 
     async def update(self, person: VKPerson):
         await self.db.store(person, rewrite=False)
@@ -80,9 +87,14 @@ class LoadPostFromGroup(_PostLoader):
     MODEL_CLASS = VKGroup
 
     async def process(self, group: VKGroup):
-        async for post in self.vk.group_posts_iter(group_id=group.id,
-                                                   count=self.posts_count):
-            yield post
+        try:
+            async for post in self.vk.group_posts_iter(group_id=group.id,
+                                                           count=self.posts_count):
+                yield post
+        except VKError as vk_error:
+            if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
+                self.need_stop = True
+            raise
 
 
 class LoadPostFromPerson(_PostLoader):
@@ -97,6 +109,11 @@ class LoadPostFromPerson(_PostLoader):
     }
 
     async def process(self, person: VKPerson):
-        async for post in self.vk.person_posts_iter(person_id=person.id,
-                                                    count=self.posts_count):
-            yield post
+        try:
+            async for post in self.vk.person_posts_iter(person_id=person.id,
+                                                        count=self.posts_count):
+                yield post
+        except VKError as vk_error:
+            if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
+                self.need_stop = True
+            raise
