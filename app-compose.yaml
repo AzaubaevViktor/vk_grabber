@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  build:
+    context: ./
+    dockerfile: dyploma/Dockerfile
+  ports:
+    - "8081:8081"
