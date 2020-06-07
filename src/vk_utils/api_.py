@@ -15,6 +15,7 @@ class VKError(Exception):
     INVALID_SESSION = 5  # Need to reauthorize
     TOO_MANY_REQUESTS = 6
     RATE_LIMIT_REACHED = 29
+    PROFILE_PRIVATE = 30
 
     def __init__(self, error):
         self.error = error
@@ -136,6 +137,10 @@ class VK:
                     if vk_error.error_code == VKError.INVALID_SESSION:
                         await self.do_auth()
                         continue
+
+                    if vk_error.error_code == VKError.PROFILE_PRIVATE:
+                        self.log.warning("Profile private", method=method, params=params)
+                        break
 
                     if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
                         self.log.important("RATE LIMIT")
