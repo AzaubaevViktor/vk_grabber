@@ -1,4 +1,6 @@
 pytest
+pytest-asyncio
+
 colorama
 PyYAML
 aiofiles
