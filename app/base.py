@@ -51,6 +51,6 @@ class BaseWorkApp(BaseWork):
         super().__init__()
         self.ctx = ctx
         self.db = self.ctx.db
-        self.vk = self.ctx.vk
+        self.vk: VK = self.ctx.vk
 
         self.ctx.mon.works.append(self.stat)

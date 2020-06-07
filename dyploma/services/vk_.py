@@ -1,3 +1,6 @@
+raise RuntimeError("This file is deprecated")
+
+
 from app.base import BaseWorkApp, AppContext
 from dyploma.services._base import _ChooseModelByField
 from vk_utils import VKGroup, VKPerson, VKPost

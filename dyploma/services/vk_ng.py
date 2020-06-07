@@ -37,8 +37,13 @@ class LoadGroupInfo(_ChooseModelByField):
 class LoadPersonFromGroup(_ChooseModelByField):
     MODEL_CLASS = VKGroup
 
+    def __init__(self, ctx: AppContext):
+        super().__init__(ctx)
+        self.participants_count = self.ctx.participants_count
+
     async def process(self, group: VKGroup):
-        async for person_id in self.vk.group_participants_iter(group_id=group.id):
+        async for person_id in self.vk.group_participants_iter(
+                group_id=group.id, count=self.participants_count):
             yield VKPerson(id=person_id)
 
     async def update(self, person: VKPerson):
