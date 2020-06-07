@@ -6,4 +6,4 @@ services:
       context: src
       dockerfile: dyploma/Dockerfile
     ports:
-      - "8081:8081"
+      - "28081:28081"
