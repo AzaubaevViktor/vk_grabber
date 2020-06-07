@@ -5,4 +5,4 @@ RUN pip3 install -r /app/requirements.txt
 
 COPY . /app
 
-CMD python3 /app
+CMD python3 /app configs/main.yaml
