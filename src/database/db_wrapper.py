@@ -36,6 +36,10 @@ class DBWrapper:
 
         return self._collections[klass]
 
+    async def create_index(self, model: Type[Model], field_name: str):
+        collection = self.get_collection(model)
+        await collection.create_index([(field_name, 1)])
+
     async def store(self, obj: Model, fields_: Optional[Dict] = None, rewrite=False, **kwargs):
         collection = self.get_collection(obj)
 

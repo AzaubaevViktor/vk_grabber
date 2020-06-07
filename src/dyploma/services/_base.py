@@ -32,6 +32,10 @@ class _ChooseModelByField(BaseWorkApp, metaclass=_MetaChooseModelByField):
         assert self.MODEL_CLASS
         assert self.FIELD_NAME
 
+        self.log.info("Create index", for_model=self.MODEL_CLASS, by_field=self.FIELD_NAME)
+
+        await self.db.create_index(self.MODEL_CLASS, self.FIELD_NAME)
+
         self.log.info("Cleanup old tasks")
 
         count = 0
