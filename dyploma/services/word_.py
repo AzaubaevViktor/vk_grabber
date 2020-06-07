@@ -13,7 +13,7 @@ class BaseWordKnife(_ChooseModelByField):
         for pos, word in enumerate(tokenize(post.text)):
             yield Word(word=word,
                        post_id=post.id,
-                       from_id=post.from_id,
+                       owner_id=post.owner_id,
                        date=post.date,
                        position=pos)
 

@@ -16,7 +16,7 @@ class State:
 
 class Word(Model):
     word: str = ModelAttribute(uid=True)
-    from_id: int = ModelAttribute(uid=True)
+    owner_id: int = ModelAttribute(uid=True)
     post_id: int = ModelAttribute(uid=True)
     position: int = ModelAttribute(uid=True)
 
