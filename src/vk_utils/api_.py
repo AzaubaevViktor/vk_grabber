@@ -93,6 +93,8 @@ class VK:
 
         self.stats = VKStats('vk', "VK API")
 
+        self.auth_lock = asyncio.Lock()
+
     async def warm_up(self):
         self.session = aiohttp.ClientSession()
 
@@ -269,10 +271,15 @@ class VK:
             await self.session.close()
 
     async def do_auth(self):
-        if self._update_token:
+        self.log.info("Need auth")
+
+        if self.auth_lock.locked():
+            self.log.warning("Wait for other auth")
             await self._update_token.finished.wait()
+            self.log.important("Auth finished")
             return
 
-        self._update_token = UpdateToken(self.config)
-        await self._update_token()
-        self._update_token = None
+        async with self.auth_lock:
+            self.log.info("Run auth server")
+            self._update_token = UpdateToken(self.config)
+            await self._update_token()
