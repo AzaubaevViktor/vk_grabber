@@ -53,7 +53,9 @@ class Monitoring:
         self._middleware.append(func)
 
     async def warm_up(self):
-        self.log.important("Running", addr=self.addr, port=self.port)
+        self.log.info("Running", addr=self.addr, port=self.port)
+        self.log.important("You can access to monitoring by",
+                           addr=f"http://{self.addr}:{self.port}/")
 
         self.app = web.Application(middlewares=[self.error_middleware])
 

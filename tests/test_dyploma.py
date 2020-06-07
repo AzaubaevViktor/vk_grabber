@@ -20,8 +20,8 @@ def event_loop(request):
 @pytest.fixture(scope='session')
 async def app_ctx(config):
     app = DyplomaApplication(config, force_clean=True)
-    # await app.warm_up()
-    # await app()
+    await app.warm_up()
+    await app()
 
     return app.ctx
 
