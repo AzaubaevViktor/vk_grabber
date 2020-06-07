@@ -12,9 +12,7 @@
 *.pyc
 __pycache__
 
-private.yml
-private.yaml
-configs/*.yaml
-configs/*.yml
+src/configs/*.yaml
+src/configs/*.yml
 
 data/**
