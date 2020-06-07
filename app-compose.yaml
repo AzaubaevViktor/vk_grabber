@@ -7,3 +7,5 @@ services:
       dockerfile: dyploma/Dockerfile
     ports:
       - "28081:28081"
+    volumes:
+      - ./src:/app:ro
