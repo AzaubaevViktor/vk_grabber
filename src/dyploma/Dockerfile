@@ -7,4 +7,6 @@ COPY . /app
 
 WORKDIR /app
 
+RUN ls configs
+
 CMD python3 __main__.py configs/main.yaml
