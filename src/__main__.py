@@ -1,4 +1,5 @@
 import asyncio
+import os
 from sys import argv
 
 from dyploma import DyplomaApplication
@@ -11,6 +12,7 @@ async def main():
         print(f"Please use {app_name} <path/to/config_file.yaml>")
         print("Instead:")
         print(argv)
+    print(f"CWD: {os.getcwd()}")
     app = DyplomaApplication(LoadConfig(argv[1]))
     await app.warm_up()
     await app()
