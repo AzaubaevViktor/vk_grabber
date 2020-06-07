@@ -89,7 +89,7 @@ class LoadPostFromGroup(_PostLoader):
     async def process(self, group: VKGroup):
         try:
             async for post in self.vk.group_posts_iter(group_id=group.id,
-                                                           count=self.posts_count):
+                                                       count=self.posts_count):
                 yield post
         except VKError as vk_error:
             if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
