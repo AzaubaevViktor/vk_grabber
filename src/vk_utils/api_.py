@@ -251,6 +251,10 @@ class VK:
                 self.log.exception(params=params)
                 raise
 
+            if answer is None:
+                # Good error in call_method
+                return
+
             items_count = min(count, answer['count'])
 
             if to_download != len(answer['items']):
