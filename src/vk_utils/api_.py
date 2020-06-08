@@ -14,6 +14,7 @@ from vk_utils.get_token import UpdateToken
 class VKError(Exception):
     INVALID_SESSION = 5  # Need to reauthorize
     TOO_MANY_REQUESTS = 6
+    DELETED_OR_BANNED = 18
     RATE_LIMIT_REACHED = 29
     PROFILE_PRIVATE = 30
 
@@ -140,6 +141,10 @@ class VK:
 
                     if vk_error.error_code == VKError.PROFILE_PRIVATE:
                         self.log.warning("Profile private", method=method, params=params)
+                        break
+
+                    if vk_error.error_code == VKError.DELETED_OR_BANNED:
+                        self.log.warning("Profile deleted or banned", method=method, params=params)
                         break
 
                     if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
