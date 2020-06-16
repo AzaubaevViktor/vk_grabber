@@ -1,0 +1,1218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>src.vk_utils.api_ API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>src.vk_utils.api_</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import asyncio
+from collections import defaultdict
+from time import time
+from typing import List, Sequence
+
+import aiohttp
+
+from core import Log
+from core.monitor import DictPage, PageAttribute
+from vk_utils import VKGroup, VKPost, VKPerson, VKComment
+from vk_utils.get_token import UpdateToken
+
+
+class VKError(Exception):
+    INVALID_SESSION = 5  # Need to reauthorize
+    TOO_MANY_REQUESTS = 6
+    DELETED_OR_BANNED = 18
+    RATE_LIMIT_REACHED = 29
+    PROFILE_PRIVATE = 30
+
+    def __init__(self, error):
+        self.error = error
+
+    @property
+    def error_code(self):
+        return self.error[&#39;error_code&#39;]
+
+    @property
+    def error_msg(self):
+        return self.error[&#39;error_msg&#39;]
+
+    def __str__(self):
+        return f&#34;VK Error#{self.error_code}: {self.error_msg}&#34;
+
+
+class VKStats(DictPage):
+    threshold = PageAttribute(default=0)
+    call_methods_count = PageAttribute(default=0)
+    success = PageAttribute(default=0)
+    errors = PageAttribute(default=0)
+    errors_too_many = PageAttribute(default=0)
+    queries = PageAttribute(default=0)
+    by_type = PageAttribute(default=lambda: defaultdict(int))
+
+    # TODO: Add %
+
+
+class VK:
+    def __init__(self, config_vk):
+        self.log = Log(&#34;VK&#34;)
+
+        self.config = config_vk
+
+        self.additional_params = {
+            &#39;access_token&#39;: self.config.token,
+            &#39;lang&#39;: &#39;ru&#39;,
+            &#39;v&#39;: &#34;5.103&#34;
+        }
+
+        self.person_fields = &#34;,&#34;.join([
+            &#34;first_name&#34;, &#34;last_name&#34;, &#34;deactivated&#34;, &#34;verified&#34;,
+            &#34;sex&#34;, &#34;bdate&#34;,
+            &#34;city&#34;,  # TODO: https://vk.com/dev/places.getCityById
+            &#34;country&#34;,  # TODO: https://vk.com/dev/places.getCountryById
+            &#34;home_town&#34;,
+            &#34;photo_400_orig&#34;,
+            &#34;online&#34;,
+            &#34;has_mobile&#34;,
+            &#34;contacts&#34;,
+            &#34;education&#34;,
+            &#34;universities&#34;,
+            &#34;schools&#34;,
+            &#34;last_seen&#34;,
+            &#34;occupation&#34;,
+            &#34;hidden&#34;,
+        ])
+
+        self.group_info_fields = &#34;,&#34;.join([
+            &#39;id&#39;, &#39;name&#39;, &#39;type&#39;, &#39;photo_200&#39;, &#39;city&#39;, &#39;description&#39;,
+            &#39;place&#39;
+        ])
+
+        self.post_fields = &#34;,&#34;.join([
+
+        ])
+
+        self.session: aiohttp.ClientSession = None
+
+        self.last_call = 0
+        self.threshold = 1 / 3
+
+        self._update_token = None
+
+        self.query_lock = asyncio.Lock()
+
+        self.stats = VKStats(&#39;vk&#39;, &#34;VK API&#34;)
+
+        self.auth_lock = asyncio.Lock()
+
+    async def warm_up(self):
+        self.session = aiohttp.ClientSession()
+
+    async def call_method(self, method, **params):
+        self.log.debug(method=method, params=params)
+
+        self.stats.call_methods_count += 1
+
+        try:
+            while True:
+                assert self.session is not None, &#34;call `await .warm_up()` first&#34;
+                async with self.query_lock:
+                    if time() - self.threshold &lt; self.last_call:
+                        self.log.deep(&#34;Sleep&#34;, threshold=self.threshold)
+                        await asyncio.sleep(self.threshold)
+
+                self.last_call = time()
+                self.stats.queries += 1
+                response = await self.session.get(
+                    url=f&#34;{self.config[&#39;api_host&#39;]}{method}&#34;,
+                    params={**params, **self.additional_params},
+                    timeout=10
+                )
+                self.stats.by_type[method] += 1
+
+                result = await response.json()
+
+                if &#39;error&#39; in result:
+                    self.stats.errors += 1
+                    vk_error = VKError(result[&#39;error&#39;])
+                    if vk_error.error_code == VKError.TOO_MANY_REQUESTS:
+                        self.stats.errors_too_many += 1
+                        self.threshold *= 1.1
+                        if self.threshold &gt; 1:
+                            self.threshold = 1
+                        self.log.warning(&#34;Too many requests&#34;, threshold=self.threshold)
+                        continue
+
+                    if vk_error.error_code == VKError.INVALID_SESSION:
+                        await self.do_auth()
+                        continue
+
+                    if vk_error.error_code == VKError.PROFILE_PRIVATE:
+                        self.log.warning(&#34;Profile private&#34;, method=method, params=params)
+                        break
+
+                    if vk_error.error_code == VKError.DELETED_OR_BANNED:
+                        self.log.warning(&#34;Profile deleted or banned&#34;, method=method, params=params)
+                        break
+
+                    if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
+                        self.log.important(&#34;RATE LIMIT&#34;)
+
+                    raise vk_error
+                else:
+                    self.stats.success += 1
+                    assert &#39;response&#39; in result
+                    self.threshold *= 0.991
+                    return result[&#39;response&#39;]
+        finally:
+            self.stats.call_methods_count -= 1
+            self.stats.threshold = self.threshold
+
+    async def persons_info(self, *user_ids) -&gt; Sequence[VKPerson]:
+        answer = await self.call_method(
+            &#34;users.get&#34;,
+            user_ids=&#34;,&#34;.join(map(str, user_ids)),
+            fields=self.person_fields
+        )
+
+        users = []
+
+        for user_info in answer:
+            users.append(VKPerson(**user_info))
+
+        return users
+
+    async def me(self) -&gt; VKPerson:
+        return (await self.persons_info(self.config.user_id))[0]
+
+    async def group_info(self, group_id) -&gt; VKGroup:
+        answer = await self.call_method(
+            &#34;groups.getById&#34;,
+            group_id=group_id,
+            fields=self.group_info_fields
+        )
+        assert len(answer) == 1
+        group = answer[0]
+        return VKGroup(**group)
+
+    async def person_posts(self, person_id, count):
+        return [post async for post in self._posts_count(person_id, count)]
+
+    async def person_posts_iter(self, person_id, count=None):
+        async for post in self._posts_count(person_id, count):
+            yield post
+
+    async def group_posts_iter(self, group_id, count=None):
+        async for post in self._posts_count(-group_id, count):
+            yield post
+
+    async def comments_iter(self, owner_id, post_id, count=None):
+        async for raw_data in self._offsetter(count, dict(
+                method=&#39;wall.getComments&#39;,
+                owner_id=owner_id,
+                post_id=post_id,
+                need_likes=1,
+                preview_length=0,
+                extended=0,
+                thread_items_count=10,
+        )):
+            comment = VKComment(**raw_data)
+            comment.post_id = post_id
+            comment.owner_id = owner_id
+            yield comment
+
+    async def group_posts(self, group_id, count=None, from_ts=None):
+        if count is not None and from_ts is not None:
+            raise ValueError(&#34;Use one of attribute: `count` or `from_ts`&#34;)
+
+        return [post async for post in self._posts_count(-group_id, count)]
+
+    async def _posts_count(self, owner_id, count):
+        async for post in self._offsetter(count, dict(
+                method=&#34;wall.get&#34;,
+                owner_id=owner_id,
+                fields=self.post_fields
+        )):
+            yield VKPost(**post)
+
+    async def _offsetter(self, count, params):
+        # TODO: Can be optimized! Use asyncio.gather after first query, Luke!
+        if count is None:
+            count = float(&#34;+inf&#34;)
+
+        if count &lt; 1:
+            raise ValueError(f&#34;{count=} must be more than 0&#34;)
+
+        offset = 0
+        items_count = count
+
+        while offset &lt; items_count:
+            to_download = min(items_count - offset, 100)
+
+            try:
+                answer = await self.call_method(
+                    **params,
+                    count=to_download,
+                    offset=offset
+                )
+            except VKError:
+                self.log.exception(params=params)
+                raise
+
+            if answer is None:
+                # Good error in call_method
+                return
+
+            items_count = min(count, answer[&#39;count&#39;])
+
+            if to_download != len(answer[&#39;items&#39;]):
+                if to_download &lt; items_count:
+                    self.log.warning(&#34;Downloaded items count:&#34;, wanted=to_download, actual=len(answer[&#39;items&#39;]))
+
+            offset += to_download
+
+            for item in answer[&#39;items&#39;]:
+                yield item
+
+    async def group_user_ids(self, group_id, count=None) -&gt; Sequence[int]:
+        users = []
+        async for user_id in self.group_participants_iter(group_id, count):
+            users.append(user_id)
+
+        return users
+
+    async def group_participants_iter(self, group_id, count=None):
+        async for user_id in self._offsetter(count, dict(
+                method=&#34;groups.getMembers&#34;,
+                group_id=group_id
+        )):
+            yield user_id
+
+    async def shutdown(self):
+        if self.session:
+            await self.session.close()
+
+    async def do_auth(self):
+        self.log.info(&#34;Need auth&#34;)
+
+        if self.auth_lock.locked():
+            self.log.warning(&#34;Wait for other auth&#34;)
+            await self._update_token.finished.wait()
+            self.log.important(&#34;Auth finished&#34;)
+            return
+
+        async with self.auth_lock:
+            self.log.info(&#34;Run auth server&#34;)
+            self._update_token = UpdateToken(self.config)
+            await self._update_token()</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="src.vk_utils.api_.VK"><code class="flex name class">
+<span>class <span class="ident">VK</span></span>
+<span>(</span><span>config_vk)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VK:
+    def __init__(self, config_vk):
+        self.log = Log(&#34;VK&#34;)
+
+        self.config = config_vk
+
+        self.additional_params = {
+            &#39;access_token&#39;: self.config.token,
+            &#39;lang&#39;: &#39;ru&#39;,
+            &#39;v&#39;: &#34;5.103&#34;
+        }
+
+        self.person_fields = &#34;,&#34;.join([
+            &#34;first_name&#34;, &#34;last_name&#34;, &#34;deactivated&#34;, &#34;verified&#34;,
+            &#34;sex&#34;, &#34;bdate&#34;,
+            &#34;city&#34;,  # TODO: https://vk.com/dev/places.getCityById
+            &#34;country&#34;,  # TODO: https://vk.com/dev/places.getCountryById
+            &#34;home_town&#34;,
+            &#34;photo_400_orig&#34;,
+            &#34;online&#34;,
+            &#34;has_mobile&#34;,
+            &#34;contacts&#34;,
+            &#34;education&#34;,
+            &#34;universities&#34;,
+            &#34;schools&#34;,
+            &#34;last_seen&#34;,
+            &#34;occupation&#34;,
+            &#34;hidden&#34;,
+        ])
+
+        self.group_info_fields = &#34;,&#34;.join([
+            &#39;id&#39;, &#39;name&#39;, &#39;type&#39;, &#39;photo_200&#39;, &#39;city&#39;, &#39;description&#39;,
+            &#39;place&#39;
+        ])
+
+        self.post_fields = &#34;,&#34;.join([
+
+        ])
+
+        self.session: aiohttp.ClientSession = None
+
+        self.last_call = 0
+        self.threshold = 1 / 3
+
+        self._update_token = None
+
+        self.query_lock = asyncio.Lock()
+
+        self.stats = VKStats(&#39;vk&#39;, &#34;VK API&#34;)
+
+        self.auth_lock = asyncio.Lock()
+
+    async def warm_up(self):
+        self.session = aiohttp.ClientSession()
+
+    async def call_method(self, method, **params):
+        self.log.debug(method=method, params=params)
+
+        self.stats.call_methods_count += 1
+
+        try:
+            while True:
+                assert self.session is not None, &#34;call `await .warm_up()` first&#34;
+                async with self.query_lock:
+                    if time() - self.threshold &lt; self.last_call:
+                        self.log.deep(&#34;Sleep&#34;, threshold=self.threshold)
+                        await asyncio.sleep(self.threshold)
+
+                self.last_call = time()
+                self.stats.queries += 1
+                response = await self.session.get(
+                    url=f&#34;{self.config[&#39;api_host&#39;]}{method}&#34;,
+                    params={**params, **self.additional_params},
+                    timeout=10
+                )
+                self.stats.by_type[method] += 1
+
+                result = await response.json()
+
+                if &#39;error&#39; in result:
+                    self.stats.errors += 1
+                    vk_error = VKError(result[&#39;error&#39;])
+                    if vk_error.error_code == VKError.TOO_MANY_REQUESTS:
+                        self.stats.errors_too_many += 1
+                        self.threshold *= 1.1
+                        if self.threshold &gt; 1:
+                            self.threshold = 1
+                        self.log.warning(&#34;Too many requests&#34;, threshold=self.threshold)
+                        continue
+
+                    if vk_error.error_code == VKError.INVALID_SESSION:
+                        await self.do_auth()
+                        continue
+
+                    if vk_error.error_code == VKError.PROFILE_PRIVATE:
+                        self.log.warning(&#34;Profile private&#34;, method=method, params=params)
+                        break
+
+                    if vk_error.error_code == VKError.DELETED_OR_BANNED:
+                        self.log.warning(&#34;Profile deleted or banned&#34;, method=method, params=params)
+                        break
+
+                    if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
+                        self.log.important(&#34;RATE LIMIT&#34;)
+
+                    raise vk_error
+                else:
+                    self.stats.success += 1
+                    assert &#39;response&#39; in result
+                    self.threshold *= 0.991
+                    return result[&#39;response&#39;]
+        finally:
+            self.stats.call_methods_count -= 1
+            self.stats.threshold = self.threshold
+
+    async def persons_info(self, *user_ids) -&gt; Sequence[VKPerson]:
+        answer = await self.call_method(
+            &#34;users.get&#34;,
+            user_ids=&#34;,&#34;.join(map(str, user_ids)),
+            fields=self.person_fields
+        )
+
+        users = []
+
+        for user_info in answer:
+            users.append(VKPerson(**user_info))
+
+        return users
+
+    async def me(self) -&gt; VKPerson:
+        return (await self.persons_info(self.config.user_id))[0]
+
+    async def group_info(self, group_id) -&gt; VKGroup:
+        answer = await self.call_method(
+            &#34;groups.getById&#34;,
+            group_id=group_id,
+            fields=self.group_info_fields
+        )
+        assert len(answer) == 1
+        group = answer[0]
+        return VKGroup(**group)
+
+    async def person_posts(self, person_id, count):
+        return [post async for post in self._posts_count(person_id, count)]
+
+    async def person_posts_iter(self, person_id, count=None):
+        async for post in self._posts_count(person_id, count):
+            yield post
+
+    async def group_posts_iter(self, group_id, count=None):
+        async for post in self._posts_count(-group_id, count):
+            yield post
+
+    async def comments_iter(self, owner_id, post_id, count=None):
+        async for raw_data in self._offsetter(count, dict(
+                method=&#39;wall.getComments&#39;,
+                owner_id=owner_id,
+                post_id=post_id,
+                need_likes=1,
+                preview_length=0,
+                extended=0,
+                thread_items_count=10,
+        )):
+            comment = VKComment(**raw_data)
+            comment.post_id = post_id
+            comment.owner_id = owner_id
+            yield comment
+
+    async def group_posts(self, group_id, count=None, from_ts=None):
+        if count is not None and from_ts is not None:
+            raise ValueError(&#34;Use one of attribute: `count` or `from_ts`&#34;)
+
+        return [post async for post in self._posts_count(-group_id, count)]
+
+    async def _posts_count(self, owner_id, count):
+        async for post in self._offsetter(count, dict(
+                method=&#34;wall.get&#34;,
+                owner_id=owner_id,
+                fields=self.post_fields
+        )):
+            yield VKPost(**post)
+
+    async def _offsetter(self, count, params):
+        # TODO: Can be optimized! Use asyncio.gather after first query, Luke!
+        if count is None:
+            count = float(&#34;+inf&#34;)
+
+        if count &lt; 1:
+            raise ValueError(f&#34;{count=} must be more than 0&#34;)
+
+        offset = 0
+        items_count = count
+
+        while offset &lt; items_count:
+            to_download = min(items_count - offset, 100)
+
+            try:
+                answer = await self.call_method(
+                    **params,
+                    count=to_download,
+                    offset=offset
+                )
+            except VKError:
+                self.log.exception(params=params)
+                raise
+
+            if answer is None:
+                # Good error in call_method
+                return
+
+            items_count = min(count, answer[&#39;count&#39;])
+
+            if to_download != len(answer[&#39;items&#39;]):
+                if to_download &lt; items_count:
+                    self.log.warning(&#34;Downloaded items count:&#34;, wanted=to_download, actual=len(answer[&#39;items&#39;]))
+
+            offset += to_download
+
+            for item in answer[&#39;items&#39;]:
+                yield item
+
+    async def group_user_ids(self, group_id, count=None) -&gt; Sequence[int]:
+        users = []
+        async for user_id in self.group_participants_iter(group_id, count):
+            users.append(user_id)
+
+        return users
+
+    async def group_participants_iter(self, group_id, count=None):
+        async for user_id in self._offsetter(count, dict(
+                method=&#34;groups.getMembers&#34;,
+                group_id=group_id
+        )):
+            yield user_id
+
+    async def shutdown(self):
+        if self.session:
+            await self.session.close()
+
+    async def do_auth(self):
+        self.log.info(&#34;Need auth&#34;)
+
+        if self.auth_lock.locked():
+            self.log.warning(&#34;Wait for other auth&#34;)
+            await self._update_token.finished.wait()
+            self.log.important(&#34;Auth finished&#34;)
+            return
+
+        async with self.auth_lock:
+            self.log.info(&#34;Run auth server&#34;)
+            self._update_token = UpdateToken(self.config)
+            await self._update_token()</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="src.vk_utils.api_.VK.call_method"><code class="name flex">
+<span>async def <span class="ident">call_method</span></span>(<span>self, method, **params)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def call_method(self, method, **params):
+    self.log.debug(method=method, params=params)
+
+    self.stats.call_methods_count += 1
+
+    try:
+        while True:
+            assert self.session is not None, &#34;call `await .warm_up()` first&#34;
+            async with self.query_lock:
+                if time() - self.threshold &lt; self.last_call:
+                    self.log.deep(&#34;Sleep&#34;, threshold=self.threshold)
+                    await asyncio.sleep(self.threshold)
+
+            self.last_call = time()
+            self.stats.queries += 1
+            response = await self.session.get(
+                url=f&#34;{self.config[&#39;api_host&#39;]}{method}&#34;,
+                params={**params, **self.additional_params},
+                timeout=10
+            )
+            self.stats.by_type[method] += 1
+
+            result = await response.json()
+
+            if &#39;error&#39; in result:
+                self.stats.errors += 1
+                vk_error = VKError(result[&#39;error&#39;])
+                if vk_error.error_code == VKError.TOO_MANY_REQUESTS:
+                    self.stats.errors_too_many += 1
+                    self.threshold *= 1.1
+                    if self.threshold &gt; 1:
+                        self.threshold = 1
+                    self.log.warning(&#34;Too many requests&#34;, threshold=self.threshold)
+                    continue
+
+                if vk_error.error_code == VKError.INVALID_SESSION:
+                    await self.do_auth()
+                    continue
+
+                if vk_error.error_code == VKError.PROFILE_PRIVATE:
+                    self.log.warning(&#34;Profile private&#34;, method=method, params=params)
+                    break
+
+                if vk_error.error_code == VKError.DELETED_OR_BANNED:
+                    self.log.warning(&#34;Profile deleted or banned&#34;, method=method, params=params)
+                    break
+
+                if vk_error.error_code == VKError.RATE_LIMIT_REACHED:
+                    self.log.important(&#34;RATE LIMIT&#34;)
+
+                raise vk_error
+            else:
+                self.stats.success += 1
+                assert &#39;response&#39; in result
+                self.threshold *= 0.991
+                return result[&#39;response&#39;]
+    finally:
+        self.stats.call_methods_count -= 1
+        self.stats.threshold = self.threshold</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.comments_iter"><code class="name flex">
+<span>async def <span class="ident">comments_iter</span></span>(<span>self, owner_id, post_id, count=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def comments_iter(self, owner_id, post_id, count=None):
+    async for raw_data in self._offsetter(count, dict(
+            method=&#39;wall.getComments&#39;,
+            owner_id=owner_id,
+            post_id=post_id,
+            need_likes=1,
+            preview_length=0,
+            extended=0,
+            thread_items_count=10,
+    )):
+        comment = VKComment(**raw_data)
+        comment.post_id = post_id
+        comment.owner_id = owner_id
+        yield comment</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.do_auth"><code class="name flex">
+<span>async def <span class="ident">do_auth</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def do_auth(self):
+    self.log.info(&#34;Need auth&#34;)
+
+    if self.auth_lock.locked():
+        self.log.warning(&#34;Wait for other auth&#34;)
+        await self._update_token.finished.wait()
+        self.log.important(&#34;Auth finished&#34;)
+        return
+
+    async with self.auth_lock:
+        self.log.info(&#34;Run auth server&#34;)
+        self._update_token = UpdateToken(self.config)
+        await self._update_token()</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.group_info"><code class="name flex">
+<span>async def <span class="ident">group_info</span></span>(<span>self, group_id) -> vk_utils.models.group.VKGroup</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def group_info(self, group_id) -&gt; VKGroup:
+    answer = await self.call_method(
+        &#34;groups.getById&#34;,
+        group_id=group_id,
+        fields=self.group_info_fields
+    )
+    assert len(answer) == 1
+    group = answer[0]
+    return VKGroup(**group)</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.group_participants_iter"><code class="name flex">
+<span>async def <span class="ident">group_participants_iter</span></span>(<span>self, group_id, count=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def group_participants_iter(self, group_id, count=None):
+    async for user_id in self._offsetter(count, dict(
+            method=&#34;groups.getMembers&#34;,
+            group_id=group_id
+    )):
+        yield user_id</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.group_posts"><code class="name flex">
+<span>async def <span class="ident">group_posts</span></span>(<span>self, group_id, count=None, from_ts=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def group_posts(self, group_id, count=None, from_ts=None):
+    if count is not None and from_ts is not None:
+        raise ValueError(&#34;Use one of attribute: `count` or `from_ts`&#34;)
+
+    return [post async for post in self._posts_count(-group_id, count)]</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.group_posts_iter"><code class="name flex">
+<span>async def <span class="ident">group_posts_iter</span></span>(<span>self, group_id, count=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def group_posts_iter(self, group_id, count=None):
+    async for post in self._posts_count(-group_id, count):
+        yield post</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.group_user_ids"><code class="name flex">
+<span>async def <span class="ident">group_user_ids</span></span>(<span>self, group_id, count=None) -> Sequence[int]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def group_user_ids(self, group_id, count=None) -&gt; Sequence[int]:
+    users = []
+    async for user_id in self.group_participants_iter(group_id, count):
+        users.append(user_id)
+
+    return users</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.me"><code class="name flex">
+<span>async def <span class="ident">me</span></span>(<span>self) -> vk_utils.models.user.VKPerson</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def me(self) -&gt; VKPerson:
+    return (await self.persons_info(self.config.user_id))[0]</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.person_posts"><code class="name flex">
+<span>async def <span class="ident">person_posts</span></span>(<span>self, person_id, count)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def person_posts(self, person_id, count):
+    return [post async for post in self._posts_count(person_id, count)]</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.person_posts_iter"><code class="name flex">
+<span>async def <span class="ident">person_posts_iter</span></span>(<span>self, person_id, count=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def person_posts_iter(self, person_id, count=None):
+    async for post in self._posts_count(person_id, count):
+        yield post</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.persons_info"><code class="name flex">
+<span>async def <span class="ident">persons_info</span></span>(<span>self, *user_ids) -> Sequence[vk_utils.models.user.VKPerson]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def persons_info(self, *user_ids) -&gt; Sequence[VKPerson]:
+    answer = await self.call_method(
+        &#34;users.get&#34;,
+        user_ids=&#34;,&#34;.join(map(str, user_ids)),
+        fields=self.person_fields
+    )
+
+    users = []
+
+    for user_info in answer:
+        users.append(VKPerson(**user_info))
+
+    return users</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.shutdown"><code class="name flex">
+<span>async def <span class="ident">shutdown</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def shutdown(self):
+    if self.session:
+        await self.session.close()</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VK.warm_up"><code class="name flex">
+<span>async def <span class="ident">warm_up</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def warm_up(self):
+    self.session = aiohttp.ClientSession()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.vk_utils.api_.VKError"><code class="flex name class">
+<span>class <span class="ident">VKError</span></span>
+<span>(</span><span>error)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Common base class for all non-exit exceptions.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VKError(Exception):
+    INVALID_SESSION = 5  # Need to reauthorize
+    TOO_MANY_REQUESTS = 6
+    DELETED_OR_BANNED = 18
+    RATE_LIMIT_REACHED = 29
+    PROFILE_PRIVATE = 30
+
+    def __init__(self, error):
+        self.error = error
+
+    @property
+    def error_code(self):
+        return self.error[&#39;error_code&#39;]
+
+    @property
+    def error_msg(self):
+        return self.error[&#39;error_msg&#39;]
+
+    def __str__(self):
+        return f&#34;VK Error#{self.error_code}: {self.error_msg}&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.Exception</li>
+<li>builtins.BaseException</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.vk_utils.api_.VKError.DELETED_OR_BANNED"><code class="name">var <span class="ident">DELETED_OR_BANNED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.vk_utils.api_.VKError.INVALID_SESSION"><code class="name">var <span class="ident">INVALID_SESSION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.vk_utils.api_.VKError.PROFILE_PRIVATE"><code class="name">var <span class="ident">PROFILE_PRIVATE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.vk_utils.api_.VKError.RATE_LIMIT_REACHED"><code class="name">var <span class="ident">RATE_LIMIT_REACHED</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.vk_utils.api_.VKError.TOO_MANY_REQUESTS"><code class="name">var <span class="ident">TOO_MANY_REQUESTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="src.vk_utils.api_.VKError.error_code"><code class="name">var <span class="ident">error_code</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def error_code(self):
+    return self.error[&#39;error_code&#39;]</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VKError.error_msg"><code class="name">var <span class="ident">error_msg</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def error_msg(self):
+    return self.error[&#39;error_msg&#39;]</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.vk_utils.api_.VKStats"><code class="flex name class">
+<span>class <span class="ident">VKStats</span></span>
+<span>(</span><span>id: str, name: str, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VKStats(DictPage):
+    threshold = PageAttribute(default=0)
+    call_methods_count = PageAttribute(default=0)
+    success = PageAttribute(default=0)
+    errors = PageAttribute(default=0)
+    errors_too_many = PageAttribute(default=0)
+    queries = PageAttribute(default=0)
+    by_type = PageAttribute(default=lambda: defaultdict(int))</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>core.monitor.page.DictPage</li>
+<li>core.monitor.page.BasePage</li>
+<li>core.attribute_storage.attribute_storage.AttributeStorage</li>
+<li>core.searchable.SearchableSubclasses</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="src.vk_utils.api_.VKStats.by_type"><code class="name">var <span class="ident">by_type</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VKStats.call_methods_count"><code class="name">var <span class="ident">call_methods_count</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VKStats.errors"><code class="name">var <span class="ident">errors</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VKStats.errors_too_many"><code class="name">var <span class="ident">errors_too_many</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VKStats.queries"><code class="name">var <span class="ident">queries</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VKStats.success"><code class="name">var <span class="ident">success</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.vk_utils.api_.VKStats.threshold"><code class="name">var <span class="ident">threshold</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src.vk_utils" href="index.html">src.vk_utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="src.vk_utils.api_.VK" href="#src.vk_utils.api_.VK">VK</a></code></h4>
+<ul class="">
+<li><code><a title="src.vk_utils.api_.VK.call_method" href="#src.vk_utils.api_.VK.call_method">call_method</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.comments_iter" href="#src.vk_utils.api_.VK.comments_iter">comments_iter</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.do_auth" href="#src.vk_utils.api_.VK.do_auth">do_auth</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.group_info" href="#src.vk_utils.api_.VK.group_info">group_info</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.group_participants_iter" href="#src.vk_utils.api_.VK.group_participants_iter">group_participants_iter</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.group_posts" href="#src.vk_utils.api_.VK.group_posts">group_posts</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.group_posts_iter" href="#src.vk_utils.api_.VK.group_posts_iter">group_posts_iter</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.group_user_ids" href="#src.vk_utils.api_.VK.group_user_ids">group_user_ids</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.me" href="#src.vk_utils.api_.VK.me">me</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.person_posts" href="#src.vk_utils.api_.VK.person_posts">person_posts</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.person_posts_iter" href="#src.vk_utils.api_.VK.person_posts_iter">person_posts_iter</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.persons_info" href="#src.vk_utils.api_.VK.persons_info">persons_info</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.shutdown" href="#src.vk_utils.api_.VK.shutdown">shutdown</a></code></li>
+<li><code><a title="src.vk_utils.api_.VK.warm_up" href="#src.vk_utils.api_.VK.warm_up">warm_up</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.vk_utils.api_.VKError" href="#src.vk_utils.api_.VKError">VKError</a></code></h4>
+<ul class="two-column">
+<li><code><a title="src.vk_utils.api_.VKError.DELETED_OR_BANNED" href="#src.vk_utils.api_.VKError.DELETED_OR_BANNED">DELETED_OR_BANNED</a></code></li>
+<li><code><a title="src.vk_utils.api_.VKError.INVALID_SESSION" href="#src.vk_utils.api_.VKError.INVALID_SESSION">INVALID_SESSION</a></code></li>
+<li><code><a title="src.vk_utils.api_.VKError.PROFILE_PRIVATE" href="#src.vk_utils.api_.VKError.PROFILE_PRIVATE">PROFILE_PRIVATE</a></code></li>
+<li><code><a title="src.vk_utils.api_.VKError.RATE_LIMIT_REACHED" href="#src.vk_utils.api_.VKError.RATE_LIMIT_REACHED">RATE_LIMIT_REACHED</a></code></li>
+<li><code><a title="src.vk_utils.api_.VKError.TOO_MANY_REQUESTS" href="#src.vk_utils.api_.VKError.TOO_MANY_REQUESTS">TOO_MANY_REQUESTS</a></code></li>
+<li><code><a title="src.vk_utils.api_.VKError.error_code" href="#src.vk_utils.api_.VKError.error_code">error_code</a></code></li>
+<li><code><a title="src.vk_utils.api_.VKError.error_msg" href="#src.vk_utils.api_.VKError.error_msg">error_msg</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.vk_utils.api_.VKStats" href="#src.vk_utils.api_.VKStats">VKStats</a></code></h4>
+<ul class="two-column">
+<li><code><a title="src.vk_utils.api_.VKStats.by_type" href="#src.vk_utils.api_.VKStats.by_type">by_type</a></code></li>
+<li><code><a title="src.vk_utils.api_.VKStats.call_methods_count" href="#src.vk_utils.api_.VKStats.call_methods_count">call_methods_count</a></code></li>
+<li><code><a title="src.vk_utils.api_.VKStats.errors" href="#src.vk_utils.api_.VKStats.errors">errors</a></code></li>
+<li><code><a title="src.vk_utils.api_.VKStats.errors_too_many" href="#src.vk_utils.api_.VKStats.errors_too_many">errors_too_many</a></code></li>
+<li><code><a title="src.vk_utils.api_.VKStats.queries" href="#src.vk_utils.api_.VKStats.queries">queries</a></code></li>
+<li><code><a title="src.vk_utils.api_.VKStats.success" href="#src.vk_utils.api_.VKStats.success">success</a></code></li>
+<li><code><a title="src.vk_utils.api_.VKStats.threshold" href="#src.vk_utils.api_.VKStats.threshold">threshold</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

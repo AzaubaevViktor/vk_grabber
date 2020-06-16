@@ -1,0 +1,591 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>src.core.monitor API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>src.core.monitor</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from time import time
+from typing import Dict
+
+import aiofiles
+from aiohttp import web
+from aiohttp.web_request import Request
+
+from core import Log
+from .page import DictPage, PageAttribute, BasePage, ListPage
+
+
+class MainPage(DictPage):
+    info = PageAttribute()
+    start_time = PageAttribute()
+    queries = PageAttribute(default=0)
+
+    @PageAttribute.property
+    def work_time(self):
+        return time() - self.start_time
+
+
+# TODO: Add server class
+class Monitoring:
+    API_PATH = &#34;/api&#34;
+
+    def __init__(self, addr, port):
+        self.addr = addr
+        self.port = port
+        self.log = Log(f&#34;Monitoring&#34;)
+        self._pages: Dict[str, BasePage] = {}
+
+        self.main_page = MainPage(&#34;_main&#34;, &#34;Info&#34;)
+        self.add_page(self.main_page)
+
+        self.app: web.Application = None
+
+        self._middleware = []
+
+    def __getitem__(self, item: str) -&gt; BasePage:
+        return self._pages[item]
+
+    def __getattr__(self, item):
+        try:
+            return super().__getattr__(item)
+        except AttributeError:
+            return self._pages[item]
+
+    def add_page(self, page: BasePage):
+        assert page.id not in self._pages
+        self._pages[page.id] = page
+
+    def add_middleware(self, func):
+        self._middleware.append(func)
+
+    async def warm_up(self):
+        self.log.info(&#34;Running&#34;, addr=self.addr, port=self.port)
+        self.log.important(&#34;You can access to monitoring by&#34;,
+                           addr=f&#34;http://{self.addr}:{self.port}/&#34;)
+
+        self.app = web.Application(middlewares=[self.error_middleware])
+
+        self.app.add_routes([
+            web.get(f&#34;/&#34;, self._get_index),
+            web.get(f&#34;{self.API_PATH}/ping&#34;, self._get_ping),
+            web.get(f&#34;{self.API_PATH}/pages&#34;, self._get_pages),
+            web.get(f&#34;{self.API_PATH}/page/{{id}}&#34;, self._get_page),
+        ])
+
+        self.runner = web.AppRunner(self.app)
+        await self.runner.setup()
+        site = web.TCPSite(self.runner, self.addr, self.port)
+
+        await site.start()
+        self.log.info(&#34;Server started&#34;)
+        self.main_page.start_time = time()
+
+    async def shutdown(self):
+        self.log.info(&#34;Server shutdown&#34;)
+        await self.runner.shutdown()
+        self.log.info(&#34;Server cleanup&#34;)
+        await self.runner.cleanup()
+        self.log.info(&#34;Server gracefully stopped&#34;)
+
+    async def _get_index(self, request):
+        async with aiofiles.open(&#34;core/monitor/app.html&#34;, mode=&#39;rt&#39;) as f:
+            template = await f.read()
+
+        return web.Response(body=template, content_type=&#34;text/html&#34;)
+
+    async def _get_ping(self, request):
+        return web.json_response({&#39;status&#39;: &#39;ok&#39;,
+                                  &#39;time&#39;: time()})
+
+    async def _get_pages(self, request):
+        answer_ = []
+
+        for page in self._pages.values():
+            answer_.append(page.page_info())
+
+        return web.json_response(answer_)
+
+    async def _get_page(self, request):
+        page_id = request.match_info[&#39;id&#39;]
+
+        # TODO: NotFoundPage
+        page = self._pages[page_id]
+
+        return web.json_response(page.to_dict())
+
+    @web.middleware
+    async def error_middleware(self, request: Request, handler):
+        try:
+            for md in self._middleware:
+                md(request, handler)
+
+            self.main_page.queries += 1
+
+            response = await handler(request)
+
+            if response.status == 200:
+                return response
+
+            message = response.message
+        except web.HTTPException as ex:
+            self.log.exception(request=request, handler=handler)
+
+            if ex.status != 404:
+                raise
+            message = ex.reason
+        except Exception as e:
+            self.log.exception(request=request, handler=handler)
+            message = str(e)
+
+        return web.json_response({&#39;status&#39;: &#39;error&#39;,
+                                  &#39;message&#39;: message})</code></pre>
+</details>
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="src.core.monitor.page" href="page.html">src.core.monitor.page</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="src.core.monitor.tests" href="tests/index.html">src.core.monitor.tests</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="src.core.monitor.MainPage"><code class="flex name class">
+<span>class <span class="ident">MainPage</span></span>
+<span>(</span><span>id: str, name: str, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class MainPage(DictPage):
+    info = PageAttribute()
+    start_time = PageAttribute()
+    queries = PageAttribute(default=0)
+
+    @PageAttribute.property
+    def work_time(self):
+        return time() - self.start_time</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="src.core.monitor.page.DictPage" href="page.html#src.core.monitor.page.DictPage">DictPage</a></li>
+<li><a title="src.core.monitor.page.BasePage" href="page.html#src.core.monitor.page.BasePage">BasePage</a></li>
+<li>core.attribute_storage.attribute_storage.AttributeStorage</li>
+<li>core.searchable.SearchableSubclasses</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="src.core.monitor.MainPage.info"><code class="name">var <span class="ident">info</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.core.monitor.MainPage.queries"><code class="name">var <span class="ident">queries</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.core.monitor.MainPage.start_time"><code class="name">var <span class="ident">start_time</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.core.monitor.MainPage.work_time"><code class="name">var <span class="ident">work_time</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.core.monitor.Monitoring"><code class="flex name class">
+<span>class <span class="ident">Monitoring</span></span>
+<span>(</span><span>addr, port)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Monitoring:
+    API_PATH = &#34;/api&#34;
+
+    def __init__(self, addr, port):
+        self.addr = addr
+        self.port = port
+        self.log = Log(f&#34;Monitoring&#34;)
+        self._pages: Dict[str, BasePage] = {}
+
+        self.main_page = MainPage(&#34;_main&#34;, &#34;Info&#34;)
+        self.add_page(self.main_page)
+
+        self.app: web.Application = None
+
+        self._middleware = []
+
+    def __getitem__(self, item: str) -&gt; BasePage:
+        return self._pages[item]
+
+    def __getattr__(self, item):
+        try:
+            return super().__getattr__(item)
+        except AttributeError:
+            return self._pages[item]
+
+    def add_page(self, page: BasePage):
+        assert page.id not in self._pages
+        self._pages[page.id] = page
+
+    def add_middleware(self, func):
+        self._middleware.append(func)
+
+    async def warm_up(self):
+        self.log.info(&#34;Running&#34;, addr=self.addr, port=self.port)
+        self.log.important(&#34;You can access to monitoring by&#34;,
+                           addr=f&#34;http://{self.addr}:{self.port}/&#34;)
+
+        self.app = web.Application(middlewares=[self.error_middleware])
+
+        self.app.add_routes([
+            web.get(f&#34;/&#34;, self._get_index),
+            web.get(f&#34;{self.API_PATH}/ping&#34;, self._get_ping),
+            web.get(f&#34;{self.API_PATH}/pages&#34;, self._get_pages),
+            web.get(f&#34;{self.API_PATH}/page/{{id}}&#34;, self._get_page),
+        ])
+
+        self.runner = web.AppRunner(self.app)
+        await self.runner.setup()
+        site = web.TCPSite(self.runner, self.addr, self.port)
+
+        await site.start()
+        self.log.info(&#34;Server started&#34;)
+        self.main_page.start_time = time()
+
+    async def shutdown(self):
+        self.log.info(&#34;Server shutdown&#34;)
+        await self.runner.shutdown()
+        self.log.info(&#34;Server cleanup&#34;)
+        await self.runner.cleanup()
+        self.log.info(&#34;Server gracefully stopped&#34;)
+
+    async def _get_index(self, request):
+        async with aiofiles.open(&#34;core/monitor/app.html&#34;, mode=&#39;rt&#39;) as f:
+            template = await f.read()
+
+        return web.Response(body=template, content_type=&#34;text/html&#34;)
+
+    async def _get_ping(self, request):
+        return web.json_response({&#39;status&#39;: &#39;ok&#39;,
+                                  &#39;time&#39;: time()})
+
+    async def _get_pages(self, request):
+        answer_ = []
+
+        for page in self._pages.values():
+            answer_.append(page.page_info())
+
+        return web.json_response(answer_)
+
+    async def _get_page(self, request):
+        page_id = request.match_info[&#39;id&#39;]
+
+        # TODO: NotFoundPage
+        page = self._pages[page_id]
+
+        return web.json_response(page.to_dict())
+
+    @web.middleware
+    async def error_middleware(self, request: Request, handler):
+        try:
+            for md in self._middleware:
+                md(request, handler)
+
+            self.main_page.queries += 1
+
+            response = await handler(request)
+
+            if response.status == 200:
+                return response
+
+            message = response.message
+        except web.HTTPException as ex:
+            self.log.exception(request=request, handler=handler)
+
+            if ex.status != 404:
+                raise
+            message = ex.reason
+        except Exception as e:
+            self.log.exception(request=request, handler=handler)
+            message = str(e)
+
+        return web.json_response({&#39;status&#39;: &#39;error&#39;,
+                                  &#39;message&#39;: message})</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.core.monitor.Monitoring.API_PATH"><code class="name">var <span class="ident">API_PATH</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="src.core.monitor.Monitoring.add_middleware"><code class="name flex">
+<span>def <span class="ident">add_middleware</span></span>(<span>self, func)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_middleware(self, func):
+    self._middleware.append(func)</code></pre>
+</details>
+</dd>
+<dt id="src.core.monitor.Monitoring.add_page"><code class="name flex">
+<span>def <span class="ident">add_page</span></span>(<span>self, page: <a title="src.core.monitor.page.BasePage" href="page.html#src.core.monitor.page.BasePage">BasePage</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_page(self, page: BasePage):
+    assert page.id not in self._pages
+    self._pages[page.id] = page</code></pre>
+</details>
+</dd>
+<dt id="src.core.monitor.Monitoring.error_middleware"><code class="name flex">
+<span>async def <span class="ident">error_middleware</span></span>(<span>self, request: aiohttp.web_request.Request, handler)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@web.middleware
+async def error_middleware(self, request: Request, handler):
+    try:
+        for md in self._middleware:
+            md(request, handler)
+
+        self.main_page.queries += 1
+
+        response = await handler(request)
+
+        if response.status == 200:
+            return response
+
+        message = response.message
+    except web.HTTPException as ex:
+        self.log.exception(request=request, handler=handler)
+
+        if ex.status != 404:
+            raise
+        message = ex.reason
+    except Exception as e:
+        self.log.exception(request=request, handler=handler)
+        message = str(e)
+
+    return web.json_response({&#39;status&#39;: &#39;error&#39;,
+                              &#39;message&#39;: message})</code></pre>
+</details>
+</dd>
+<dt id="src.core.monitor.Monitoring.shutdown"><code class="name flex">
+<span>async def <span class="ident">shutdown</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def shutdown(self):
+    self.log.info(&#34;Server shutdown&#34;)
+    await self.runner.shutdown()
+    self.log.info(&#34;Server cleanup&#34;)
+    await self.runner.cleanup()
+    self.log.info(&#34;Server gracefully stopped&#34;)</code></pre>
+</details>
+</dd>
+<dt id="src.core.monitor.Monitoring.warm_up"><code class="name flex">
+<span>async def <span class="ident">warm_up</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def warm_up(self):
+    self.log.info(&#34;Running&#34;, addr=self.addr, port=self.port)
+    self.log.important(&#34;You can access to monitoring by&#34;,
+                       addr=f&#34;http://{self.addr}:{self.port}/&#34;)
+
+    self.app = web.Application(middlewares=[self.error_middleware])
+
+    self.app.add_routes([
+        web.get(f&#34;/&#34;, self._get_index),
+        web.get(f&#34;{self.API_PATH}/ping&#34;, self._get_ping),
+        web.get(f&#34;{self.API_PATH}/pages&#34;, self._get_pages),
+        web.get(f&#34;{self.API_PATH}/page/{{id}}&#34;, self._get_page),
+    ])
+
+    self.runner = web.AppRunner(self.app)
+    await self.runner.setup()
+    site = web.TCPSite(self.runner, self.addr, self.port)
+
+    await site.start()
+    self.log.info(&#34;Server started&#34;)
+    self.main_page.start_time = time()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src.core" href="../index.html">src.core</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="src.core.monitor.page" href="page.html">src.core.monitor.page</a></code></li>
+<li><code><a title="src.core.monitor.tests" href="tests/index.html">src.core.monitor.tests</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="src.core.monitor.MainPage" href="#src.core.monitor.MainPage">MainPage</a></code></h4>
+<ul class="">
+<li><code><a title="src.core.monitor.MainPage.info" href="#src.core.monitor.MainPage.info">info</a></code></li>
+<li><code><a title="src.core.monitor.MainPage.queries" href="#src.core.monitor.MainPage.queries">queries</a></code></li>
+<li><code><a title="src.core.monitor.MainPage.start_time" href="#src.core.monitor.MainPage.start_time">start_time</a></code></li>
+<li><code><a title="src.core.monitor.MainPage.work_time" href="#src.core.monitor.MainPage.work_time">work_time</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.core.monitor.Monitoring" href="#src.core.monitor.Monitoring">Monitoring</a></code></h4>
+<ul class="two-column">
+<li><code><a title="src.core.monitor.Monitoring.API_PATH" href="#src.core.monitor.Monitoring.API_PATH">API_PATH</a></code></li>
+<li><code><a title="src.core.monitor.Monitoring.add_middleware" href="#src.core.monitor.Monitoring.add_middleware">add_middleware</a></code></li>
+<li><code><a title="src.core.monitor.Monitoring.add_page" href="#src.core.monitor.Monitoring.add_page">add_page</a></code></li>
+<li><code><a title="src.core.monitor.Monitoring.error_middleware" href="#src.core.monitor.Monitoring.error_middleware">error_middleware</a></code></li>
+<li><code><a title="src.core.monitor.Monitoring.shutdown" href="#src.core.monitor.Monitoring.shutdown">shutdown</a></code></li>
+<li><code><a title="src.core.monitor.Monitoring.warm_up" href="#src.core.monitor.Monitoring.warm_up">warm_up</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

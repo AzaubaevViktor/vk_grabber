@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>src.core.work.work API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>src.core.work.work</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import asyncio
+from time import time
+from typing import List, Dict, Optional
+
+from .tasks import TasksManager
+
+from core import Log
+from ..monitor import DictPage, PageAttribute
+
+
+class TaskInfo:
+    def __init__(self, item):
+        self.processed_callback = None
+        if isinstance(item, tuple):
+            self.item, self.processed_callback = item
+        else:
+            self.item = item
+
+        self.state = &#34;💤 Not running&#34;
+
+    def update(self, new_state):
+        self.state = new_state
+
+    def __str__(self):
+        return self.state
+
+
+class Stats(DictPage):
+    _start_time: int = PageAttribute(default=0)
+
+    state: str = PageAttribute()
+
+    input_items: int = PageAttribute(default=0)
+    processed_items: int = PageAttribute(default=0)
+    returned_items: int = PageAttribute(default=0)
+    updated_items: int = PageAttribute(default=0)
+    finished_items: int = PageAttribute(default=0)
+
+    finished_time: Optional[int] = PageAttribute(default=None)
+
+    @PageAttribute.property
+    def speed(self):
+        dt = (self.finished_time or time()) - self._start_time
+
+        if dt &lt; 1:
+            return 0
+
+        return self.processed_items / dt
+
+    @PageAttribute.property
+    def reverse_speed(self):
+        speed = self.speed
+
+        if speed &lt; 0.000001:
+            return 1
+
+        return 1 / speed
+
+
+class BaseWork:
+    start_time = time()
+
+    MUTE_EXCEPTION = True
+
+    PARALLEL = 10
+    INPUT_RETRIES = 0
+    WAIT_COEF = 1
+
+    need_stop = False
+
+    work_ids: Dict[str, int] = {}
+
+    def __init__(self):
+        work_name = self.__class__.__name__
+        self.log = Log(work_name)
+
+        self.log.debug(&#34;Register work&#34;)
+        self.work_ids.setdefault(work_name, -1)
+        self.work_ids[work_name] += 1
+        work_id = f&#34;{work_name}_{self.work_ids[work_name]}&#34;
+        self.log.debug(&#34;Work registered&#34;, work_id=work_id)
+
+        self.stat = Stats(work_id, work_name)
+
+        self.log.debug(&#34;Run task manager&#34;)
+        self.task_manager = TasksManager(self.PARALLEL)
+        self.tasks: List[TaskInfo] = []
+
+        self.state = &#34;Base class initialized&#34;
+
+    @property
+    def state(self):
+        return self.stat.state
+
+    @state.setter
+    def state(self, value):
+        self.stat.state = value
+        self.log.debug(self.state)
+
+    async def warm_up(self):
+        pass
+
+    async def input(self):
+        yield
+        raise NotImplementedError()
+
+    async def process(self, item):
+        yield
+        raise NotImplementedError()
+
+    async def update(self, result):
+        raise NotImplementedError()
+
+    async def shutdown(self):
+        pass
+
+    async def __call__(self):
+        self.state = &#34;🔥 Warming up&#34;
+        await self.warm_up()
+        self.stat._start_time = time()
+
+        try:
+            await self.main_cycle()
+        except Exception:
+            self.log.exception(&#34;MAIN CYCLE&#34;)
+            if not self.MUTE_EXCEPTION:
+                raise
+
+        self.stat.finished_time = time()
+
+        self.state = &#34;🛑 Shutdown&#34;
+        await self.shutdown()
+
+        self.state = &#34;🏁 Finished&#34;
+
+    async def main_cycle(self):
+        self.state = &#34;⌛️ Ready to start&#34;
+        await asyncio.gather(
+            self._input_cycle(),
+            self._result_cycle()
+        )
+
+    async def _result_cycle(self):
+        while True:
+            try:
+                result = await asyncio.wait_for(self.task_manager.take(), 1)
+            except asyncio.TimeoutError:
+                continue
+
+            if isinstance(result, TasksManager.Finish):
+                break
+
+            await self.update(result)
+
+            self.stat.updated_items += 1
+
+    async def _input_cycle(self):
+        self.stat.retries = 0
+
+        while not self.need_stop:
+            self.state = &#34;🔎 Wait for new item&#34;
+
+            async for item in self.input():
+                self.stat.input_items += 1
+                await self.task_manager.put(self._run_task(
+                    TaskInfo(item)
+                ))
+                self.stat.retries = None
+
+            if self.INPUT_RETRIES == 0:
+                # Need to run only one time
+                self.need_stop = True
+                continue
+
+            if self.stat.retries is None:
+                # Item found
+                self.stat.retries = 0
+                await asyncio.sleep(0)
+                continue
+
+            if self.stat.retries &gt;= self.INPUT_RETRIES:
+                self.log.warning(&#34;Too many retries, i&#39;m done&#34;, retries=self.stat.retries)
+                self.need_stop = True
+                continue
+
+            # Retry logic
+            self.stat.retries += 1
+            self.state = f&#34;🔎 Wait items, repeat №{self.stat.retries}&#34;
+            await asyncio.sleep(self.stat.retries * self.WAIT_COEF)
+
+        await self.task_manager.stop()
+
+    async def _run_task(self, info: TaskInfo):
+        self.tasks.append(info)
+
+        info.update(&#34;🎬 Task started&#34;)
+
+        info.update(f&#34;🛠 Processing&#34;)
+
+        async for result in self.process(info.item):
+            self.stat.returned_items += 1
+            info.update(f&#34;🛠 {repr(result)}&#34;)
+            yield result
+            info.update(f&#34;🛠 Processing&#34;)
+
+        self.stat.processed_items += 1
+        info.update(&#34;✅ Finish processing&#34;)
+
+        if info.processed_callback:
+            info.update(&#34;🤙 Run callback&#34;)
+
+            self.log.info(&#34;Run processed callback&#34;, processed_callback=info.processed_callback)
+            await info.processed_callback
+
+        self.stat.finished_items += 1
+
+        info.update(&#34;🏁 Task finished&#34;)
+
+        self.tasks.remove(info)
+
+    async def take_error(self):
+        return await self.task_manager.take_error()</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="src.core.work.work.BaseWork"><code class="flex name class">
+<span>class <span class="ident">BaseWork</span></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BaseWork:
+    start_time = time()
+
+    MUTE_EXCEPTION = True
+
+    PARALLEL = 10
+    INPUT_RETRIES = 0
+    WAIT_COEF = 1
+
+    need_stop = False
+
+    work_ids: Dict[str, int] = {}
+
+    def __init__(self):
+        work_name = self.__class__.__name__
+        self.log = Log(work_name)
+
+        self.log.debug(&#34;Register work&#34;)
+        self.work_ids.setdefault(work_name, -1)
+        self.work_ids[work_name] += 1
+        work_id = f&#34;{work_name}_{self.work_ids[work_name]}&#34;
+        self.log.debug(&#34;Work registered&#34;, work_id=work_id)
+
+        self.stat = Stats(work_id, work_name)
+
+        self.log.debug(&#34;Run task manager&#34;)
+        self.task_manager = TasksManager(self.PARALLEL)
+        self.tasks: List[TaskInfo] = []
+
+        self.state = &#34;Base class initialized&#34;
+
+    @property
+    def state(self):
+        return self.stat.state
+
+    @state.setter
+    def state(self, value):
+        self.stat.state = value
+        self.log.debug(self.state)
+
+    async def warm_up(self):
+        pass
+
+    async def input(self):
+        yield
+        raise NotImplementedError()
+
+    async def process(self, item):
+        yield
+        raise NotImplementedError()
+
+    async def update(self, result):
+        raise NotImplementedError()
+
+    async def shutdown(self):
+        pass
+
+    async def __call__(self):
+        self.state = &#34;🔥 Warming up&#34;
+        await self.warm_up()
+        self.stat._start_time = time()
+
+        try:
+            await self.main_cycle()
+        except Exception:
+            self.log.exception(&#34;MAIN CYCLE&#34;)
+            if not self.MUTE_EXCEPTION:
+                raise
+
+        self.stat.finished_time = time()
+
+        self.state = &#34;🛑 Shutdown&#34;
+        await self.shutdown()
+
+        self.state = &#34;🏁 Finished&#34;
+
+    async def main_cycle(self):
+        self.state = &#34;⌛️ Ready to start&#34;
+        await asyncio.gather(
+            self._input_cycle(),
+            self._result_cycle()
+        )
+
+    async def _result_cycle(self):
+        while True:
+            try:
+                result = await asyncio.wait_for(self.task_manager.take(), 1)
+            except asyncio.TimeoutError:
+                continue
+
+            if isinstance(result, TasksManager.Finish):
+                break
+
+            await self.update(result)
+
+            self.stat.updated_items += 1
+
+    async def _input_cycle(self):
+        self.stat.retries = 0
+
+        while not self.need_stop:
+            self.state = &#34;🔎 Wait for new item&#34;
+
+            async for item in self.input():
+                self.stat.input_items += 1
+                await self.task_manager.put(self._run_task(
+                    TaskInfo(item)
+                ))
+                self.stat.retries = None
+
+            if self.INPUT_RETRIES == 0:
+                # Need to run only one time
+                self.need_stop = True
+                continue
+
+            if self.stat.retries is None:
+                # Item found
+                self.stat.retries = 0
+                await asyncio.sleep(0)
+                continue
+
+            if self.stat.retries &gt;= self.INPUT_RETRIES:
+                self.log.warning(&#34;Too many retries, i&#39;m done&#34;, retries=self.stat.retries)
+                self.need_stop = True
+                continue
+
+            # Retry logic
+            self.stat.retries += 1
+            self.state = f&#34;🔎 Wait items, repeat №{self.stat.retries}&#34;
+            await asyncio.sleep(self.stat.retries * self.WAIT_COEF)
+
+        await self.task_manager.stop()
+
+    async def _run_task(self, info: TaskInfo):
+        self.tasks.append(info)
+
+        info.update(&#34;🎬 Task started&#34;)
+
+        info.update(f&#34;🛠 Processing&#34;)
+
+        async for result in self.process(info.item):
+            self.stat.returned_items += 1
+            info.update(f&#34;🛠 {repr(result)}&#34;)
+            yield result
+            info.update(f&#34;🛠 Processing&#34;)
+
+        self.stat.processed_items += 1
+        info.update(&#34;✅ Finish processing&#34;)
+
+        if info.processed_callback:
+            info.update(&#34;🤙 Run callback&#34;)
+
+            self.log.info(&#34;Run processed callback&#34;, processed_callback=info.processed_callback)
+            await info.processed_callback
+
+        self.stat.finished_items += 1
+
+        info.update(&#34;🏁 Task finished&#34;)
+
+        self.tasks.remove(info)
+
+    async def take_error(self):
+        return await self.task_manager.take_error()</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.core.work.work.BaseWork.INPUT_RETRIES"><code class="name">var <span class="ident">INPUT_RETRIES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.core.work.work.BaseWork.MUTE_EXCEPTION"><code class="name">var <span class="ident">MUTE_EXCEPTION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.core.work.work.BaseWork.PARALLEL"><code class="name">var <span class="ident">PARALLEL</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.core.work.work.BaseWork.WAIT_COEF"><code class="name">var <span class="ident">WAIT_COEF</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.core.work.work.BaseWork.need_stop"><code class="name">var <span class="ident">need_stop</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.core.work.work.BaseWork.start_time"><code class="name">var <span class="ident">start_time</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.core.work.work.BaseWork.work_ids"><code class="name">var <span class="ident">work_ids</span> : Dict[str, int]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="src.core.work.work.BaseWork.state"><code class="name">var <span class="ident">state</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def state(self):
+    return self.stat.state</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="src.core.work.work.BaseWork.input"><code class="name flex">
+<span>async def <span class="ident">input</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def input(self):
+    yield
+    raise NotImplementedError()</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.BaseWork.main_cycle"><code class="name flex">
+<span>async def <span class="ident">main_cycle</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def main_cycle(self):
+    self.state = &#34;⌛️ Ready to start&#34;
+    await asyncio.gather(
+        self._input_cycle(),
+        self._result_cycle()
+    )</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.BaseWork.process"><code class="name flex">
+<span>async def <span class="ident">process</span></span>(<span>self, item)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def process(self, item):
+    yield
+    raise NotImplementedError()</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.BaseWork.shutdown"><code class="name flex">
+<span>async def <span class="ident">shutdown</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def shutdown(self):
+    pass</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.BaseWork.take_error"><code class="name flex">
+<span>async def <span class="ident">take_error</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def take_error(self):
+    return await self.task_manager.take_error()</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.BaseWork.update"><code class="name flex">
+<span>async def <span class="ident">update</span></span>(<span>self, result)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def update(self, result):
+    raise NotImplementedError()</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.BaseWork.warm_up"><code class="name flex">
+<span>async def <span class="ident">warm_up</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def warm_up(self):
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.core.work.work.Stats"><code class="flex name class">
+<span>class <span class="ident">Stats</span></span>
+<span>(</span><span>id: str, name: str, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Stats(DictPage):
+    _start_time: int = PageAttribute(default=0)
+
+    state: str = PageAttribute()
+
+    input_items: int = PageAttribute(default=0)
+    processed_items: int = PageAttribute(default=0)
+    returned_items: int = PageAttribute(default=0)
+    updated_items: int = PageAttribute(default=0)
+    finished_items: int = PageAttribute(default=0)
+
+    finished_time: Optional[int] = PageAttribute(default=None)
+
+    @PageAttribute.property
+    def speed(self):
+        dt = (self.finished_time or time()) - self._start_time
+
+        if dt &lt; 1:
+            return 0
+
+        return self.processed_items / dt
+
+    @PageAttribute.property
+    def reverse_speed(self):
+        speed = self.speed
+
+        if speed &lt; 0.000001:
+            return 1
+
+        return 1 / speed</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="src.core.monitor.page.DictPage" href="../monitor/page.html#src.core.monitor.page.DictPage">DictPage</a></li>
+<li><a title="src.core.monitor.page.BasePage" href="../monitor/page.html#src.core.monitor.page.BasePage">BasePage</a></li>
+<li>core.attribute_storage.attribute_storage.AttributeStorage</li>
+<li>core.searchable.SearchableSubclasses</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="src.core.work.work.Stats.finished_items"><code class="name">var <span class="ident">finished_items</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.Stats.finished_time"><code class="name">var <span class="ident">finished_time</span> : Union[int, NoneType]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.Stats.input_items"><code class="name">var <span class="ident">input_items</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.Stats.processed_items"><code class="name">var <span class="ident">processed_items</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.Stats.returned_items"><code class="name">var <span class="ident">returned_items</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.Stats.reverse_speed"><code class="name">var <span class="ident">reverse_speed</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.Stats.speed"><code class="name">var <span class="ident">speed</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.Stats.state"><code class="name">var <span class="ident">state</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.core.work.work.Stats.updated_items"><code class="name">var <span class="ident">updated_items</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.core.work.work.TaskInfo"><code class="flex name class">
+<span>class <span class="ident">TaskInfo</span></span>
+<span>(</span><span>item)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class TaskInfo:
+    def __init__(self, item):
+        self.processed_callback = None
+        if isinstance(item, tuple):
+            self.item, self.processed_callback = item
+        else:
+            self.item = item
+
+        self.state = &#34;💤 Not running&#34;
+
+    def update(self, new_state):
+        self.state = new_state
+
+    def __str__(self):
+        return self.state</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="src.core.work.work.TaskInfo.update"><code class="name flex">
+<span>def <span class="ident">update</span></span>(<span>self, new_state)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def update(self, new_state):
+    self.state = new_state</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src.core.work" href="index.html">src.core.work</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="src.core.work.work.BaseWork" href="#src.core.work.work.BaseWork">BaseWork</a></code></h4>
+<ul class="two-column">
+<li><code><a title="src.core.work.work.BaseWork.INPUT_RETRIES" href="#src.core.work.work.BaseWork.INPUT_RETRIES">INPUT_RETRIES</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.MUTE_EXCEPTION" href="#src.core.work.work.BaseWork.MUTE_EXCEPTION">MUTE_EXCEPTION</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.PARALLEL" href="#src.core.work.work.BaseWork.PARALLEL">PARALLEL</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.WAIT_COEF" href="#src.core.work.work.BaseWork.WAIT_COEF">WAIT_COEF</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.input" href="#src.core.work.work.BaseWork.input">input</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.main_cycle" href="#src.core.work.work.BaseWork.main_cycle">main_cycle</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.need_stop" href="#src.core.work.work.BaseWork.need_stop">need_stop</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.process" href="#src.core.work.work.BaseWork.process">process</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.shutdown" href="#src.core.work.work.BaseWork.shutdown">shutdown</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.start_time" href="#src.core.work.work.BaseWork.start_time">start_time</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.state" href="#src.core.work.work.BaseWork.state">state</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.take_error" href="#src.core.work.work.BaseWork.take_error">take_error</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.update" href="#src.core.work.work.BaseWork.update">update</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.warm_up" href="#src.core.work.work.BaseWork.warm_up">warm_up</a></code></li>
+<li><code><a title="src.core.work.work.BaseWork.work_ids" href="#src.core.work.work.BaseWork.work_ids">work_ids</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.core.work.work.Stats" href="#src.core.work.work.Stats">Stats</a></code></h4>
+<ul class="two-column">
+<li><code><a title="src.core.work.work.Stats.finished_items" href="#src.core.work.work.Stats.finished_items">finished_items</a></code></li>
+<li><code><a title="src.core.work.work.Stats.finished_time" href="#src.core.work.work.Stats.finished_time">finished_time</a></code></li>
+<li><code><a title="src.core.work.work.Stats.input_items" href="#src.core.work.work.Stats.input_items">input_items</a></code></li>
+<li><code><a title="src.core.work.work.Stats.processed_items" href="#src.core.work.work.Stats.processed_items">processed_items</a></code></li>
+<li><code><a title="src.core.work.work.Stats.returned_items" href="#src.core.work.work.Stats.returned_items">returned_items</a></code></li>
+<li><code><a title="src.core.work.work.Stats.reverse_speed" href="#src.core.work.work.Stats.reverse_speed">reverse_speed</a></code></li>
+<li><code><a title="src.core.work.work.Stats.speed" href="#src.core.work.work.Stats.speed">speed</a></code></li>
+<li><code><a title="src.core.work.work.Stats.state" href="#src.core.work.work.Stats.state">state</a></code></li>
+<li><code><a title="src.core.work.work.Stats.updated_items" href="#src.core.work.work.Stats.updated_items">updated_items</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.core.work.work.TaskInfo" href="#src.core.work.work.TaskInfo">TaskInfo</a></code></h4>
+<ul class="">
+<li><code><a title="src.core.work.work.TaskInfo.update" href="#src.core.work.work.TaskInfo.update">update</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

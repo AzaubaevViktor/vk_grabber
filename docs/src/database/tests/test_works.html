@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>src.database.tests.test_works API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>src.database.tests.test_works</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import asyncio
+from typing import Type
+
+import pytest
+
+from core import BaseWork
+from core.work import TasksManager
+from database import Model, ModelAttribute
+
+pytestmark = pytest.mark.asyncio
+
+
+class A(Model):
+    uid = ModelAttribute(uid=True)
+    number = ModelAttribute()
+    processed = ModelAttribute(default=None)
+
+
+class B(Model):
+    uid = ModelAttribute(uid=True)
+    number10 = ModelAttribute()
+    processed = ModelAttribute(default=None)
+
+
+class C(Model):
+    number100 = ModelAttribute()
+
+
+class BaseTestWork(BaseWork):
+    MULTIPLIER = 10
+    WAIT_COEF = 0.01
+
+    def __init__(self, db):
+        super().__init__()
+        self.db = db
+
+    async def _check_exc(self):
+        if self.task_manager.has_errors():
+            err = await self.take_error()
+            if not isinstance(err, TasksManager.Finish):
+                e, fmt, _ = err
+                print(fmt)
+                raise e
+
+    async def _check_models(self, Class: Type[Model]):
+        found = False
+        async for item_raw in self.db.find_raw(Class):
+            found = True
+            assert item_raw.get(&#39;processed&#39;, None) is True
+        assert found
+
+
+class AGenerator(BaseTestWork):
+    INPUT_RETRIES = 0
+    MUTE_EXCEPTION = False
+
+    def __init__(self, db, count):
+        super().__init__(db)
+        self.orig_count = count
+
+    async def input(self):
+        for i in range(self.orig_count):
+            yield i
+
+    async def process(self, item: int):
+        yield A(uid=item, number=item)
+
+    async def update(self, result):
+        await self.db.store(result)
+
+    async def test(self):
+        await self()
+        # TODO: Use count
+        assert await self.db.count(A) == self.orig_count
+        assert self.orig_count == self.stat.input_items
+        assert self.orig_count == self.stat.returned_items
+        await self._check_exc()
+
+
+class ABWorker(BaseTestWork):
+    INPUT_RETRIES = 5
+    MUTE_EXCEPTION = False
+
+    async def input(self):
+        async for a in self.db.choose(A, {&#39;processed&#39;: None},
+                                      {&#39;processed&#39;: False},
+                                      limit_=3):
+            yield a, self.db.store(a, processed=True)
+
+    async def process(self, a: A):
+        for i in range(10):
+            num = a.number * self.MULTIPLIER + i
+            yield B(uid=num, number10=num)
+
+    async def update(self, result: B):
+        await self.db.store(result)
+
+    async def test(self):
+        await self()
+        # TODO: Use count
+        assert self.stat.input_items != 0
+        assert await self.db.count(B) == self.stat.returned_items
+        assert self.stat.input_items * self.MULTIPLIER == self.stat.returned_items
+        await self._check_exc()
+        await self._check_models(A)
+
+
+class BCWorker(BaseTestWork):
+    INPUT_RETRIES = 5
+    MUTE_EXCEPTION = False
+
+    async def input(self):
+        async for b in self.db.choose(B, {&#39;processed&#39;: None},
+                                      {&#39;processed&#39;: False},
+                                      limit_=6):
+            yield b, self.db.store(b, **{&#39;processed&#39;: True})
+
+    async def process(self, b: B):
+        for i in range(10):
+            yield C(number100=b.number10 * 10 + i)
+
+    async def update(self, result: C):
+        await self.db.store(result)
+
+    async def test(self):
+        await self()
+
+        assert self.stat.input_items != 0
+        assert await self.db.count(C) == self.stat.returned_items
+        assert self.stat.input_items * self.MULTIPLIER == self.stat.returned_items
+        await self._check_exc()
+        await self._check_models(B)
+
+
+@pytest.mark.parametrize(&#39;count&#39;, [1, 5, 10])
+async def test_linear(db, count):
+    gen = AGenerator(db, count)
+    await gen.test()
+
+    ab = ABWorker(db)
+    await ab.test()
+
+    bc = BCWorker(db)
+    await bc.test()
+
+
+@pytest.mark.parametrize(&#39;count&#39;, [1, 5, 10])
+async def test_parallel(db, count):
+    gen = AGenerator(db, count)
+
+    ab = ABWorker(db)
+
+    bc = BCWorker(db)
+    await asyncio.gather(
+        gen.test(),
+        ab.test(),
+        bc.test(),
+    )</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="src.database.tests.test_works.test_linear"><code class="name flex">
+<span>async def <span class="ident">test_linear</span></span>(<span>db, count)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(&#39;count&#39;, [1, 5, 10])
+async def test_linear(db, count):
+    gen = AGenerator(db, count)
+    await gen.test()
+
+    ab = ABWorker(db)
+    await ab.test()
+
+    bc = BCWorker(db)
+    await bc.test()</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.test_parallel"><code class="name flex">
+<span>async def <span class="ident">test_parallel</span></span>(<span>db, count)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(&#39;count&#39;, [1, 5, 10])
+async def test_parallel(db, count):
+    gen = AGenerator(db, count)
+
+    ab = ABWorker(db)
+
+    bc = BCWorker(db)
+    await asyncio.gather(
+        gen.test(),
+        ab.test(),
+        bc.test(),
+    )</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="src.database.tests.test_works.A"><code class="flex name class">
+<span>class <span class="ident">A</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class A(Model):
+    uid = ModelAttribute(uid=True)
+    number = ModelAttribute()
+    processed = ModelAttribute(default=None)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>database.model.Model</li>
+<li>core.attribute_storage.attribute_storage.AttributeStorage</li>
+<li>core.searchable.SearchableSubclasses</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="src.database.tests.test_works.A.number"><code class="name">var <span class="ident">number</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;Model&#34;, owner: Type[&#34;Model&#34;]):
+    if instance is None:
+        return self
+
+    value = instance._storage.get(self.name, self.default)
+    if isinstance(value, self._DefaultNone):
+        return None
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.A.processed"><code class="name">var <span class="ident">processed</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;Model&#34;, owner: Type[&#34;Model&#34;]):
+    if instance is None:
+        return self
+
+    value = instance._storage.get(self.name, self.default)
+    if isinstance(value, self._DefaultNone):
+        return None
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.A.uid"><code class="name">var <span class="ident">uid</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;Model&#34;, owner: Type[&#34;Model&#34;]):
+    if instance is None:
+        return self
+
+    value = instance._storage.get(self.name, self.default)
+    if isinstance(value, self._DefaultNone):
+        return None
+    return value</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.database.tests.test_works.ABWorker"><code class="flex name class">
+<span>class <span class="ident">ABWorker</span></span>
+<span>(</span><span>db)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ABWorker(BaseTestWork):
+    INPUT_RETRIES = 5
+    MUTE_EXCEPTION = False
+
+    async def input(self):
+        async for a in self.db.choose(A, {&#39;processed&#39;: None},
+                                      {&#39;processed&#39;: False},
+                                      limit_=3):
+            yield a, self.db.store(a, processed=True)
+
+    async def process(self, a: A):
+        for i in range(10):
+            num = a.number * self.MULTIPLIER + i
+            yield B(uid=num, number10=num)
+
+    async def update(self, result: B):
+        await self.db.store(result)
+
+    async def test(self):
+        await self()
+        # TODO: Use count
+        assert self.stat.input_items != 0
+        assert await self.db.count(B) == self.stat.returned_items
+        assert self.stat.input_items * self.MULTIPLIER == self.stat.returned_items
+        await self._check_exc()
+        await self._check_models(A)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="src.database.tests.test_works.BaseTestWork" href="#src.database.tests.test_works.BaseTestWork">BaseTestWork</a></li>
+<li>core.work.work.BaseWork</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.database.tests.test_works.ABWorker.INPUT_RETRIES"><code class="name">var <span class="ident">INPUT_RETRIES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.database.tests.test_works.ABWorker.MUTE_EXCEPTION"><code class="name">var <span class="ident">MUTE_EXCEPTION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="src.database.tests.test_works.ABWorker.input"><code class="name flex">
+<span>async def <span class="ident">input</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def input(self):
+    async for a in self.db.choose(A, {&#39;processed&#39;: None},
+                                  {&#39;processed&#39;: False},
+                                  limit_=3):
+        yield a, self.db.store(a, processed=True)</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.ABWorker.process"><code class="name flex">
+<span>async def <span class="ident">process</span></span>(<span>self, a: <a title="src.database.tests.test_works.A" href="#src.database.tests.test_works.A">A</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def process(self, a: A):
+    for i in range(10):
+        num = a.number * self.MULTIPLIER + i
+        yield B(uid=num, number10=num)</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.ABWorker.test"><code class="name flex">
+<span>async def <span class="ident">test</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def test(self):
+    await self()
+    # TODO: Use count
+    assert self.stat.input_items != 0
+    assert await self.db.count(B) == self.stat.returned_items
+    assert self.stat.input_items * self.MULTIPLIER == self.stat.returned_items
+    await self._check_exc()
+    await self._check_models(A)</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.ABWorker.update"><code class="name flex">
+<span>async def <span class="ident">update</span></span>(<span>self, result: <a title="src.database.tests.test_works.B" href="#src.database.tests.test_works.B">B</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def update(self, result: B):
+    await self.db.store(result)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.database.tests.test_works.AGenerator"><code class="flex name class">
+<span>class <span class="ident">AGenerator</span></span>
+<span>(</span><span>db, count)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class AGenerator(BaseTestWork):
+    INPUT_RETRIES = 0
+    MUTE_EXCEPTION = False
+
+    def __init__(self, db, count):
+        super().__init__(db)
+        self.orig_count = count
+
+    async def input(self):
+        for i in range(self.orig_count):
+            yield i
+
+    async def process(self, item: int):
+        yield A(uid=item, number=item)
+
+    async def update(self, result):
+        await self.db.store(result)
+
+    async def test(self):
+        await self()
+        # TODO: Use count
+        assert await self.db.count(A) == self.orig_count
+        assert self.orig_count == self.stat.input_items
+        assert self.orig_count == self.stat.returned_items
+        await self._check_exc()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="src.database.tests.test_works.BaseTestWork" href="#src.database.tests.test_works.BaseTestWork">BaseTestWork</a></li>
+<li>core.work.work.BaseWork</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.database.tests.test_works.AGenerator.INPUT_RETRIES"><code class="name">var <span class="ident">INPUT_RETRIES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.database.tests.test_works.AGenerator.MUTE_EXCEPTION"><code class="name">var <span class="ident">MUTE_EXCEPTION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="src.database.tests.test_works.AGenerator.input"><code class="name flex">
+<span>async def <span class="ident">input</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def input(self):
+    for i in range(self.orig_count):
+        yield i</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.AGenerator.process"><code class="name flex">
+<span>async def <span class="ident">process</span></span>(<span>self, item: int)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def process(self, item: int):
+    yield A(uid=item, number=item)</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.AGenerator.test"><code class="name flex">
+<span>async def <span class="ident">test</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def test(self):
+    await self()
+    # TODO: Use count
+    assert await self.db.count(A) == self.orig_count
+    assert self.orig_count == self.stat.input_items
+    assert self.orig_count == self.stat.returned_items
+    await self._check_exc()</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.AGenerator.update"><code class="name flex">
+<span>async def <span class="ident">update</span></span>(<span>self, result)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def update(self, result):
+    await self.db.store(result)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.database.tests.test_works.B"><code class="flex name class">
+<span>class <span class="ident">B</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class B(Model):
+    uid = ModelAttribute(uid=True)
+    number10 = ModelAttribute()
+    processed = ModelAttribute(default=None)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>database.model.Model</li>
+<li>core.attribute_storage.attribute_storage.AttributeStorage</li>
+<li>core.searchable.SearchableSubclasses</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="src.database.tests.test_works.B.number10"><code class="name">var <span class="ident">number10</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;Model&#34;, owner: Type[&#34;Model&#34;]):
+    if instance is None:
+        return self
+
+    value = instance._storage.get(self.name, self.default)
+    if isinstance(value, self._DefaultNone):
+        return None
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.B.processed"><code class="name">var <span class="ident">processed</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;Model&#34;, owner: Type[&#34;Model&#34;]):
+    if instance is None:
+        return self
+
+    value = instance._storage.get(self.name, self.default)
+    if isinstance(value, self._DefaultNone):
+        return None
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.B.uid"><code class="name">var <span class="ident">uid</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;Model&#34;, owner: Type[&#34;Model&#34;]):
+    if instance is None:
+        return self
+
+    value = instance._storage.get(self.name, self.default)
+    if isinstance(value, self._DefaultNone):
+        return None
+    return value</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.database.tests.test_works.BCWorker"><code class="flex name class">
+<span>class <span class="ident">BCWorker</span></span>
+<span>(</span><span>db)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BCWorker(BaseTestWork):
+    INPUT_RETRIES = 5
+    MUTE_EXCEPTION = False
+
+    async def input(self):
+        async for b in self.db.choose(B, {&#39;processed&#39;: None},
+                                      {&#39;processed&#39;: False},
+                                      limit_=6):
+            yield b, self.db.store(b, **{&#39;processed&#39;: True})
+
+    async def process(self, b: B):
+        for i in range(10):
+            yield C(number100=b.number10 * 10 + i)
+
+    async def update(self, result: C):
+        await self.db.store(result)
+
+    async def test(self):
+        await self()
+
+        assert self.stat.input_items != 0
+        assert await self.db.count(C) == self.stat.returned_items
+        assert self.stat.input_items * self.MULTIPLIER == self.stat.returned_items
+        await self._check_exc()
+        await self._check_models(B)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="src.database.tests.test_works.BaseTestWork" href="#src.database.tests.test_works.BaseTestWork">BaseTestWork</a></li>
+<li>core.work.work.BaseWork</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.database.tests.test_works.BCWorker.INPUT_RETRIES"><code class="name">var <span class="ident">INPUT_RETRIES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.database.tests.test_works.BCWorker.MUTE_EXCEPTION"><code class="name">var <span class="ident">MUTE_EXCEPTION</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="src.database.tests.test_works.BCWorker.input"><code class="name flex">
+<span>async def <span class="ident">input</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def input(self):
+    async for b in self.db.choose(B, {&#39;processed&#39;: None},
+                                  {&#39;processed&#39;: False},
+                                  limit_=6):
+        yield b, self.db.store(b, **{&#39;processed&#39;: True})</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.BCWorker.process"><code class="name flex">
+<span>async def <span class="ident">process</span></span>(<span>self, b: <a title="src.database.tests.test_works.B" href="#src.database.tests.test_works.B">B</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def process(self, b: B):
+    for i in range(10):
+        yield C(number100=b.number10 * 10 + i)</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.BCWorker.test"><code class="name flex">
+<span>async def <span class="ident">test</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def test(self):
+    await self()
+
+    assert self.stat.input_items != 0
+    assert await self.db.count(C) == self.stat.returned_items
+    assert self.stat.input_items * self.MULTIPLIER == self.stat.returned_items
+    await self._check_exc()
+    await self._check_models(B)</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_works.BCWorker.update"><code class="name flex">
+<span>async def <span class="ident">update</span></span>(<span>self, result: <a title="src.database.tests.test_works.C" href="#src.database.tests.test_works.C">C</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def update(self, result: C):
+    await self.db.store(result)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.database.tests.test_works.BaseTestWork"><code class="flex name class">
+<span>class <span class="ident">BaseTestWork</span></span>
+<span>(</span><span>db)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BaseTestWork(BaseWork):
+    MULTIPLIER = 10
+    WAIT_COEF = 0.01
+
+    def __init__(self, db):
+        super().__init__()
+        self.db = db
+
+    async def _check_exc(self):
+        if self.task_manager.has_errors():
+            err = await self.take_error()
+            if not isinstance(err, TasksManager.Finish):
+                e, fmt, _ = err
+                print(fmt)
+                raise e
+
+    async def _check_models(self, Class: Type[Model]):
+        found = False
+        async for item_raw in self.db.find_raw(Class):
+            found = True
+            assert item_raw.get(&#39;processed&#39;, None) is True
+        assert found</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>core.work.work.BaseWork</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="src.database.tests.test_works.ABWorker" href="#src.database.tests.test_works.ABWorker">ABWorker</a></li>
+<li><a title="src.database.tests.test_works.AGenerator" href="#src.database.tests.test_works.AGenerator">AGenerator</a></li>
+<li><a title="src.database.tests.test_works.BCWorker" href="#src.database.tests.test_works.BCWorker">BCWorker</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.database.tests.test_works.BaseTestWork.MULTIPLIER"><code class="name">var <span class="ident">MULTIPLIER</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.database.tests.test_works.BaseTestWork.WAIT_COEF"><code class="name">var <span class="ident">WAIT_COEF</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="src.database.tests.test_works.C"><code class="flex name class">
+<span>class <span class="ident">C</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class C(Model):
+    number100 = ModelAttribute()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>database.model.Model</li>
+<li>core.attribute_storage.attribute_storage.AttributeStorage</li>
+<li>core.searchable.SearchableSubclasses</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="src.database.tests.test_works.C.number100"><code class="name">var <span class="ident">number100</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;Model&#34;, owner: Type[&#34;Model&#34;]):
+    if instance is None:
+        return self
+
+    value = instance._storage.get(self.name, self.default)
+    if isinstance(value, self._DefaultNone):
+        return None
+    return value</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src.database.tests" href="index.html">src.database.tests</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="src.database.tests.test_works.test_linear" href="#src.database.tests.test_works.test_linear">test_linear</a></code></li>
+<li><code><a title="src.database.tests.test_works.test_parallel" href="#src.database.tests.test_works.test_parallel">test_parallel</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="src.database.tests.test_works.A" href="#src.database.tests.test_works.A">A</a></code></h4>
+<ul class="">
+<li><code><a title="src.database.tests.test_works.A.number" href="#src.database.tests.test_works.A.number">number</a></code></li>
+<li><code><a title="src.database.tests.test_works.A.processed" href="#src.database.tests.test_works.A.processed">processed</a></code></li>
+<li><code><a title="src.database.tests.test_works.A.uid" href="#src.database.tests.test_works.A.uid">uid</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.database.tests.test_works.ABWorker" href="#src.database.tests.test_works.ABWorker">ABWorker</a></code></h4>
+<ul class="two-column">
+<li><code><a title="src.database.tests.test_works.ABWorker.INPUT_RETRIES" href="#src.database.tests.test_works.ABWorker.INPUT_RETRIES">INPUT_RETRIES</a></code></li>
+<li><code><a title="src.database.tests.test_works.ABWorker.MUTE_EXCEPTION" href="#src.database.tests.test_works.ABWorker.MUTE_EXCEPTION">MUTE_EXCEPTION</a></code></li>
+<li><code><a title="src.database.tests.test_works.ABWorker.input" href="#src.database.tests.test_works.ABWorker.input">input</a></code></li>
+<li><code><a title="src.database.tests.test_works.ABWorker.process" href="#src.database.tests.test_works.ABWorker.process">process</a></code></li>
+<li><code><a title="src.database.tests.test_works.ABWorker.test" href="#src.database.tests.test_works.ABWorker.test">test</a></code></li>
+<li><code><a title="src.database.tests.test_works.ABWorker.update" href="#src.database.tests.test_works.ABWorker.update">update</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.database.tests.test_works.AGenerator" href="#src.database.tests.test_works.AGenerator">AGenerator</a></code></h4>
+<ul class="two-column">
+<li><code><a title="src.database.tests.test_works.AGenerator.INPUT_RETRIES" href="#src.database.tests.test_works.AGenerator.INPUT_RETRIES">INPUT_RETRIES</a></code></li>
+<li><code><a title="src.database.tests.test_works.AGenerator.MUTE_EXCEPTION" href="#src.database.tests.test_works.AGenerator.MUTE_EXCEPTION">MUTE_EXCEPTION</a></code></li>
+<li><code><a title="src.database.tests.test_works.AGenerator.input" href="#src.database.tests.test_works.AGenerator.input">input</a></code></li>
+<li><code><a title="src.database.tests.test_works.AGenerator.process" href="#src.database.tests.test_works.AGenerator.process">process</a></code></li>
+<li><code><a title="src.database.tests.test_works.AGenerator.test" href="#src.database.tests.test_works.AGenerator.test">test</a></code></li>
+<li><code><a title="src.database.tests.test_works.AGenerator.update" href="#src.database.tests.test_works.AGenerator.update">update</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.database.tests.test_works.B" href="#src.database.tests.test_works.B">B</a></code></h4>
+<ul class="">
+<li><code><a title="src.database.tests.test_works.B.number10" href="#src.database.tests.test_works.B.number10">number10</a></code></li>
+<li><code><a title="src.database.tests.test_works.B.processed" href="#src.database.tests.test_works.B.processed">processed</a></code></li>
+<li><code><a title="src.database.tests.test_works.B.uid" href="#src.database.tests.test_works.B.uid">uid</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.database.tests.test_works.BCWorker" href="#src.database.tests.test_works.BCWorker">BCWorker</a></code></h4>
+<ul class="two-column">
+<li><code><a title="src.database.tests.test_works.BCWorker.INPUT_RETRIES" href="#src.database.tests.test_works.BCWorker.INPUT_RETRIES">INPUT_RETRIES</a></code></li>
+<li><code><a title="src.database.tests.test_works.BCWorker.MUTE_EXCEPTION" href="#src.database.tests.test_works.BCWorker.MUTE_EXCEPTION">MUTE_EXCEPTION</a></code></li>
+<li><code><a title="src.database.tests.test_works.BCWorker.input" href="#src.database.tests.test_works.BCWorker.input">input</a></code></li>
+<li><code><a title="src.database.tests.test_works.BCWorker.process" href="#src.database.tests.test_works.BCWorker.process">process</a></code></li>
+<li><code><a title="src.database.tests.test_works.BCWorker.test" href="#src.database.tests.test_works.BCWorker.test">test</a></code></li>
+<li><code><a title="src.database.tests.test_works.BCWorker.update" href="#src.database.tests.test_works.BCWorker.update">update</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.database.tests.test_works.BaseTestWork" href="#src.database.tests.test_works.BaseTestWork">BaseTestWork</a></code></h4>
+<ul class="">
+<li><code><a title="src.database.tests.test_works.BaseTestWork.MULTIPLIER" href="#src.database.tests.test_works.BaseTestWork.MULTIPLIER">MULTIPLIER</a></code></li>
+<li><code><a title="src.database.tests.test_works.BaseTestWork.WAIT_COEF" href="#src.database.tests.test_works.BaseTestWork.WAIT_COEF">WAIT_COEF</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.database.tests.test_works.C" href="#src.database.tests.test_works.C">C</a></code></h4>
+<ul class="">
+<li><code><a title="src.database.tests.test_works.C.number100" href="#src.database.tests.test_works.C.number100">number100</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

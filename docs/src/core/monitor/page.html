@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>src.core.monitor.page API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>src.core.monitor.page</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from typing import Optional
+
+from core import Attribute, AttributeStorage
+
+
+class PageAttribute(Attribute):
+    def __init__(self, description: Optional[str] = None, default=None, uid: bool = False, method = None):
+        super().__init__(description=description, default=default, uid=uid, method=method)
+
+
+class BasePage(AttributeStorage):
+    TEMPLATE = None
+
+    id = PageAttribute()
+    name = PageAttribute()
+
+    def __init__(self, id: str, name: str, **kwargs):
+        super().__init__(id=id, name=name, **kwargs)
+
+    def to_dict(self) -&gt; dict:
+        return {
+            **dict(self),
+            &#39;template&#39;: self.TEMPLATE
+        }
+
+    def page_info(self) -&gt; dict:
+        return {
+            &#39;id&#39;: self.id,
+            &#39;name&#39;: self.name
+        }
+
+
+class DictPage(BasePage):
+    TEMPLATE = &#39;dict&#39;
+
+
+class ListPage(BasePage):
+    TEMPLATE = &#39;list&#39;
+    MAX_SIZE = None  # TODO: Tests
+
+    data = PageAttribute()
+
+    def __init__(self, id: str, name: str, **kwargs):
+        super().__init__(id, name, **kwargs)
+        if self.data is None:
+            self.data = []
+
+    def append(self, sub_page: BasePage):
+        self.data.append(sub_page)
+        if self.MAX_SIZE and len(self.data) &gt; self.MAX_SIZE:
+            self.data.pop(0)
+
+    def to_dict(self) -&gt; dict:
+        info = super(ListPage, self).to_dict()
+        old_data = info.pop(&#39;data&#39;)
+        new_data = []
+        info[&#39;data&#39;] = new_data
+
+        for item in old_data:
+            if isinstance(item, BasePage):
+                new_data.append(item.to_dict())
+            else:
+                new_data.append(item)
+
+        return info</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="src.core.monitor.page.BasePage"><code class="flex name class">
+<span>class <span class="ident">BasePage</span></span>
+<span>(</span><span>id: str, name: str, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class BasePage(AttributeStorage):
+    TEMPLATE = None
+
+    id = PageAttribute()
+    name = PageAttribute()
+
+    def __init__(self, id: str, name: str, **kwargs):
+        super().__init__(id=id, name=name, **kwargs)
+
+    def to_dict(self) -&gt; dict:
+        return {
+            **dict(self),
+            &#39;template&#39;: self.TEMPLATE
+        }
+
+    def page_info(self) -&gt; dict:
+        return {
+            &#39;id&#39;: self.id,
+            &#39;name&#39;: self.name
+        }</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>core.attribute_storage.attribute_storage.AttributeStorage</li>
+<li>core.searchable.SearchableSubclasses</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="src.core.monitor.page.DictPage" href="#src.core.monitor.page.DictPage">DictPage</a></li>
+<li><a title="src.core.monitor.page.ListPage" href="#src.core.monitor.page.ListPage">ListPage</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.core.monitor.page.BasePage.TEMPLATE"><code class="name">var <span class="ident">TEMPLATE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="src.core.monitor.page.BasePage.id"><code class="name">var <span class="ident">id</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.core.monitor.page.BasePage.name"><code class="name">var <span class="ident">name</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="src.core.monitor.page.BasePage.page_info"><code class="name flex">
+<span>def <span class="ident">page_info</span></span>(<span>self) -> dict</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def page_info(self) -&gt; dict:
+    return {
+        &#39;id&#39;: self.id,
+        &#39;name&#39;: self.name
+    }</code></pre>
+</details>
+</dd>
+<dt id="src.core.monitor.page.BasePage.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) -> dict</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; dict:
+    return {
+        **dict(self),
+        &#39;template&#39;: self.TEMPLATE
+    }</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.core.monitor.page.DictPage"><code class="flex name class">
+<span>class <span class="ident">DictPage</span></span>
+<span>(</span><span>id: str, name: str, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DictPage(BasePage):
+    TEMPLATE = &#39;dict&#39;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="src.core.monitor.page.BasePage" href="#src.core.monitor.page.BasePage">BasePage</a></li>
+<li>core.attribute_storage.attribute_storage.AttributeStorage</li>
+<li>core.searchable.SearchableSubclasses</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="src.core.monitor.MainPage" href="index.html#src.core.monitor.MainPage">MainPage</a></li>
+<li><a title="src.core.work.work.Stats" href="../work/work.html#src.core.work.work.Stats">Stats</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.core.monitor.page.DictPage.TEMPLATE"><code class="name">var <span class="ident">TEMPLATE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="src.core.monitor.page.ListPage"><code class="flex name class">
+<span>class <span class="ident">ListPage</span></span>
+<span>(</span><span>id: str, name: str, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ListPage(BasePage):
+    TEMPLATE = &#39;list&#39;
+    MAX_SIZE = None  # TODO: Tests
+
+    data = PageAttribute()
+
+    def __init__(self, id: str, name: str, **kwargs):
+        super().__init__(id, name, **kwargs)
+        if self.data is None:
+            self.data = []
+
+    def append(self, sub_page: BasePage):
+        self.data.append(sub_page)
+        if self.MAX_SIZE and len(self.data) &gt; self.MAX_SIZE:
+            self.data.pop(0)
+
+    def to_dict(self) -&gt; dict:
+        info = super(ListPage, self).to_dict()
+        old_data = info.pop(&#39;data&#39;)
+        new_data = []
+        info[&#39;data&#39;] = new_data
+
+        for item in old_data:
+            if isinstance(item, BasePage):
+                new_data.append(item.to_dict())
+            else:
+                new_data.append(item)
+
+        return info</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="src.core.monitor.page.BasePage" href="#src.core.monitor.page.BasePage">BasePage</a></li>
+<li>core.attribute_storage.attribute_storage.AttributeStorage</li>
+<li>core.searchable.SearchableSubclasses</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.core.monitor.page.ListPage.MAX_SIZE"><code class="name">var <span class="ident">MAX_SIZE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.core.monitor.page.ListPage.TEMPLATE"><code class="name">var <span class="ident">TEMPLATE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Instance variables</h3>
+<dl>
+<dt id="src.core.monitor.page.ListPage.data"><code class="name">var <span class="ident">data</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;AttributeStorage&#34;, owner: Type[&#34;AttributeStorage&#34;]):
+    if instance is None:
+        return self
+
+    if self.method is not None:
+        return self.method(instance)
+
+    value = instance._storage.get(self.name, self.default)
+    assert not isinstance(value, self._DefaultNone)
+    return value</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="src.core.monitor.page.ListPage.append"><code class="name flex">
+<span>def <span class="ident">append</span></span>(<span>self, sub_page: <a title="src.core.monitor.page.BasePage" href="#src.core.monitor.page.BasePage">BasePage</a>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def append(self, sub_page: BasePage):
+    self.data.append(sub_page)
+    if self.MAX_SIZE and len(self.data) &gt; self.MAX_SIZE:
+        self.data.pop(0)</code></pre>
+</details>
+</dd>
+<dt id="src.core.monitor.page.ListPage.to_dict"><code class="name flex">
+<span>def <span class="ident">to_dict</span></span>(<span>self) -> dict</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def to_dict(self) -&gt; dict:
+    info = super(ListPage, self).to_dict()
+    old_data = info.pop(&#39;data&#39;)
+    new_data = []
+    info[&#39;data&#39;] = new_data
+
+    for item in old_data:
+        if isinstance(item, BasePage):
+            new_data.append(item.to_dict())
+        else:
+            new_data.append(item)
+
+    return info</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.core.monitor.page.PageAttribute"><code class="flex name class">
+<span>class <span class="ident">PageAttribute</span></span>
+<span>(</span><span>description: Union[str, NoneType] = None, default=None, uid: bool = False, method=None)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PageAttribute(Attribute):
+    def __init__(self, description: Optional[str] = None, default=None, uid: bool = False, method = None):
+        super().__init__(description=description, default=default, uid=uid, method=method)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>core.attribute_storage.attribute_storage.Attribute</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src.core.monitor" href="index.html">src.core.monitor</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="src.core.monitor.page.BasePage" href="#src.core.monitor.page.BasePage">BasePage</a></code></h4>
+<ul class="">
+<li><code><a title="src.core.monitor.page.BasePage.TEMPLATE" href="#src.core.monitor.page.BasePage.TEMPLATE">TEMPLATE</a></code></li>
+<li><code><a title="src.core.monitor.page.BasePage.id" href="#src.core.monitor.page.BasePage.id">id</a></code></li>
+<li><code><a title="src.core.monitor.page.BasePage.name" href="#src.core.monitor.page.BasePage.name">name</a></code></li>
+<li><code><a title="src.core.monitor.page.BasePage.page_info" href="#src.core.monitor.page.BasePage.page_info">page_info</a></code></li>
+<li><code><a title="src.core.monitor.page.BasePage.to_dict" href="#src.core.monitor.page.BasePage.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.core.monitor.page.DictPage" href="#src.core.monitor.page.DictPage">DictPage</a></code></h4>
+<ul class="">
+<li><code><a title="src.core.monitor.page.DictPage.TEMPLATE" href="#src.core.monitor.page.DictPage.TEMPLATE">TEMPLATE</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.core.monitor.page.ListPage" href="#src.core.monitor.page.ListPage">ListPage</a></code></h4>
+<ul class="">
+<li><code><a title="src.core.monitor.page.ListPage.MAX_SIZE" href="#src.core.monitor.page.ListPage.MAX_SIZE">MAX_SIZE</a></code></li>
+<li><code><a title="src.core.monitor.page.ListPage.TEMPLATE" href="#src.core.monitor.page.ListPage.TEMPLATE">TEMPLATE</a></code></li>
+<li><code><a title="src.core.monitor.page.ListPage.append" href="#src.core.monitor.page.ListPage.append">append</a></code></li>
+<li><code><a title="src.core.monitor.page.ListPage.data" href="#src.core.monitor.page.ListPage.data">data</a></code></li>
+<li><code><a title="src.core.monitor.page.ListPage.to_dict" href="#src.core.monitor.page.ListPage.to_dict">to_dict</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.core.monitor.page.PageAttribute" href="#src.core.monitor.page.PageAttribute">PageAttribute</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>

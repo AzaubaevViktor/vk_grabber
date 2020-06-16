@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.8.1" />
+<title>src.database.tests.test_get API documentation</title>
+<meta name="description" content="" />
+<link href='https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.0/normalize.min.css' rel='stylesheet'>
+<link href='https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/8.0.0/sanitize.min.css' rel='stylesheet'>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css" rel="stylesheet">
+<style>.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>src.database.tests.test_get</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import asyncio
+from collections import defaultdict
+
+import pytest
+
+from core import Log
+from database import Model, ModelAttribute
+
+pytestmark = pytest.mark.asyncio
+
+
+FIELD_NAME = &#39;processed&#39;
+
+# TODO: Create class with parametrize
+ONE_TYPE_COUNT = 10
+
+
+class M(Model):
+    a = ModelAttribute(uid=True)
+    b = ModelAttribute()
+
+
+@pytest.fixture(autouse=True, scope=&#39;function&#39;)
+async def create_items(db):
+    d = {
+        0: None,
+        1: False,
+        2: True
+    }
+    for i in range(ONE_TYPE_COUNT * 3):
+        additional = {FIELD_NAME: d[i % 3]}
+
+        if additional[FIELD_NAME] is None:
+            if i % 2 == 0:
+                del additional[FIELD_NAME]
+
+        await db.store(M(a=i, b=i * ONE_TYPE_COUNT), additional)
+
+    for i in range(ONE_TYPE_COUNT * 3):
+        assert (await db.find_one_raw(M, a=i)).get(FIELD_NAME, None) == d[i % 3]
+
+
+async def test_none_count(db):
+    count = 0
+    async for item in db.choose(M, {FIELD_NAME: None}, {FIELD_NAME: True}):
+        count += 1
+
+    assert count == ONE_TYPE_COUNT
+
+
+async def test_get_find(db):
+    async for item in db.find(M, {FIELD_NAME: None}):
+        assert item.a % 3 == 0
+
+    async for item in db.find(M, {FIELD_NAME: False}):
+        assert item.a % 3 == 1
+
+    async for item in db.find(M, {FIELD_NAME: True}):
+        assert item.a % 3 == 2
+
+
+@pytest.mark.parametrize(&#39;limit&#39;, (1, 3, 5, 8, 15))
+async def test_limit(db, limit):
+    count = 0
+    async for item in db.find(M, {FIELD_NAME: None}, limit_=limit):
+        assert isinstance(item, M)
+        count += 1
+
+    assert count == min(limit, ONE_TYPE_COUNT)
+
+
+async def test_set(db):
+    async for item in db.find(M, {FIELD_NAME: False}):
+        await db.store(item, {FIELD_NAME: True})
+
+    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT * 2
+
+    async for item in db.find(M, {FIELD_NAME: None}):
+        await db.store(item, {FIELD_NAME: False})
+
+    assert await db.count(M, {FIELD_NAME: False}) == ONE_TYPE_COUNT
+
+    assert await db.count(M, {FIELD_NAME: None}) == 0
+
+
+async def test_choose(db):
+    async for item_raw in db.choose_raw(M, {FIELD_NAME: False}, {FIELD_NAME: True}):
+        assert item_raw[FIELD_NAME] is True
+
+    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT * 2
+
+    async for item_raw in db.choose_raw(M, {FIELD_NAME: None}, {FIELD_NAME: False}):
+        assert item_raw[FIELD_NAME] is False
+
+    assert await db.count(M, {FIELD_NAME: False}) == ONE_TYPE_COUNT
+
+    assert await db.count(M, {FIELD_NAME: None}) == 0
+
+
+@pytest.mark.parametrize(&#39;limit_dividor, limit&#39;, (
+        (1, None),
+        (2, None),
+        (3, None),
+        (5, None),
+        (None, 1),
+        (None, 2),
+        (None, 3),
+))
+async def test_choose_limit(db, limit_dividor, limit):
+    if limit is not None and limit_dividor is not None:
+        pytest.skip()
+
+    if limit is None and limit_dividor is None:
+        pytest.skip()
+
+    limit = limit or ONE_TYPE_COUNT // limit_dividor
+
+    count = 0
+
+    async for item_raw in db.choose_raw(M, {FIELD_NAME: False}, {FIELD_NAME: True}, limit_=limit):
+        count += 1
+        assert item_raw[FIELD_NAME] is True
+
+    assert limit == count
+
+    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT + limit
+
+
+@pytest.mark.parametrize(&#39;limit&#39;, (1, 2, 5))
+@pytest.mark.parametrize(&#39;sleep_time&#39;, (0.05, ))
+@pytest.mark.parametrize(&#39;retries_&#39;, (2, ))
+@pytest.mark.parametrize(&#39;sleep_coef&#39;, (10, ))
+@pytest.mark.parametrize(&#39;workers_coef&#39;, (0.5, 1, 1.5, 3, 3.5))
+async def test_parallel(db, limit, sleep_coef, sleep_time, retries_, workers_coef):
+    processed = defaultdict(int)
+
+    def gen_func(from_, to_, ):
+        async def x(index):
+            log = Log(f&#34;{from_}=&gt;{to_}#{index}&#34;)
+
+            retries = retries_
+
+            while True:
+                found = False
+
+                async for item in db.choose(M, {FIELD_NAME: from_}, {FIELD_NAME: to_}, limit_=limit):
+                    log.info(item=item)
+                    processed[(from_, to_)] += 1
+                    await asyncio.sleep(sleep_time)
+                    found = True
+
+                if found:
+                    break
+
+                if retries == 0:
+                    return
+
+                retries -= 1
+
+                log.warning(retry=retries_ - retries)
+
+                await asyncio.sleep(sleep_time * sleep_coef)
+            log.important(&#34;STOP&#34;)
+
+        return x
+
+    none_false = gen_func(None, False)
+    false_true = gen_func(False, True)
+
+    workers_count = int(ONE_TYPE_COUNT * workers_coef)
+
+    if workers_count == 0:
+        pytest.skip()
+
+    funcs = []
+    funcs += [none_false(_) for _ in range(workers_count)]
+    funcs += [false_true(_) for _ in range(workers_count)]
+
+    await asyncio.gather(*funcs)
+
+    assert len(processed) == 2
+    assert processed[(None, False)] == min(ONE_TYPE_COUNT, workers_count * limit)
+    assert processed[(False, True)] == min(ONE_TYPE_COUNT * 2, workers_count * limit)
+
+    assert await db.count(M, {FIELD_NAME: None}) == max(0, ONE_TYPE_COUNT - workers_count * limit)
+    mid_count = ONE_TYPE_COUNT
+    if ONE_TYPE_COUNT &lt;= workers_count * limit &lt;= ONE_TYPE_COUNT  * 2:
+        mid_count = ONE_TYPE_COUNT * 2 - workers_count * limit
+    if ONE_TYPE_COUNT * 2 &lt; workers_count * limit:
+        mid_count = 0
+    assert await db.count(M, {FIELD_NAME: False}) == mid_count
+    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT + min(ONE_TYPE_COUNT * 2, workers_count * limit)
+
+
+async def test_sort(db):
+    value = -1
+    async for item in db.find(M, sort_={&#39;b&#39;: 1}):
+        assert item.b &gt; value
+        value = item.b
+
+    value = ONE_TYPE_COUNT * ONE_TYPE_COUNT * 4
+    async for item in db.find(M, sort_={&#39;b&#39;: -1}):
+        assert item.b &lt; value
+        value = item.b
+
+# TODO: Tests for check attributes from kwargs in Model</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="src.database.tests.test_get.create_items"><code class="name flex">
+<span>async def <span class="ident">create_items</span></span>(<span>db)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.fixture(autouse=True, scope=&#39;function&#39;)
+async def create_items(db):
+    d = {
+        0: None,
+        1: False,
+        2: True
+    }
+    for i in range(ONE_TYPE_COUNT * 3):
+        additional = {FIELD_NAME: d[i % 3]}
+
+        if additional[FIELD_NAME] is None:
+            if i % 2 == 0:
+                del additional[FIELD_NAME]
+
+        await db.store(M(a=i, b=i * ONE_TYPE_COUNT), additional)
+
+    for i in range(ONE_TYPE_COUNT * 3):
+        assert (await db.find_one_raw(M, a=i)).get(FIELD_NAME, None) == d[i % 3]</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_get.test_choose"><code class="name flex">
+<span>async def <span class="ident">test_choose</span></span>(<span>db)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def test_choose(db):
+    async for item_raw in db.choose_raw(M, {FIELD_NAME: False}, {FIELD_NAME: True}):
+        assert item_raw[FIELD_NAME] is True
+
+    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT * 2
+
+    async for item_raw in db.choose_raw(M, {FIELD_NAME: None}, {FIELD_NAME: False}):
+        assert item_raw[FIELD_NAME] is False
+
+    assert await db.count(M, {FIELD_NAME: False}) == ONE_TYPE_COUNT
+
+    assert await db.count(M, {FIELD_NAME: None}) == 0</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_get.test_choose_limit"><code class="name flex">
+<span>async def <span class="ident">test_choose_limit</span></span>(<span>db, limit_dividor, limit)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(&#39;limit_dividor, limit&#39;, (
+        (1, None),
+        (2, None),
+        (3, None),
+        (5, None),
+        (None, 1),
+        (None, 2),
+        (None, 3),
+))
+async def test_choose_limit(db, limit_dividor, limit):
+    if limit is not None and limit_dividor is not None:
+        pytest.skip()
+
+    if limit is None and limit_dividor is None:
+        pytest.skip()
+
+    limit = limit or ONE_TYPE_COUNT // limit_dividor
+
+    count = 0
+
+    async for item_raw in db.choose_raw(M, {FIELD_NAME: False}, {FIELD_NAME: True}, limit_=limit):
+        count += 1
+        assert item_raw[FIELD_NAME] is True
+
+    assert limit == count
+
+    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT + limit</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_get.test_get_find"><code class="name flex">
+<span>async def <span class="ident">test_get_find</span></span>(<span>db)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def test_get_find(db):
+    async for item in db.find(M, {FIELD_NAME: None}):
+        assert item.a % 3 == 0
+
+    async for item in db.find(M, {FIELD_NAME: False}):
+        assert item.a % 3 == 1
+
+    async for item in db.find(M, {FIELD_NAME: True}):
+        assert item.a % 3 == 2</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_get.test_limit"><code class="name flex">
+<span>async def <span class="ident">test_limit</span></span>(<span>db, limit)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(&#39;limit&#39;, (1, 3, 5, 8, 15))
+async def test_limit(db, limit):
+    count = 0
+    async for item in db.find(M, {FIELD_NAME: None}, limit_=limit):
+        assert isinstance(item, M)
+        count += 1
+
+    assert count == min(limit, ONE_TYPE_COUNT)</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_get.test_none_count"><code class="name flex">
+<span>async def <span class="ident">test_none_count</span></span>(<span>db)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def test_none_count(db):
+    count = 0
+    async for item in db.choose(M, {FIELD_NAME: None}, {FIELD_NAME: True}):
+        count += 1
+
+    assert count == ONE_TYPE_COUNT</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_get.test_parallel"><code class="name flex">
+<span>async def <span class="ident">test_parallel</span></span>(<span>db, limit, sleep_coef, sleep_time, retries_, workers_coef)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@pytest.mark.parametrize(&#39;limit&#39;, (1, 2, 5))
+@pytest.mark.parametrize(&#39;sleep_time&#39;, (0.05, ))
+@pytest.mark.parametrize(&#39;retries_&#39;, (2, ))
+@pytest.mark.parametrize(&#39;sleep_coef&#39;, (10, ))
+@pytest.mark.parametrize(&#39;workers_coef&#39;, (0.5, 1, 1.5, 3, 3.5))
+async def test_parallel(db, limit, sleep_coef, sleep_time, retries_, workers_coef):
+    processed = defaultdict(int)
+
+    def gen_func(from_, to_, ):
+        async def x(index):
+            log = Log(f&#34;{from_}=&gt;{to_}#{index}&#34;)
+
+            retries = retries_
+
+            while True:
+                found = False
+
+                async for item in db.choose(M, {FIELD_NAME: from_}, {FIELD_NAME: to_}, limit_=limit):
+                    log.info(item=item)
+                    processed[(from_, to_)] += 1
+                    await asyncio.sleep(sleep_time)
+                    found = True
+
+                if found:
+                    break
+
+                if retries == 0:
+                    return
+
+                retries -= 1
+
+                log.warning(retry=retries_ - retries)
+
+                await asyncio.sleep(sleep_time * sleep_coef)
+            log.important(&#34;STOP&#34;)
+
+        return x
+
+    none_false = gen_func(None, False)
+    false_true = gen_func(False, True)
+
+    workers_count = int(ONE_TYPE_COUNT * workers_coef)
+
+    if workers_count == 0:
+        pytest.skip()
+
+    funcs = []
+    funcs += [none_false(_) for _ in range(workers_count)]
+    funcs += [false_true(_) for _ in range(workers_count)]
+
+    await asyncio.gather(*funcs)
+
+    assert len(processed) == 2
+    assert processed[(None, False)] == min(ONE_TYPE_COUNT, workers_count * limit)
+    assert processed[(False, True)] == min(ONE_TYPE_COUNT * 2, workers_count * limit)
+
+    assert await db.count(M, {FIELD_NAME: None}) == max(0, ONE_TYPE_COUNT - workers_count * limit)
+    mid_count = ONE_TYPE_COUNT
+    if ONE_TYPE_COUNT &lt;= workers_count * limit &lt;= ONE_TYPE_COUNT  * 2:
+        mid_count = ONE_TYPE_COUNT * 2 - workers_count * limit
+    if ONE_TYPE_COUNT * 2 &lt; workers_count * limit:
+        mid_count = 0
+    assert await db.count(M, {FIELD_NAME: False}) == mid_count
+    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT + min(ONE_TYPE_COUNT * 2, workers_count * limit)</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_get.test_set"><code class="name flex">
+<span>async def <span class="ident">test_set</span></span>(<span>db)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def test_set(db):
+    async for item in db.find(M, {FIELD_NAME: False}):
+        await db.store(item, {FIELD_NAME: True})
+
+    assert await db.count(M, {FIELD_NAME: True}) == ONE_TYPE_COUNT * 2
+
+    async for item in db.find(M, {FIELD_NAME: None}):
+        await db.store(item, {FIELD_NAME: False})
+
+    assert await db.count(M, {FIELD_NAME: False}) == ONE_TYPE_COUNT
+
+    assert await db.count(M, {FIELD_NAME: None}) == 0</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_get.test_sort"><code class="name flex">
+<span>async def <span class="ident">test_sort</span></span>(<span>db)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">async def test_sort(db):
+    value = -1
+    async for item in db.find(M, sort_={&#39;b&#39;: 1}):
+        assert item.b &gt; value
+        value = item.b
+
+    value = ONE_TYPE_COUNT * ONE_TYPE_COUNT * 4
+    async for item in db.find(M, sort_={&#39;b&#39;: -1}):
+        assert item.b &lt; value
+        value = item.b</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="src.database.tests.test_get.M"><code class="flex name class">
+<span>class <span class="ident">M</span></span>
+<span>(</span><span>**kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class M(Model):
+    a = ModelAttribute(uid=True)
+    b = ModelAttribute()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>database.model.Model</li>
+<li>core.attribute_storage.attribute_storage.AttributeStorage</li>
+<li>core.searchable.SearchableSubclasses</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="src.database.tests.test_get.M.a"><code class="name">var <span class="ident">a</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;Model&#34;, owner: Type[&#34;Model&#34;]):
+    if instance is None:
+        return self
+
+    value = instance._storage.get(self.name, self.default)
+    if isinstance(value, self._DefaultNone):
+        return None
+    return value</code></pre>
+</details>
+</dd>
+<dt id="src.database.tests.test_get.M.b"><code class="name">var <span class="ident">b</span></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def __get__(self, instance: &#34;Model&#34;, owner: Type[&#34;Model&#34;]):
+    if instance is None:
+        return self
+
+    value = instance._storage.get(self.name, self.default)
+    if isinstance(value, self._DefaultNone):
+        return None
+    return value</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src.database.tests" href="index.html">src.database.tests</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="two-column">
+<li><code><a title="src.database.tests.test_get.create_items" href="#src.database.tests.test_get.create_items">create_items</a></code></li>
+<li><code><a title="src.database.tests.test_get.test_choose" href="#src.database.tests.test_get.test_choose">test_choose</a></code></li>
+<li><code><a title="src.database.tests.test_get.test_choose_limit" href="#src.database.tests.test_get.test_choose_limit">test_choose_limit</a></code></li>
+<li><code><a title="src.database.tests.test_get.test_get_find" href="#src.database.tests.test_get.test_get_find">test_get_find</a></code></li>
+<li><code><a title="src.database.tests.test_get.test_limit" href="#src.database.tests.test_get.test_limit">test_limit</a></code></li>
+<li><code><a title="src.database.tests.test_get.test_none_count" href="#src.database.tests.test_get.test_none_count">test_none_count</a></code></li>
+<li><code><a title="src.database.tests.test_get.test_parallel" href="#src.database.tests.test_get.test_parallel">test_parallel</a></code></li>
+<li><code><a title="src.database.tests.test_get.test_set" href="#src.database.tests.test_get.test_set">test_set</a></code></li>
+<li><code><a title="src.database.tests.test_get.test_sort" href="#src.database.tests.test_get.test_sort">test_sort</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="src.database.tests.test_get.M" href="#src.database.tests.test_get.M">M</a></code></h4>
+<ul class="">
+<li><code><a title="src.database.tests.test_get.M.a" href="#src.database.tests.test_get.M.a">a</a></code></li>
+<li><code><a title="src.database.tests.test_get.M.b" href="#src.database.tests.test_get.M.b">b</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.8.1</a>.</p>
+</footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+<script>hljs.initHighlightingOnLoad()</script>
+</body>
+</html>
