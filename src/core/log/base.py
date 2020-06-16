@@ -9,6 +9,7 @@ from traceback import format_exc
 
 
 class LogLevel(Enum):
+    """Уровень логирования"""
     DEEP = -100
     DEBUG = 0
     INFO = 100
@@ -19,6 +20,15 @@ class LogLevel(Enum):
 
 
 class Log:
+    """
+    Инструмент для работы с логами.
+    Имеет обратно-совместимый интерфейс с модулем logging, при этом позволяя:
+    - Передавать *args
+    - Передавать **kwargs
+    Все они будут корректно распознаваться.
+    Также поддерживается подсветка.
+
+    """
     TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
     LEVEL_COLOR = {
         LogLevel.DEEP: Fore.LIGHTBLACK_EX,
@@ -47,10 +57,12 @@ class Log:
 
     @property
     def level(self) -> LogLevel:
+        """Возвращает текущий уровень логирования"""
         return self._level
 
     @level.setter
     def level(self, level: LogLevel):
+        """Устанавливает уровень логирования"""
         if not isinstance(level, LogLevel):
             raise TypeError(f"{level} isn't correct type for Log level. "
                             f"Try to use {LogLevel.__name__} values")
@@ -76,25 +88,33 @@ class Log:
             print(f"[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] /{pid}/ {self.name} {Fore.LIGHTBLACK_EX}{file_name}:{lineno} {fun_name}{Style.RESET_ALL}: {_args} {_kwargs}")
 
     def deep(self, *args, **kwargs):
+        """Глубоко-отладочный уровень логирования"""
         self._print(LogLevel.DEEP, *args, **kwargs)
 
     def debug(self, *args, **kwargs):
+        """Отладочный уровень логирования"""
         self._print(LogLevel.DEBUG, *args, **kwargs)
 
     def info(self, *args, **kwargs):
+        """Информационный уровень логирования"""
         self._print(LogLevel.INFO, *args, **kwargs)
 
     def important(self, *args, **kwargs):
+        """Важный уровень логирования"""
         self._print(LogLevel.IMPORTANT, *args, **kwargs)
 
     def warning(self, *args, **kwargs):
+        """Предупреждение"""
         self._print(LogLevel.WARNING, *args, **kwargs)
 
     def exception(self, *args, **kwargs):
+        """Ошибка: отображает traceback"""
         self._print(LogLevel.EXCEPTION, *args, **kwargs, _err=f'\n{format_exc()}')
 
     def error(self, *args, **kwargs):
+        """Ошибка в логике работы"""
         self._print(LogLevel.ERROR, *args, **kwargs)
 
     def __getitem__(self, item) -> 'Log':
+        """Возможность создать sub-logger"""
         return Log(f"{self.name}:{item}")

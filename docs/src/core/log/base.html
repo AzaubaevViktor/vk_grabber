@@ -35,6 +35,7 @@ from traceback import format_exc
 
 
 class LogLevel(Enum):
+    &#34;&#34;&#34;Уровень логирования&#34;&#34;&#34;
     DEEP = -100
     DEBUG = 0
     INFO = 100
@@ -45,6 +46,15 @@ class LogLevel(Enum):
 
 
 class Log:
+    &#34;&#34;&#34;
+    Инструмент для работы с логами.
+    Имеет обратно-совместимый интерфейс с модулем logging, при этом позволяя:
+    - Передавать *args
+    - Передавать **kwargs
+    Все они будут корректно распознаваться.
+    Также поддерживается подсветка.
+
+    &#34;&#34;&#34;
     TIME_FORMAT = &#34;%Y-%m-%d %H:%M:%S.%f&#34;
     LEVEL_COLOR = {
         LogLevel.DEEP: Fore.LIGHTBLACK_EX,
@@ -73,10 +83,12 @@ class Log:
 
     @property
     def level(self) -&gt; LogLevel:
+        &#34;&#34;&#34;Возвращает текущий уровень логирования&#34;&#34;&#34;
         return self._level
 
     @level.setter
     def level(self, level: LogLevel):
+        &#34;&#34;&#34;Устанавливает уровень логирования&#34;&#34;&#34;
         if not isinstance(level, LogLevel):
             raise TypeError(f&#34;{level} isn&#39;t correct type for Log level. &#34;
                             f&#34;Try to use {LogLevel.__name__} values&#34;)
@@ -102,27 +114,35 @@ class Log:
             print(f&#34;[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] /{pid}/ {self.name} {Fore.LIGHTBLACK_EX}{file_name}:{lineno} {fun_name}{Style.RESET_ALL}: {_args} {_kwargs}&#34;)
 
     def deep(self, *args, **kwargs):
+        &#34;&#34;&#34;Глубоко-отладочный уровень логирования&#34;&#34;&#34;
         self._print(LogLevel.DEEP, *args, **kwargs)
 
     def debug(self, *args, **kwargs):
+        &#34;&#34;&#34;Отладочный уровень логирования&#34;&#34;&#34;
         self._print(LogLevel.DEBUG, *args, **kwargs)
 
     def info(self, *args, **kwargs):
+        &#34;&#34;&#34;Информационный уровень логирования&#34;&#34;&#34;
         self._print(LogLevel.INFO, *args, **kwargs)
 
     def important(self, *args, **kwargs):
+        &#34;&#34;&#34;Важный уровень логирования&#34;&#34;&#34;
         self._print(LogLevel.IMPORTANT, *args, **kwargs)
 
     def warning(self, *args, **kwargs):
+        &#34;&#34;&#34;Предупреждение&#34;&#34;&#34;
         self._print(LogLevel.WARNING, *args, **kwargs)
 
     def exception(self, *args, **kwargs):
+        &#34;&#34;&#34;Ошибка: отображает traceback&#34;&#34;&#34;
         self._print(LogLevel.EXCEPTION, *args, **kwargs, _err=f&#39;\n{format_exc()}&#39;)
 
     def error(self, *args, **kwargs):
+        &#34;&#34;&#34;Ошибка в логике работы&#34;&#34;&#34;
         self._print(LogLevel.ERROR, *args, **kwargs)
 
     def __getitem__(self, item) -&gt; &#39;Log&#39;:
+        &#34;&#34;&#34;Возможность создать sub-logger&#34;&#34;&#34;
         return Log(f&#34;{self.name}:{item}&#34;)</code></pre>
 </details>
 </section>
@@ -140,12 +160,26 @@ class Log:
 <span>(</span><span>name: str = None)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Инструмент для работы с логами.
+Имеет обратно-совместимый интерфейс с модулем logging, при этом позволяя:
+- Передавать <em>args
+- Передавать </em>*kwargs
+Все они будут корректно распознаваться.
+Также поддерживается подсветка.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Log:
+    &#34;&#34;&#34;
+    Инструмент для работы с логами.
+    Имеет обратно-совместимый интерфейс с модулем logging, при этом позволяя:
+    - Передавать *args
+    - Передавать **kwargs
+    Все они будут корректно распознаваться.
+    Также поддерживается подсветка.
+
+    &#34;&#34;&#34;
     TIME_FORMAT = &#34;%Y-%m-%d %H:%M:%S.%f&#34;
     LEVEL_COLOR = {
         LogLevel.DEEP: Fore.LIGHTBLACK_EX,
@@ -174,10 +208,12 @@ class Log:
 
     @property
     def level(self) -&gt; LogLevel:
+        &#34;&#34;&#34;Возвращает текущий уровень логирования&#34;&#34;&#34;
         return self._level
 
     @level.setter
     def level(self, level: LogLevel):
+        &#34;&#34;&#34;Устанавливает уровень логирования&#34;&#34;&#34;
         if not isinstance(level, LogLevel):
             raise TypeError(f&#34;{level} isn&#39;t correct type for Log level. &#34;
                             f&#34;Try to use {LogLevel.__name__} values&#34;)
@@ -203,27 +239,35 @@ class Log:
             print(f&#34;[{now.strftime(self.TIME_FORMAT)}] [{_level_name_colorize}] /{pid}/ {self.name} {Fore.LIGHTBLACK_EX}{file_name}:{lineno} {fun_name}{Style.RESET_ALL}: {_args} {_kwargs}&#34;)
 
     def deep(self, *args, **kwargs):
+        &#34;&#34;&#34;Глубоко-отладочный уровень логирования&#34;&#34;&#34;
         self._print(LogLevel.DEEP, *args, **kwargs)
 
     def debug(self, *args, **kwargs):
+        &#34;&#34;&#34;Отладочный уровень логирования&#34;&#34;&#34;
         self._print(LogLevel.DEBUG, *args, **kwargs)
 
     def info(self, *args, **kwargs):
+        &#34;&#34;&#34;Информационный уровень логирования&#34;&#34;&#34;
         self._print(LogLevel.INFO, *args, **kwargs)
 
     def important(self, *args, **kwargs):
+        &#34;&#34;&#34;Важный уровень логирования&#34;&#34;&#34;
         self._print(LogLevel.IMPORTANT, *args, **kwargs)
 
     def warning(self, *args, **kwargs):
+        &#34;&#34;&#34;Предупреждение&#34;&#34;&#34;
         self._print(LogLevel.WARNING, *args, **kwargs)
 
     def exception(self, *args, **kwargs):
+        &#34;&#34;&#34;Ошибка: отображает traceback&#34;&#34;&#34;
         self._print(LogLevel.EXCEPTION, *args, **kwargs, _err=f&#39;\n{format_exc()}&#39;)
 
     def error(self, *args, **kwargs):
+        &#34;&#34;&#34;Ошибка в логике работы&#34;&#34;&#34;
         self._print(LogLevel.ERROR, *args, **kwargs)
 
     def __getitem__(self, item) -&gt; &#39;Log&#39;:
+        &#34;&#34;&#34;Возможность создать sub-logger&#34;&#34;&#34;
         return Log(f&#34;{self.name}:{item}&#34;)</code></pre>
 </details>
 <h3>Class variables</h3>
@@ -249,13 +293,14 @@ class Log:
 <dl>
 <dt id="src.core.log.base.Log.level"><code class="name">var <span class="ident">level</span> : <a title="src.core.log.base.LogLevel" href="#src.core.log.base.LogLevel">LogLevel</a></code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Возвращает текущий уровень логирования</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@property
 def level(self) -&gt; LogLevel:
+    &#34;&#34;&#34;Возвращает текущий уровень логирования&#34;&#34;&#34;
     return self._level</code></pre>
 </details>
 </dd>
@@ -266,12 +311,13 @@ def level(self) -&gt; LogLevel:
 <span>def <span class="ident">debug</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Отладочный уровень логирования</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def debug(self, *args, **kwargs):
+    &#34;&#34;&#34;Отладочный уровень логирования&#34;&#34;&#34;
     self._print(LogLevel.DEBUG, *args, **kwargs)</code></pre>
 </details>
 </dd>
@@ -279,12 +325,13 @@ def level(self) -&gt; LogLevel:
 <span>def <span class="ident">deep</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Глубоко-отладочный уровень логирования</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def deep(self, *args, **kwargs):
+    &#34;&#34;&#34;Глубоко-отладочный уровень логирования&#34;&#34;&#34;
     self._print(LogLevel.DEEP, *args, **kwargs)</code></pre>
 </details>
 </dd>
@@ -292,12 +339,13 @@ def level(self) -&gt; LogLevel:
 <span>def <span class="ident">error</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Ошибка в логике работы</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def error(self, *args, **kwargs):
+    &#34;&#34;&#34;Ошибка в логике работы&#34;&#34;&#34;
     self._print(LogLevel.ERROR, *args, **kwargs)</code></pre>
 </details>
 </dd>
@@ -305,12 +353,13 @@ def level(self) -&gt; LogLevel:
 <span>def <span class="ident">exception</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Ошибка: отображает traceback</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def exception(self, *args, **kwargs):
+    &#34;&#34;&#34;Ошибка: отображает traceback&#34;&#34;&#34;
     self._print(LogLevel.EXCEPTION, *args, **kwargs, _err=f&#39;\n{format_exc()}&#39;)</code></pre>
 </details>
 </dd>
@@ -318,12 +367,13 @@ def level(self) -&gt; LogLevel:
 <span>def <span class="ident">important</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Важный уровень логирования</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def important(self, *args, **kwargs):
+    &#34;&#34;&#34;Важный уровень логирования&#34;&#34;&#34;
     self._print(LogLevel.IMPORTANT, *args, **kwargs)</code></pre>
 </details>
 </dd>
@@ -331,12 +381,13 @@ def level(self) -&gt; LogLevel:
 <span>def <span class="ident">info</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Информационный уровень логирования</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def info(self, *args, **kwargs):
+    &#34;&#34;&#34;Информационный уровень логирования&#34;&#34;&#34;
     self._print(LogLevel.INFO, *args, **kwargs)</code></pre>
 </details>
 </dd>
@@ -344,12 +395,13 @@ def level(self) -&gt; LogLevel:
 <span>def <span class="ident">warning</span></span>(<span>self, *args, **kwargs)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Предупреждение</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def warning(self, *args, **kwargs):
+    &#34;&#34;&#34;Предупреждение&#34;&#34;&#34;
     self._print(LogLevel.WARNING, *args, **kwargs)</code></pre>
 </details>
 </dd>
@@ -360,12 +412,13 @@ def level(self) -&gt; LogLevel:
 <span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>An enumeration.</p></div>
+<div class="desc"><p>Уровень логирования</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class LogLevel(Enum):
+    &#34;&#34;&#34;Уровень логирования&#34;&#34;&#34;
     DEEP = -100
     DEBUG = 0
     INFO = 100
