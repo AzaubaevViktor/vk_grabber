@@ -53,10 +53,15 @@ class ListPage(BasePage):
     def to_dict(self) -> dict:
         info = super(ListPage, self).to_dict()
         old_data = info.pop('data')
-        new_data = []
-        info['data'] = new_data
 
-        for item in old_data:
+        info['data'] = new_data = []
+
+        if getattr(self, "sorted_function", None):
+            iter_items = (item for item in sorted(old_data, key=self.sorted_function))
+        else:
+            iter_items = old_data
+
+        for item in iter_items:
             if isinstance(item, BasePage):
                 new_data.append(item.to_dict())
             else:
