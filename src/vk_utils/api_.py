@@ -1,14 +1,13 @@
 import asyncio
 from collections import defaultdict
 from time import time
-from typing import List, Sequence
+from typing import Sequence
 
 import aiohttp
 
 from core import Log
 from core.monitor import DictPage, PageAttribute
 from vk_utils import VKGroup, VKPost, VKPerson, VKComment
-from vk_utils.get_token import UpdateToken
 
 
 class VKError(Exception):
@@ -136,8 +135,8 @@ class VK:
                         continue
 
                     if vk_error.error_code == VKError.INVALID_SESSION:
-                        await self.do_auth()
-                        continue
+                        self.log.warning("Need auth. Please run <app> <config> auth")
+                        break
 
                     if vk_error.error_code == VKError.PROFILE_PRIVATE:
                         self.log.warning("Profile private", method=method, params=params)
@@ -283,17 +282,3 @@ class VK:
     async def shutdown(self):
         if self.session:
             await self.session.close()
-
-    async def do_auth(self):
-        self.log.info("Need auth")
-
-        if self.auth_lock.locked():
-            self.log.warning("Wait for other auth")
-            await self._update_token.finished.wait()
-            self.log.important("Auth finished")
-            return
-
-        async with self.auth_lock:
-            self.log.info("Run auth server")
-            self._update_token = UpdateToken(self.config)
-            await self._update_token()
