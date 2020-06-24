@@ -5,7 +5,7 @@ import yaml
 from core import Log
 
 
-def LoadConfig(file_name: str = None):
+def LoadConfig(file_name: str = None) -> "Config":
     log = Log("LoadConfig")
 
     file_name = file_name or "private.yaml"
@@ -73,4 +73,4 @@ class Config:
         return f"<Config: {self.source} {self.path}>"
 
 
-__all__ = ("LoadConfig", )
+__all__ = ("LoadConfig", "Config")
