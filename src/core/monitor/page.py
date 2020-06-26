@@ -1,14 +1,19 @@
+"""
+Реализация страницы для мониторинга
+"""
 from typing import Optional
 
 from core import Attribute, AttributeStorage
 
 
 class PageAttribute(Attribute):
+    """Отображаемое поле страницы"""
     def __init__(self, description: Optional[str] = None, default=None, uid: bool = False, method = None):
         super().__init__(description=description, default=default, uid=uid, method=method)
 
 
 class BasePage(AttributeStorage):
+    """Страница"""
     TEMPLATE = None
 
     id = PageAttribute()
@@ -37,10 +42,12 @@ class BasePage(AttributeStorage):
 
 
 class DictPage(BasePage):
+    """Страница-словарь"""
     TEMPLATE = 'dict'
 
 
 class ListPage(BasePage):
+    """Страница-список"""
     TEMPLATE = 'list'
     MAX_SIZE = None  # TODO: Tests
 

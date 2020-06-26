@@ -1,3 +1,7 @@
+"""
+Модуль, реализующий веб-интрефейс и консоль управления.
+"""
+
 from time import time
 from typing import Dict
 
@@ -10,6 +14,7 @@ from .page import DictPage, PageAttribute, BasePage, ListPage
 
 
 class MainPage(DictPage):
+    """Главная страница с основными характеристиками приложения"""
     info = PageAttribute()
     start_time = PageAttribute()
     queries = PageAttribute(default=0)
@@ -21,6 +26,7 @@ class MainPage(DictPage):
 
 # TODO: Add server class
 class Monitoring:
+    """Класс веб-сервера"""
     API_PATH = "/api"
 
     def __init__(self, addr, port):
@@ -37,6 +43,7 @@ class Monitoring:
         self._middleware = []
 
     def __getitem__(self, item: str) -> BasePage:
+        """Возвращает страницу"""
         return self._pages[item]
 
     def __getattr__(self, item):
