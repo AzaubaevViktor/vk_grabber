@@ -16,3 +16,7 @@ src/configs/*.yaml
 src/configs/*.yml
 
 data/**
+
+.DS_Store
+.ipynb_checkpoints
+.jvenv
