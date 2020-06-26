@@ -1,13 +1,14 @@
-
+"""Набор базовых модулей, упрощающих взаимодействие с окружением"""
 import motor.motor_asyncio
 
 from core import LoadConfig, Log, BaseWork, CorpinusManager
-from core.monitor import Monitoring, DictPage, ListPage, PageAttribute
+from core.monitor import Monitoring, ListPage
 from database import DBWrapper
 from vk_utils import VK
 
 
 class BaseApplication:
+    """Базовое приложение"""
     def __init__(self, config: LoadConfig):
         self.log = Log(self.__class__.__name__)
 
@@ -19,6 +20,7 @@ class BaseApplication:
 
 
 class AppContext:
+    """Контекст, содержащий в себе необходимые модули"""
     def __init__(self, config: LoadConfig):
         self.config = config
         self.stage_name = config.app.stage
@@ -50,6 +52,7 @@ class AppContext:
 
 
 class BaseWorkApp(BaseWork):
+    """Базовый сервис с контекстом"""
     def __init__(self, ctx: AppContext):
         super().__init__()
         self.ctx = ctx

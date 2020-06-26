@@ -8,10 +8,14 @@ from core.monitor import ListPage, DictPage, PageAttribute
 
 
 class CorpinusManager:
+    """Управление сбором ошибок"""
+
     class _CorpinusPage(ListPage):
+        """Страница с отображением ошибок"""
         MAX_SIZE = 30
 
     class ExceptionPage(DictPage):
+        """Страница с описанием ошибки"""
         moment = PageAttribute()
         # error_class = PageAttribute()
         text = PageAttribute()
@@ -28,6 +32,7 @@ class CorpinusManager:
         log.Log.corpinus = self.catch
 
     def catch(self, *args, **kwargs):
+        """Захват ошибки"""
         moment = time()
         self.page.append(
             self.ExceptionPage(

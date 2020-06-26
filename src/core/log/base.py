@@ -50,6 +50,7 @@ class Log:
     ]
 
     corpinus: Callable = None
+    """Дополнительный middleware для сохранения данных об ошибках"""
 
     def __init__(self, name: str = None):
         self.name = name or self._default_name()
