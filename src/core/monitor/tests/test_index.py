@@ -1,4 +1,5 @@
 import asyncio
+from random import randint
 from time import time
 
 import pytest
@@ -13,10 +14,18 @@ class ListRequestPage(ListPage):
     pass
 
 
+class DPage(DictPage):
+    a = PageAttribute()
+    b = PageAttribute()
+
+
 class RequestPage(DictPage):
     date = PageAttribute()
     method = PageAttribute()
     url = PageAttribute()
+
+    cookies = PageAttribute()
+    other_page = PageAttribute()
 
 
 @pytest.fixture(scope='function')
@@ -64,7 +73,14 @@ async def test_index(config, mon: Monitoring, sorted_test_page):
             name=f"Request {time()}",
             date=time(),
             method=request.method,
-            url=str(request.url)
+            url=str(request.url),
+            cookies=dict(request.cookies),
+            other_page=DPage(
+                id=randint(0, 100),
+                name="test",
+                a=randint(0, 100),
+                b=randint(0, 100),
+            )
         ))
 
     mon.add_page(mon.list_page)

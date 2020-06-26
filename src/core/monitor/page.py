@@ -17,6 +17,12 @@ class BasePage(AttributeStorage):
     def __init__(self, id: str, name: str, **kwargs):
         super().__init__(id=id, name=name, **kwargs)
 
+    def __iter__(self):
+        for key, value in super(BasePage, self).__iter__():
+            if isinstance(value, BasePage):
+                value = value.to_dict()
+            yield key, value
+
     def to_dict(self) -> dict:
         return {
             **dict(self),
