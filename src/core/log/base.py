@@ -3,6 +3,7 @@ import os
 import random
 from enum import Enum
 from inspect import getframeinfo, stack
+from typing import Callable
 
 from colorama import Fore, Back, Style
 from traceback import format_exc
@@ -47,6 +48,8 @@ class Log:
         Fore.MAGENTA,
         Fore.CYAN
     ]
+
+    corpinus: Callable = None
 
     def __init__(self, name: str = None):
         self.name = name or self._default_name()
@@ -110,6 +113,8 @@ class Log:
     def exception(self, *args, **kwargs):
         """Ошибка: отображает traceback"""
         self._print(LogLevel.EXCEPTION, *args, **kwargs, _err=f'\n{format_exc()}')
+        if self.corpinus:
+            self.corpinus(*args, **kwargs)
 
     def error(self, *args, **kwargs):
         """Ошибка в логике работы"""

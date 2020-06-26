@@ -1,9 +1,11 @@
 import asyncio
+import random
 from random import randint
 from time import time
 
 import pytest
 
+from core import CorpinusManager, Log
 from core.monitor import Monitoring, ListPage, DictPage, PageAttribute
 
 pytestmark = pytest.mark.asyncio
@@ -52,6 +54,7 @@ async def sorted_test_page():
                 sorted_value=rnd_value,
                 created_time=time()
             ))
+
             await asyncio.sleep(1)
 
     task = asyncio.create_task(worker())
@@ -67,21 +70,29 @@ async def test_index(config, mon: Monitoring, sorted_test_page):
     mon.list_page = ListRequestPage("_list", "List page")
     mon.sorted_page = sorted_test_page
 
+    mon.add_page(CorpinusManager().page)
+
+    log = Log("index")
+
     def md(request, handler):
-        mon.list_page.append(RequestPage(
-            id=f"request_{time()}",
-            name=f"Request {time()}",
-            date=time(),
-            method=request.method,
-            url=str(request.url),
-            cookies=dict(request.cookies),
-            other_page=DPage(
-                id=randint(0, 100),
-                name="test",
-                a=randint(0, 100),
-                b=randint(0, 100),
-            )
-        ))
+        value = randint(0, 5)
+        try:
+            mon.list_page.append(RequestPage(
+                id=f"request_{time()}",
+                name=f"Request {time()}",
+                date=time(),
+                method=request.method,
+                url=str(request.url),
+                cookies=dict(request.cookies),
+                other_page=DPage(
+                    id=randint(0, 100),
+                    name="test",
+                    a=1 / value,
+                    b=randint(0, 100),
+                )
+            ))
+        except:
+            log.exception("Hi!", value, value=value)
 
     mon.add_page(mon.list_page)
     mon.add_middleware(md)

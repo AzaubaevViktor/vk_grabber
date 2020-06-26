@@ -6,3 +6,4 @@ from .attribute_storage import *
 from .config import *
 from .dt import Time
 from .work import BaseWork
+from .coprinus import CorpinusManager

@@ -170,11 +170,16 @@ function render_dict(data) {
     result += "<ul>";
 
     for (const [key, value] of Object.entries(data)) {
-        console.log(key, value);
+        // console.log(key, value);
         if (typeof value === 'object' && value !== null) {
             result += `<li>${key}: ${render_dict(value)}</li>`
         } else {
-            result += `<li>${key}: ${value}</li>`
+            let value_ = value
+            console.log(value_)
+            if ((typeof value_ === 'string') && (value_.includes("\n"))) {
+                value_ = `<pre>${value_}</pre>`
+            }
+            result += `<li>${key}: ${value_}</li>`
         }
     }
 
@@ -187,7 +192,7 @@ function page_loader(daemon=true) {
     if (active_page !== null) {
         getData(`/api/page/${active_page}`)
         .then((data) => {
-            console.log(data);
+            // console.log(data);
 
             let content = document.getElementById("content");
 
@@ -220,7 +225,7 @@ page_loader();
 function get_pages() {
     getData("/api/pages")
         .then((data) => {
-            console.log(data);
+            // console.log(data);
             let nav = document.getElementById("nav");
             let pages_end = document.getElementById("nav_pages_end");
 

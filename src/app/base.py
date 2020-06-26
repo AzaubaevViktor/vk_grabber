@@ -1,7 +1,7 @@
 
 import motor.motor_asyncio
 
-from core import LoadConfig, Log, BaseWork
+from core import LoadConfig, Log, BaseWork, CorpinusManager
 from core.monitor import Monitoring, DictPage, ListPage, PageAttribute
 from database import DBWrapper
 from vk_utils import VK
@@ -40,6 +40,9 @@ class AppContext:
         self.mon.add_page(ListPage('services', "Services"))
 
         self.mon.services.append(self.vk.stats)
+
+        self.corpinus = CorpinusManager()
+        self.mon.add_page(self.corpinus.page)
 
     async def warm_up(self):
         await self.mon.warm_up()
