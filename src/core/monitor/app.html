@@ -59,6 +59,17 @@
         margin: 0.3em;
     }
 
+    li > .page {
+        display: inline-grid;
+        border: 1px dotted gray;
+        padding: 0.1em;
+        margin: 0.1em;
+    }
+
+    li > .page > h3 {
+        margin: 0.1em;
+    }
+
 </style>
 </head>
 <body>
@@ -153,13 +164,18 @@ function render_dict(data) {
 
     let result = `<div class='page' id='${id}'>`;
 
-    result += `<h3>${name}</h3>`
-
+    if (name) {
+        result += `<h3>${name}</h3>`
+    }
     result += "<ul>";
 
     for (const [key, value] of Object.entries(data)) {
         console.log(key, value);
-        result += `<li>${key}: ${value}</li>`
+        if (typeof value === 'object' && value !== null) {
+            result += `<li>${key}: ${render_dict(value)}</li>`
+        } else {
+            result += `<li>${key}: ${value}</li>`
+        }
     }
 
     result += "</ul></div>";
