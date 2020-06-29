@@ -2,6 +2,7 @@ import asyncio
 from time import time
 
 from app import BaseWorkApp
+from app.base import AppContext
 from core import Attribute
 from core.monitor import ListPage, DictPage, PageAttribute
 from dyploma.models import Word
@@ -19,11 +20,13 @@ class WordsList(ListPage):
     pass
 
 
-words_page = WordsList('one_words', "Words")
-
-
 class WordsUpdater(BaseWorkApp):
     CYCLE_SLEEP_S = 10
+
+    def __init__(self, ctx: AppContext):
+        super().__init__(ctx)
+        self.page = WordsList('one_words', "Words")
+        self.ctx.mon.add_page(self.page)
 
     async def main_cycle(self):
         while not self.need_stop:
@@ -54,8 +57,8 @@ class WordsUpdater(BaseWorkApp):
         self.state = "Create page"
 
         for word_name, count in word_names.items():
-            if word_name not in words_page:
-                words_page.append(WordPage(
+            if word_name not in self.page:
+                self.page.append(WordPage(
                     id=word_name,
                     name=word_name,
                     count=count
