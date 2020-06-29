@@ -63,6 +63,15 @@ class ListPage(BasePage):
         if self.MAX_SIZE and len(self.data) > self.MAX_SIZE:
             self.data.pop(0)
 
+    def __contains__(self, id_: str):
+        return self[id_] is not None
+
+    def __getitem__(self, id_: str):
+        for item in self.data:
+            if hasattr(item, "id") and id_ == item.id:
+                return item
+        return None
+
     def to_dict(self) -> dict:
         info = super(ListPage, self).to_dict()
         old_data = info.pop('data')
