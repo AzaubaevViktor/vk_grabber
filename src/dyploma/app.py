@@ -2,10 +2,11 @@ import asyncio
 from typing import Type
 
 from app.base import BaseApplication, BaseWorkApp
-from core import LoadConfig, BaseWork
+from core import LoadConfig, BaseWork, CorpinusManager
 # from dyploma.services.vk_ import LoadGroups, LoadParticipants, LoadPersonsPosts, LoadGroupPosts, LoadPostComments
 from .services.vk_ng import LoadGroups, LoadGroupInfo, LoadPersonFromGroup, LoadPersonInfo, LoadPostFromGroup, LoadPostFromPerson
 from dyploma.services.word_ import WordKnifePost, WordKnifeComment
+from .services.word_stats import WordsUpdater, words_page
 
 
 class DyplomaApplication(BaseApplication):
@@ -56,7 +57,10 @@ class DyplomaApplication(BaseApplication):
             LoadPostFromPerson,
             WordKnifePost,
             WordKnifeComment,
+            WordsUpdater
         )
+
+        self.ctx.mon.add_page(words_page)
 
         self.ctx.mon.main_page.info = "Run LoadGroups"
         await first
