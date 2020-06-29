@@ -44,8 +44,8 @@ class TasksManager:
 
         self._tasks = asyncio.Queue(self.size)
 
-        self._results = asyncio.Queue()
-        self._exceptions = asyncio.Queue()
+        self._results = asyncio.Queue(self.size)
+        self._exceptions = asyncio.Queue(self.size)
 
         self.is_run = True
 
