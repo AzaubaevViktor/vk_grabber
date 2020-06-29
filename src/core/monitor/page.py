@@ -1,9 +1,10 @@
 """
 Реализация страницы для мониторинга
 """
-from typing import Optional
+from typing import Optional, Tuple, Type, Dict, Any
 
 from core import Attribute, AttributeStorage
+from core.attribute_storage.attribute_storage import MetaAttributeStorage
 
 
 class PageAttribute(Attribute):
@@ -12,7 +13,21 @@ class PageAttribute(Attribute):
         super().__init__(description=description, default=default, uid=uid, method=method)
 
 
-class BasePage(AttributeStorage):
+class PageMeta(MetaAttributeStorage):
+    """Метакласс для отображения только PageAttribute"""
+    def __new__(mcs, name: str, bases: Tuple[Type["AttributeStorage"]], attrs: Dict[str, Any]):
+        klass = super().__new__(mcs, name, bases, attrs)
+
+        __attributes__: Dict[str, Attribute] = klass.__attributes__
+        klass.__attributes__ = {
+            k: attr for k, attr in __attributes__.items()
+            if isinstance(attr, PageAttribute)
+        }
+
+        return klass
+
+
+class BasePage(AttributeStorage, metaclass=PageMeta):
     """Страница"""
     TEMPLATE = None
 

@@ -1,18 +1,23 @@
 import asyncio
 from time import time
+from typing import Optional
+
+import numpy as np
 
 from app import BaseWorkApp
 from app.base import AppContext
 from core import Attribute
 from core.monitor import ListPage, DictPage, PageAttribute
 from dyploma.models import Word
+from time_series import TimeSeries
 
 
 class WordPage(DictPage):
     max_value = PageAttribute()
+    max_moment = PageAttribute()
     avg_value = PageAttribute()
     count = PageAttribute()
-    datetimes = Attribute(default=None)
+    ts: TimeSeries = Attribute(default=None)
 
 
 class WordsList(ListPage):
@@ -22,6 +27,7 @@ class WordsList(ListPage):
 
 class WordsUpdater(BaseWorkApp):
     CYCLE_SLEEP_S = 10
+    DOWNLOAD_PERIOD_S = 60 * 60 * 24 * 30 * 6
 
     def __init__(self, ctx: AppContext):
         super().__init__(ctx)
@@ -33,6 +39,8 @@ class WordsUpdater(BaseWorkApp):
             word_names = await self._do_aggregate()
 
             await self._update_pages(word_names)
+
+            await self._update_datetimes()
 
             start_sleep_time = time()
             while (dt := time() - start_sleep_time) < self.CYCLE_SLEEP_S:
@@ -63,3 +71,32 @@ class WordsUpdater(BaseWorkApp):
                     name=word_name,
                     count=count
                 ))
+
+    async def _download_word(self, word_name: str, period_s: Optional[int] = None):
+        self.state = f"Processing word {word_name}"
+        period_s = period_s if period_s is not None else self.DOWNLOAD_PERIOD_S
+
+        word_p = []
+        start_time = time() - period_s
+
+        max_work_windows_s = 0.1
+        last_update = time()
+        async for word in self.ctx.db.find(Word, {'word': word_name}):
+            if word.date >= start_time:
+                word_p.append(word.date)
+
+            if time() - last_update > max_work_windows_s:
+                await asyncio.sleep(0)
+                last_update = time()
+
+        word_ts = np.array(word_p)
+        return TimeSeries(word_name, word_ts)
+
+    async def _update_datetimes(self):
+        for word_page in self.page.data:  # type: WordPage
+            ts = await self._download_word(word_page.name)
+            word_page.ts = ts[::5]
+            max_moment, max_value = word_page.ts.max()
+            word_page.max_value = float(max_value)
+            word_page.avg_value = float(word_page.ts.sum() / self.DOWNLOAD_PERIOD_S * 60 * 60 * 24)
+            word_page.max_moment = TimeSeries._date(max_moment)
