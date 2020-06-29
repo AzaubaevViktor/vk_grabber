@@ -40,7 +40,7 @@ class CorpinusManager:
                 name=f"Error {moment}",
                 moment=moment,
                 text=format_exc(),
-                args=args,
-                kwargs=kwargs
+                args=tuple(str(arg) for arg in args) if args else None,
+                kwargs={k: str(v) for k, v in kwargs.items()} if kwargs else None
             )
         )
