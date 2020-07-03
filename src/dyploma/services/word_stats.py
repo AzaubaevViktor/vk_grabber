@@ -19,12 +19,12 @@ class WordPage(DictPage):
     avg_value = PageAttribute()
     count = PageAttribute()
     peaks: "PeaksList" = PageAttribute()
+    compares_results = PageAttribute()
     ts: TimeSeries = Attribute(default=None)
 
 
 class WordsList(ListPage):
-    MAX_SIZE = 20
-    pass
+    MAX_PER_PAGE = 20
 
 
 class PeaksList(ListPage):

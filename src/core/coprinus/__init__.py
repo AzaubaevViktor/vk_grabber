@@ -12,7 +12,7 @@ class CorpinusManager:
 
     class _CorpinusPage(ListPage):
         """Страница с отображением ошибок"""
-        MAX_SIZE = 30
+        MAX_PER_PAGE = 30
 
     class ExceptionPage(DictPage):
         """Страница с описанием ошибки"""

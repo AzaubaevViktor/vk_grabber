@@ -12,7 +12,7 @@ pytestmark = pytest.mark.asyncio
 
 
 class ListRequestPage(ListPage):
-    MAX_SIZE = 10
+    MAX_PER_PAGE = 10
     pass
 
 
@@ -37,7 +37,7 @@ async def sorted_test_page():
         created_time = PageAttribute()
 
     class SortedTestPage(ListPage):
-        MAX_SIZE = 10
+        MAX_PER_PAGE = 10
 
         def sorted_function(self, item: MyPage):
             return item.sorted_value

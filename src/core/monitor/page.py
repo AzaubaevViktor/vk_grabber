@@ -66,7 +66,7 @@ class DictPage(BasePage):
 class ListPage(BasePage):
     """Страница-список"""
     TEMPLATE = 'list'
-    MAX_SIZE = None  # TODO: Tests
+    MAX_PER_PAGE = None  # TODO: Tests
 
     data = PageAttribute()
 
@@ -77,7 +77,7 @@ class ListPage(BasePage):
 
     def append(self, sub_page: BasePage):
         self.data.append(sub_page)
-        if self.MAX_SIZE and len(self.data) > self.MAX_SIZE:
+        if self.MAX_PER_PAGE and len(self.data) > self.MAX_PER_PAGE:
             self.data.pop(0)
 
     def __contains__(self, id_: str):
