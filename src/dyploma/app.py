@@ -6,6 +6,7 @@ from core import LoadConfig, BaseWork, CorpinusManager
 # from dyploma.services.vk_ import LoadGroups, LoadParticipants, LoadPersonsPosts, LoadGroupPosts, LoadPostComments
 from .services.vk_ng import LoadGroups, LoadGroupInfo, LoadPersonFromGroup, LoadPersonInfo, LoadPostFromGroup, LoadPostFromPerson
 from dyploma.services.word_ import WordKnifePost, WordKnifeComment
+from .services.word_comparer import WordsComparer
 from .services.word_stats import WordsUpdater
 
 
@@ -57,7 +58,8 @@ class DyplomaApplication(BaseApplication):
             LoadPostFromPerson,
             WordKnifePost,
             WordKnifeComment,
-            WordsUpdater
+            WordsUpdater,
+            WordsComparer
         )
 
         self.ctx.mon.main_page.info = "Run LoadGroups"
