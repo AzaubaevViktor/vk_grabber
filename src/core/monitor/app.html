@@ -26,7 +26,7 @@
         justify-content: space-around;
         flex-wrap: nowrap;
     }
-    
+
     #nav > div {
         padding: 0 0.5em 0 0.5em;
     }
@@ -68,6 +68,11 @@
 
     li > .page > h3 {
         margin: 0.1em;
+    }
+
+    ul .list {
+        list-style-type: none;
+        padding-inline-start: 0;
     }
 
 </style>
@@ -160,6 +165,7 @@ function render_dict(data) {
     let id = data.id;
     delete data.id;
 
+    let template = data.template;
     delete data.template;
 
     let result = `<div class='page' id='${id}'>`;
@@ -167,19 +173,25 @@ function render_dict(data) {
     if (name) {
         result += `<h3>${name}</h3>`
     }
-    result += "<ul>";
+    let show_key = !Array.isArray(data);
+
+    result += "<ul class='list'>";
 
     for (const [key, value] of Object.entries(data)) {
         // console.log(key, value);
+        let value_result = value;
+        let key_result = key;
+
         if (typeof value === 'object' && value !== null) {
-            result += `<li>${key}: ${render_dict(value)}</li>`
-        } else {
-            let value_ = value
-            console.log(value_)
-            if ((typeof value_ === 'string') && (value_.includes("\n"))) {
-                value_ = `<pre>${value_}</pre>`
-            }
-            result += `<li>${key}: ${value_}</li>`
+            value_result = render_dict(value);
+        } else if ((typeof value === 'string') && (value.includes("\n"))) {
+            value_result = `<pre>${value}</pre>`
+        }
+
+        if (show_key) {
+            result += `<li>${key_result}: ${value_result}</li>`;
+        }else {
+            result += `<li>${value_result}</li>`;
         }
     }
 

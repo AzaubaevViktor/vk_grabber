@@ -121,6 +121,7 @@ class ListPage(BasePage):
         self._do_sort_data()
 
         info = super(ListPage, self).to_dict()
+        info['count'] = len(self.data)
         old_data = info.pop('data')[:self.MAX_PER_PAGE]
 
         info['data'] = new_data = []
