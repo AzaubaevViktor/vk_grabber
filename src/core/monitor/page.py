@@ -1,7 +1,7 @@
 """
 Реализация страницы для мониторинга
 """
-from typing import Optional, Tuple, Type, Dict, Any
+from typing import Optional, Tuple, Type, Dict, Any, Callable
 
 from core import Attribute, AttributeStorage
 from core.attribute_storage.attribute_storage import MetaAttributeStorage
@@ -66,9 +66,13 @@ class DictPage(BasePage):
 class ListPage(BasePage):
     """Страница-список"""
     TEMPLATE = 'list'
-    MAX_PER_PAGE = None  # TODO: Tests
+    MAX_PER_PAGE = None
+    MAX_ITEMS = None
 
     data = PageAttribute()
+
+    sorted_function: Callable[[Any], float]
+    SORT_DIRECTION_LARGER_TOP = True
 
     def __init__(self, id: str = None, name: str = None, **kwargs):
         super().__init__(id, name, **kwargs)
@@ -76,9 +80,20 @@ class ListPage(BasePage):
             self.data = []
 
     def append(self, sub_page: BasePage):
+        assert sub_page.id not in self.data, "Use update"
+
         self.data.append(sub_page)
-        if self.MAX_PER_PAGE and len(self.data) > self.MAX_PER_PAGE:
-            self.data.pop(0)
+
+        if self.MAX_ITEMS and len(self.data) > self.MAX_ITEMS:
+            self._do_sort_data()
+            self.data.pop(-1)
+
+    def update(self, sub_page: BasePage):
+        if sub_page.id in self:
+            item_to_remove = self[sub_page.id]
+            self.data.remove(item_to_remove)
+
+        self.append(sub_page)
 
     def __contains__(self, id_: str):
         return self[id_] is not None
@@ -89,18 +104,28 @@ class ListPage(BasePage):
                 return item
         return None
 
+    def _reverse_sorted_f(self, item):
+        return - self.sorted_function(item)
+
+    def _do_sort_data(self):
+        if getattr(self, "sorted_function", None):
+            sorted_f = self.sorted_function
+            if self.SORT_DIRECTION_LARGER_TOP:
+                sorted_f = self._reverse_sorted_f
+
+            self.data.sort(
+                key=sorted_f
+            )
+
     def to_dict(self) -> dict:
+        self._do_sort_data()
+
         info = super(ListPage, self).to_dict()
-        old_data = info.pop('data')
+        old_data = info.pop('data')[:self.MAX_PER_PAGE]
 
         info['data'] = new_data = []
 
-        if getattr(self, "sorted_function", None):
-            iter_items = (item for item in sorted(old_data, key=self.sorted_function))
-        else:
-            iter_items = old_data
-
-        for item in iter_items:
+        for item in old_data:
             if isinstance(item, BasePage):
                 new_data.append(item.to_dict())
             else:

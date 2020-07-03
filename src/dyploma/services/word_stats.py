@@ -25,16 +25,23 @@ class WordPage(DictPage):
 
 
 class WordsList(ListPage):
-    MAX_PER_PAGE = 20
+    MAX_PER_PAGE = 3
+    MAX_ITEMS = 100
 
-
-class PeaksList(ListPage):
-    pass
+    def sorted_function(self, item: WordPage):
+        return item.count
 
 
 class Peak(DictPage):
     time = PageAttribute()
     value = PageAttribute()
+
+
+class PeaksList(ListPage):
+    MAX_PER_PAGE = 4
+
+    def sorted_function(self, item: Peak):
+        return item.value
 
 
 class WordsUpdater(BaseWorkApp):
@@ -123,6 +130,9 @@ class WordsUpdater(BaseWorkApp):
         last_update = time()
 
         for word_page in self.page.data:  # type: WordPage
+            if word_page.ts is None:
+                continue
+
             max_moment, max_value = word_page.ts.max()
             word_page.max_value = float(max_value)
             word_page.avg_value = float(word_page.ts.sum() / self.DOWNLOAD_PERIOD_S * 60 * 60 * 24)

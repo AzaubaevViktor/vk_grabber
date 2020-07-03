@@ -7,24 +7,27 @@ from dyploma.services.word_stats import WordsUpdater, WordPage
 from time_series import TimeSeries
 
 
-class Compares(ListPage):
-    MAX_PER_PAGE = 5
-
-
 class ComparesResult(DictPage):
     word = PageAttribute()
     score = PageAttribute()
 
 
+class Compares(ListPage):
+    MAX_PER_PAGE = 5
+
+    def sorted_function(self, item: ComparesResult):
+        return item.score
+
+
 class WordsComparer(BaseWorkApp):
-    CYCLE_SLEEP_S = 20
+    CYCLE_SLEEP_S = 16
 
     async def formulae(self, word_source: TimeSeries, word_other: TimeSeries):
-        return abs(len(word_source) - len(word_other))
+        return abs(word_source.sum() - word_other.sum())
 
     async def main_cycle(self):
         while not self.need_stop:
-            last_update = time()
+            # last_update = time()
 
             for word_source in WordsUpdater.page.data:  # type: WordPage
                 if word_source.ts is None:
@@ -36,14 +39,15 @@ class WordsComparer(BaseWorkApp):
                     if word_source.ts is None:
                         continue
 
-                    score = await self.formulae(
+                    score = float(await self.formulae(
                         word_source.ts,
                         word_other.ts
-                    )
+                    ))
 
-                    word_source.compares_results.append(
+                    word_source.compares_results.update(
                         ComparesResult(
-                            word=word_source.name,
+                            id=f"{word_source.name}-{word_other.name}",
+                            word=word_other.name,
                             score=score
                         ))
 
