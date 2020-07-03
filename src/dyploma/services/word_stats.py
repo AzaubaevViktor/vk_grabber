@@ -1,6 +1,6 @@
 import asyncio
 from time import time
-from typing import Optional
+from typing import Optional, Dict
 
 import numpy as np
 
@@ -19,7 +19,7 @@ class WordPage(DictPage):
     avg_value = PageAttribute()
     count = PageAttribute()
     peaks: "PeaksList" = PageAttribute()
-    compares_results = PageAttribute()
+    compares_results: "Compares" = PageAttribute()
     ts: TimeSeries = Attribute(default=None)
 
 
@@ -42,9 +42,12 @@ class WordsUpdater(BaseWorkApp):
 
     MAX_WORK_WINDOW_S = 0.05
 
+    page: WordsList = None
+
     def __init__(self, ctx: AppContext):
         super().__init__(ctx)
-        self.page = WordsList('one_words', "Words")
+        assert self.__class__.page is None, "Refactor code"
+        self.__class__.page = WordsList('one_words', "Words")
         self.ctx.mon.add_page(self.page)
 
     async def main_cycle(self):
@@ -64,11 +67,11 @@ class WordsUpdater(BaseWorkApp):
                     break
                 await asyncio.sleep(min(1, (self.CYCLE_SLEEP_S - dt) / 2))
 
-    async def _do_aggregate(self):
+    async def _do_aggregate(self) -> Dict[str, int]:
         MotorWordDB_ = self.db.get_collection(Word)
         pipeline = [{"$group": {"_id": "$word", "number": {"$sum": 1}}},
                     {"$sort": {"number": -1}},
-                    {"$limit": WordsList.MAX_SIZE}]
+                    {"$limit": WordsList.MAX_PER_PAGE}]
 
         self.state = "Run aggregation"
         word_names = {}
