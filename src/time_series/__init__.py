@@ -2,7 +2,8 @@ import datetime
 from typing import Optional, Sequence, Union
 
 import numpy as np
-
+import scipy as scipy
+from scipy.signal import find_peaks
 
 InpT = Union[Sequence, np.ndarray]
 
@@ -101,6 +102,14 @@ class TimeSeries:
         ts_g = ts[start:stop:step]
 
         self_g.dist(ts_g)
+
+    def p(self, percentile: float) -> float:
+        assert 0 < percentile < 100
+        return np.percentile(self.vs, percentile)
+
+    def locals_max(self):
+        indices = find_peaks(self.vs, height=self.p(95))
+        return self.ts[indices], self.vs[indices]
 
     @staticmethod
     def _date(time_stamp):

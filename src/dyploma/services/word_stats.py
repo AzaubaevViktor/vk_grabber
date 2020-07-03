@@ -15,6 +15,7 @@ from time_series import TimeSeries
 class WordPage(DictPage):
     max_value = PageAttribute()
     max_moment = PageAttribute()
+    mediana = PageAttribute()
     avg_value = PageAttribute()
     count = PageAttribute()
     ts: TimeSeries = Attribute(default=None)
@@ -29,6 +30,8 @@ class WordsUpdater(BaseWorkApp):
     CYCLE_SLEEP_S = 10
     DOWNLOAD_PERIOD_S = 60 * 60 * 24 * 30 * 6
 
+    MAX_WORK_WINDOW_S = 0.05
+
     def __init__(self, ctx: AppContext):
         super().__init__(ctx)
         self.page = WordsList('one_words', "Words")
@@ -40,7 +43,9 @@ class WordsUpdater(BaseWorkApp):
 
             await self._update_pages(word_names)
 
-            await self._update_datetimes()
+            await self._update_data()
+
+            await self._calculate_parameters()
 
             start_sleep_time = time()
             while (dt := time() - start_sleep_time) < self.CYCLE_SLEEP_S:
@@ -79,24 +84,33 @@ class WordsUpdater(BaseWorkApp):
         word_p = []
         start_time = time() - period_s
 
-        max_work_windows_s = 0.1
         last_update = time()
         async for word in self.ctx.db.find(Word, {'word': word_name}):
             if word.date >= start_time:
                 word_p.append(word.date)
 
-            if time() - last_update > max_work_windows_s:
+            if time() - last_update > self.MAX_WORK_WINDOW_S:
                 await asyncio.sleep(0)
                 last_update = time()
 
         word_ts = np.array(word_p)
         return TimeSeries(word_name, word_ts)
 
-    async def _update_datetimes(self):
+    async def _update_data(self):
         for word_page in self.page.data:  # type: WordPage
             ts = await self._download_word(word_page.name)
-            word_page.ts = ts[::5]
+            word_page.ts = ts[::60*60*24]
+
+    async def _calculate_parameters(self):
+        last_update = time()
+
+        for word_page in self.page.data:  # type: WordPage
             max_moment, max_value = word_page.ts.max()
             word_page.max_value = float(max_value)
             word_page.avg_value = float(word_page.ts.sum() / self.DOWNLOAD_PERIOD_S * 60 * 60 * 24)
+            word_page.mediana = word_page.ts.p(50)
             word_page.max_moment = TimeSeries._date(max_moment)
+
+            if time() - last_update > self.MAX_WORK_WINDOW_S:
+                await asyncio.sleep(0)
+                last_update = time()
