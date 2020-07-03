@@ -18,7 +18,7 @@ class CorpinusManager:
         """Страница с описанием ошибки"""
         moment = PageAttribute()
         # error_class = PageAttribute()
-        text = PageAttribute()
+        trace = PageAttribute()
         args = PageAttribute()
         kwargs = PageAttribute()
 
@@ -39,7 +39,7 @@ class CorpinusManager:
                 id=f"error_{moment}",
                 name=f"Error {moment}",
                 moment=moment,
-                text=format_exc(),
+                trace=format_exc(),
                 args=tuple(str(arg) for arg in args) if args else None,
                 kwargs={k: str(v) for k, v in kwargs.items()} if kwargs else None
             )

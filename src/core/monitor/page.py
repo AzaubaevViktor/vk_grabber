@@ -31,11 +31,13 @@ class BasePage(AttributeStorage, metaclass=PageMeta):
     """Страница"""
     TEMPLATE = None
 
-    id = PageAttribute()
-    name = PageAttribute()
+    id = PageAttribute(default=None)  # add default random_id
+    name = PageAttribute(default=None)  # name the same
 
-    def __init__(self, id: str, name: str, **kwargs):
-        super().__init__(id=id, name=name, **kwargs)
+    def __init__(self, id: str = None, name: str = None, **kwargs):
+        kwargs['id'] = id
+        kwargs['name'] = name
+        super().__init__(**kwargs)
 
     def __iter__(self):
         for key, value in super(BasePage, self).__iter__():
@@ -68,7 +70,7 @@ class ListPage(BasePage):
 
     data = PageAttribute()
 
-    def __init__(self, id: str, name: str, **kwargs):
+    def __init__(self, id: str = None, name: str = None, **kwargs):
         super().__init__(id, name, **kwargs)
         if self.data is None:
             self.data = []

@@ -18,12 +18,22 @@ class WordPage(DictPage):
     mediana = PageAttribute()
     avg_value = PageAttribute()
     count = PageAttribute()
+    peaks: "PeaksList" = PageAttribute()
     ts: TimeSeries = Attribute(default=None)
 
 
 class WordsList(ListPage):
     MAX_SIZE = 20
     pass
+
+
+class PeaksList(ListPage):
+    pass
+
+
+class Peak(DictPage):
+    time = PageAttribute()
+    value = PageAttribute()
 
 
 class WordsUpdater(BaseWorkApp):
@@ -109,7 +119,12 @@ class WordsUpdater(BaseWorkApp):
             word_page.max_value = float(max_value)
             word_page.avg_value = float(word_page.ts.sum() / self.DOWNLOAD_PERIOD_S * 60 * 60 * 24)
             word_page.mediana = word_page.ts.p(50)
-            word_page.max_moment = TimeSeries._date(max_moment)
+            word_page.max_moment = TimeSeries.fmt_date(max_moment)
+
+            word_page.peaks = PeaksList()
+
+            for tm, value in word_page.ts.peaks():
+                word_page.peaks.append(Peak(time=TimeSeries.fmt_date(tm), value=value))
 
             if time() - last_update > self.MAX_WORK_WINDOW_S:
                 await asyncio.sleep(0)

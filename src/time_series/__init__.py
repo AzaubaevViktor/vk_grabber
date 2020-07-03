@@ -90,6 +90,7 @@ class TimeSeries:
         return dist
 
     def dist_grid(self, ts: "TimeSeries"):
+        """Сравнивает, предварительно приведя к одной решетке"""
         tss = np.unique(np.append(self.ts, ts.ts))
         tss.sort()
 
@@ -104,15 +105,18 @@ class TimeSeries:
         self_g.dist(ts_g)
 
     def p(self, percentile: float) -> float:
+        """Перцентиль от значений"""
         assert 0 < percentile < 100
         return np.percentile(self.vs, percentile)
 
-    def locals_max(self):
-        indices = find_peaks(self.vs, height=self.p(95))
-        return self.ts[indices], self.vs[indices]
+    def peaks(self, percentile=95):
+        """ Возвращает локальные максимумы выше перцентиля """
+        indices, _ = find_peaks(self.vs, height=self.p(percentile))
+        for ts, vs in zip(self.ts[indices], self.vs[indices]):
+            yield int(ts), float(vs)
 
     @staticmethod
-    def _date(time_stamp):
+    def fmt_date(time_stamp: int):
         return datetime.datetime.utcfromtimestamp(time_stamp).strftime('%Y-%m-%dT%H:%M:%SZ')
 
     def __len__(self):
@@ -126,7 +130,7 @@ class TimeSeries:
         to_ = self.ts.max()
 
         return f"<TimeSeries of `{self.name}` " \
-               f"[{self._date(from_)} - {self._date(to_)}] " \
+               f"[{self.fmt_date(from_)} - {self.fmt_date(to_)}] " \
                f"{len(self.ts)} items, " \
                f"∑={self.vs.sum():.2f}" \
                f">"
