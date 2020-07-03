@@ -21,6 +21,7 @@ class WordPage(DictPage):
     peaks: "PeaksList" = PageAttribute()
     compares_results: "Compares" = PageAttribute()
     ts: TimeSeries = Attribute(default=None)
+    ts_stat = PageAttribute()
 
 
 class WordsList(ListPage):
@@ -54,7 +55,7 @@ class WordsUpdater(BaseWorkApp):
         while not self.need_stop:
             word_names = await self._do_aggregate()
 
-            await self._update_pages(word_names)
+            await self._update_pages_list(word_names)
 
             await self._update_data()
 
@@ -79,7 +80,7 @@ class WordsUpdater(BaseWorkApp):
             word_names[doc['_id']] = doc['number']
         return word_names
 
-    async def _update_pages(self, word_names):
+    async def _update_pages_list(self, word_names):
         self.state = "Create page"
 
         for word_name, count in word_names.items():
@@ -111,8 +112,12 @@ class WordsUpdater(BaseWorkApp):
 
     async def _update_data(self):
         for word_page in self.page.data:  # type: WordPage
+            word_page.ts_stat = "Loading"
             ts = await self._download_word(word_page.name)
+            word_page.ts_stat = "To grid"
+            await asyncio.sleep(0)
             word_page.ts = ts[::60*60*24]
+            word_page.ts_stat = "Ready"
 
     async def _calculate_parameters(self):
         last_update = time()
