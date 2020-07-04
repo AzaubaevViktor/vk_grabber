@@ -13,7 +13,7 @@ class ComparesResult(DictPage):
 
 
 class Compares(ListPage):
-    MAX_PER_PAGE = 5
+    MAX_PER_PAGE = 2
     SORT_DIRECTION_LARGER_TOP = False
 
     def sorted_function(self, item: ComparesResult):

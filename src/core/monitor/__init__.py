@@ -9,19 +9,19 @@ import aiofiles
 from aiohttp import web
 from aiohttp.web_request import Request
 
-from core import Log
+from core import Log, Time, Attribute
 from .page import DictPage, PageAttribute, BasePage, ListPage
 
 
 class MainPage(DictPage):
     """Главная страница с основными характеристиками приложения"""
     info = PageAttribute()
-    start_time = PageAttribute()
+    start_time = Attribute()
     queries = PageAttribute(default=0)
 
     @PageAttribute.property
     def work_time(self):
-        return time() - self.start_time
+        return str(Time(self.start_time, ago=True))
 
 
 # TODO: Add server class

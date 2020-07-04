@@ -27,6 +27,8 @@ class WordPage(DictPage):
 
     @PageAttribute.property
     def max_moment(self):
+        if self.max_moment_raw is None:
+            return "?"
         return time_info(self.max_moment_raw)
 
     mediana = PageAttribute()
@@ -70,7 +72,8 @@ class WordsUpdater(BaseWorkApp):
                     'который', 'свой', 'мой',
                     'так', 'такой', 'если', 'себя',
                     'или', 'очень', 'кто', 'самый', 'тот', 'один']
-    need_words = ['поправка', 'конституция', 'путин', 'новый', 'год']
+    need_words = ['поправка', 'конституция', 'путин', 'новый', 'год',
+                  'пандемия', 'вирус', 'коронавирус']
 
     def __init__(self, ctx: AppContext):
         super().__init__(ctx)
