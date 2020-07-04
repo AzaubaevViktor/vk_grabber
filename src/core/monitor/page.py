@@ -117,6 +117,13 @@ class ListPage(BasePage):
                 key=sorted_f
             )
 
+    def from_sorted(self, index: int, default=None):
+        self._do_sort_data()
+        if index >= len(self.data):
+            return default
+        return self.data[index]
+
+
     def to_dict(self) -> dict:
         self._do_sort_data()
 

@@ -14,6 +14,7 @@ class ComparesResult(DictPage):
 
 class Compares(ListPage):
     MAX_PER_PAGE = 5
+    SORT_DIRECTION_LARGER_TOP = False
 
     def sorted_function(self, item: ComparesResult):
         return item.score
@@ -22,26 +23,44 @@ class Compares(ListPage):
 class WordsComparer(BaseWorkApp):
     CYCLE_SLEEP_S = 16
 
-    async def formulae(self, word_source: TimeSeries, word_other: TimeSeries):
-        return abs(word_source.sum() - word_other.sum())
+    INF = 10 ** 5
+
+    async def formulae(self, word_source: WordPage, word_other: WordPage):
+        # Search near last maximums
+        if word_source.peaks is None:
+            return self.INF
+        peak_source = word_source.peaks.from_sorted(0)
+        if peak_source is None:
+            return self.INF
+
+        if word_other.peaks is None:
+            return self.INF
+        peak_other = word_other.peaks.from_sorted(0)
+        if peak_other is None:
+            return self.INF
+
+        return abs(peak_source.time_raw - peak_other.time_raw) / 60 / 60 / 24
 
     async def main_cycle(self):
         while not self.need_stop:
             # last_update = time()
 
             for word_source in WordsUpdater.page.data:  # type: WordPage
-                if word_source.ts is None:
+                if word_source is None:
                     continue
                 if word_source.compares_results is None:
                     word_source.compares_results = Compares()
 
                 for word_other in WordsUpdater.page.data:  # type: WordPage
-                    if word_other.ts is None:
+                    if word_other is None:
+                        continue
+
+                    if word_other.name == word_source.name:
                         continue
 
                     score = float(await self.formulae(
-                        word_source.ts,
-                        word_other.ts
+                        word_source,
+                        word_other
                     ))
 
                     word_source.compares_results.update(

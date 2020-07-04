@@ -1,3 +1,6 @@
+from time import time
+
+
 class Time:
     """Класс для корректного отображения временных интервалов"""
     COEFS = [(1, "s"),
@@ -5,8 +8,10 @@ class Time:
              (60 * 60, "h"),
              (24 * 60 * 60, "d")]
 
-    def __init__(self, time_stamp):
+    def __init__(self, time_stamp, ago=False):
         self.time_stamp = time_stamp
+        if ago:
+            self.time_stamp = time() - self.time_stamp
 
     def __str__(self):
         for div, suf in self.COEFS[::-1]:

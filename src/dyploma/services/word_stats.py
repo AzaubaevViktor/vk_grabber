@@ -6,22 +6,32 @@ import numpy as np
 
 from app import BaseWorkApp
 from app.base import AppContext
-from core import Attribute
+from core import Attribute, Time
 from core.monitor import ListPage, DictPage, PageAttribute
 from dyploma.models import Word
 from time_series import TimeSeries
 
 
+def time_info(tm):
+    return f"{TimeSeries.fmt_date(tm)} " \
+           f"({Time(tm, ago=True)} ago)"
+
+
 class WordPage(DictPage):
+    compares_results: "Compares" = PageAttribute()
+    peaks: "PeaksList" = PageAttribute()
+    count = PageAttribute()
+    ts_stat = PageAttribute()
     max_value = PageAttribute()
-    max_moment = PageAttribute()
+    max_moment_raw = Attribute()
+
+    @PageAttribute.property
+    def max_moment(self):
+        return time_info(self.max_moment_raw)
+
     mediana = PageAttribute()
     avg_value = PageAttribute()
-    count = PageAttribute()
-    peaks: "PeaksList" = PageAttribute()
-    compares_results: "Compares" = PageAttribute()
     ts: TimeSeries = Attribute(default=None)
-    ts_stat = PageAttribute()
 
 
 class WordsList(ListPage):
@@ -33,12 +43,17 @@ class WordsList(ListPage):
 
 
 class Peak(DictPage):
-    time = PageAttribute()
+    time_raw = Attribute()
+
+    @PageAttribute.property
+    def time(self):
+        return time_info(self.time_raw)
+
     value = PageAttribute()
 
 
 class PeaksList(ListPage):
-    MAX_PER_PAGE = 4
+    MAX_PER_PAGE = 1
 
     def sorted_function(self, item: Peak):
         return item.value
@@ -54,7 +69,7 @@ class WordsUpdater(BaseWorkApp):
     except_words = ['весь', 'все', 'день',
                     'который', 'свой', 'мой',
                     'так', 'такой', 'если', 'себя',
-                    'или', 'очень', 'кто', 'самый', 'тот', ]
+                    'или', 'очень', 'кто', 'самый', 'тот', 'один']
     need_words = ['поправка', 'конституция', 'путин', 'новый', 'год']
 
     def __init__(self, ctx: AppContext):
@@ -110,16 +125,17 @@ class WordsUpdater(BaseWorkApp):
                 ))
 
     async def _download_word(self, word_name: str, period_s: Optional[int] = None):
-        self.state = f"Processing word {word_name}"
+        self.state = f"Collecting data for word {word_name}"
         period_s = period_s if period_s is not None else self.DOWNLOAD_PERIOD_S
 
         word_p = []
         start_time = time() - period_s
 
         last_update = time()
-        async for word in self.ctx.db.find(Word, {'word': word_name}):
-            if word.date >= start_time:
-                word_p.append(word.date)
+        async for word in self.ctx.db.find_raw(Word, {'word': word_name}):
+            dt = word['date']
+            if dt >= start_time:
+                word_p.append(dt)
 
             if time() - last_update > self.MAX_WORK_WINDOW_S:
                 await asyncio.sleep(0)
@@ -148,12 +164,14 @@ class WordsUpdater(BaseWorkApp):
             word_page.max_value = float(max_value)
             word_page.avg_value = float(word_page.ts.sum() / self.DOWNLOAD_PERIOD_S * 60 * 60 * 24)
             word_page.mediana = word_page.ts.p(50)
-            word_page.max_moment = TimeSeries.fmt_date(max_moment)
+            word_page.max_moment_raw = max_moment
 
             word_page.peaks = PeaksList()
 
             for tm, value in word_page.ts.peaks():
-                word_page.peaks.append(Peak(time=TimeSeries.fmt_date(tm), value=value))
+                peak = Peak(value=value)
+                word_page.peaks.append(peak)
+                peak.time_raw = tm
 
             if time() - last_update > self.MAX_WORK_WINDOW_S:
                 await asyncio.sleep(0)
