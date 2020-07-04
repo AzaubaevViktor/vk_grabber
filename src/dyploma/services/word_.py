@@ -7,6 +7,7 @@ from ._base import _ChooseModelByField
 
 class BaseWordKnife(_ChooseModelByField):
     INPUT_RETRIES = 5
+    WAIT_COEF = 3
     MODEL_CLASS = None
 
     async def process(self, post: VKPost):
