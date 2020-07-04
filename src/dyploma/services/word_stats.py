@@ -25,7 +25,7 @@ class WordPage(DictPage):
 
 
 class WordsList(ListPage):
-    MAX_PER_PAGE = 3
+    MAX_PER_PAGE = 20
     MAX_ITEMS = 100
 
     def sorted_function(self, item: WordPage):
@@ -51,6 +51,11 @@ class WordsUpdater(BaseWorkApp):
     MAX_WORK_WINDOW_S = 0.05
 
     page: WordsList = None
+    except_words = ['весь', 'все', 'день',
+                    'который', 'свой', 'мой',
+                    'так', 'такой', 'если', 'себя',
+                    'или', 'очень', 'кто', 'самый', 'тот', ]
+    need_words = ['поправка', 'конституция', 'путин', 'новый', 'год']
 
     def __init__(self, ctx: AppContext):
         super().__init__(ctx)
@@ -84,7 +89,13 @@ class WordsUpdater(BaseWorkApp):
         self.state = "Run aggregation"
         word_names = {}
         async for doc in MotorWordDB_.aggregate(pipeline):
-            word_names[doc['_id']] = doc['number']
+            name = doc['_id']
+            if name in self.except_words:
+                continue
+            word_names[name] = doc['number']
+        for name in self.need_words:
+            word_names[name] = await self.db.count(Word, {'word': name})
+
         return word_names
 
     async def _update_pages_list(self, word_names):

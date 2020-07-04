@@ -2,8 +2,9 @@ import datetime
 from typing import Optional, Sequence, Union
 
 import numpy as np
-import scipy as scipy
 from scipy.signal import find_peaks
+
+from core import Log
 
 InpT = Union[Sequence, np.ndarray]
 
@@ -15,6 +16,7 @@ class TimeSeries:
                  vs: Optional[InpT] = None
                  ):
         self.name = name
+        self.log = Log(f"TimeSeries:{name}")
         if vs is None:
             self.ts, self.vs = np.unique(ts, return_counts=True)
         else:
@@ -97,7 +99,7 @@ class TimeSeries:
         start = tss.min()
         stop = tss.max()
         step = np.percentile(np.diff(tss), 50)
-        print("Grid:", start, stop, step)
+        self.log.info("Grid:", start, stop, step)
 
         self_g = self[start:stop:step]
         ts_g = ts[start:stop:step]

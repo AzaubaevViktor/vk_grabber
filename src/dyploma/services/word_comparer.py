@@ -36,7 +36,7 @@ class WordsComparer(BaseWorkApp):
                     word_source.compares_results = Compares()
 
                 for word_other in WordsUpdater.page.data:  # type: WordPage
-                    if word_source.ts is None:
+                    if word_other.ts is None:
                         continue
 
                     score = float(await self.formulae(
