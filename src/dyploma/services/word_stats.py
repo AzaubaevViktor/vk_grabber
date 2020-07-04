@@ -22,14 +22,6 @@ class WordPage(DictPage):
     peaks: "PeaksList" = PageAttribute()
     count = PageAttribute()
     ts_stat = PageAttribute()
-    max_value = PageAttribute()
-    max_moment_raw = Attribute()
-
-    @PageAttribute.property
-    def max_moment(self):
-        if self.max_moment_raw is None:
-            return "?"
-        return time_info(self.max_moment_raw)
 
     mediana = PageAttribute()
     avg_value = PageAttribute()
@@ -55,7 +47,7 @@ class Peak(DictPage):
 
 
 class PeaksList(ListPage):
-    MAX_PER_PAGE = 1
+    MAX_PER_PAGE = 2
 
     def sorted_function(self, item: Peak):
         return item.value
@@ -163,11 +155,8 @@ class WordsUpdater(BaseWorkApp):
             if word_page.ts is None:
                 continue
 
-            max_moment, max_value = word_page.ts.max()
-            word_page.max_value = float(max_value)
             word_page.avg_value = float(word_page.ts.sum() / self.DOWNLOAD_PERIOD_S * 60 * 60 * 24)
             word_page.mediana = word_page.ts.p(50)
-            word_page.max_moment_raw = max_moment
 
             word_page.peaks = PeaksList()
 
